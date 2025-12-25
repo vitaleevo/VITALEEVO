@@ -1,0 +1,25 @@
+{
+  "pages": {
+    "/_app": []
+  },
+  "devFiles": [],
+  "polyfillFiles": [
+    "static/chunks/28923_next_dist_build_polyfills_polyfill-nomodule.js"
+  ],
+  "lowPriorityFiles": [
+    "static/development/_ssgManifest.js",
+    "static/development/_buildManifest.js"
+  ],
+  "rootMainFiles": [
+    "static/chunks/[turbopack]_browser_dev_hmr-client_hmr-client_ts_1fc9c129._.js",
+    "static/chunks/28923_next_dist_compiled_react-dom_77d80b83._.js",
+    "static/chunks/28923_next_dist_compiled_react-server-dom-turbopack_80f60893._.js",
+    "static/chunks/28923_next_dist_compiled_next-devtools_index_b40c3557.js",
+    "static/chunks/28923_next_dist_compiled_27ec8f33._.js",
+    "static/chunks/28923_next_dist_client_b4547cba._.js",
+    "static/chunks/28923_next_dist_4c9465f9._.js",
+    "static/chunks/28923_@swc_helpers_cjs_355b9596._.js",
+    "static/chunks/Documents_GitHub_VITALEEVO_a0ff3932._.js",
+    "static/chunks/turbopack-Documents_GitHub_VITALEEVO_ecf03a3e._.js"
+  ]
+}
