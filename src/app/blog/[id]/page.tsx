@@ -12,13 +12,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { id } = await params;
     const article = articles.find((a) => a.id === id);
 
-    if (!article) {
-        return { title: 'Artigo Não Encontrado' };
-    }
+    if (!article) return { title: 'Artigo Não Encontrado' };
 
     return {
-        title: `${article.title} | VitalEvo Blog`,
+        title: article.title,
         description: article.excerpt,
+        openGraph: {
+            title: `${article.title} | VitalEvo Blog`,
+            description: article.excerpt,
+            type: 'article',
+            url: `https://vitalevo.com/blog/${id}`,
+            images: [{ url: article.image }],
+        },
     };
 }
 

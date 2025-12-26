@@ -1,4 +1,10 @@
 import FeatureLayout from '@/shared/components/FeatureLayout';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Termos de Uso',
+    description: 'Leia os termos de uso do site da VitalEvo e entenda as diretrizes de navegação e utilização.',
+};
 
 export default function TermsPage() {
     return (

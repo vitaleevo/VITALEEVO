@@ -78,7 +78,7 @@ const Home: React.FC = () => {
                 {/* The Realistic Card Image */}
                 <div className="relative z-10 w-full h-full drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform-gpu rotate-[-10deg] hover:rotate-[0deg] transition-all duration-700 ease-out">
                   <img
-                    src="/hero-card.png"
+                    src="/hero-card.webp"
                     alt="VitalEvo Digital Interface"
                     className="w-full h-auto object-contain pointer-events-none"
                   />

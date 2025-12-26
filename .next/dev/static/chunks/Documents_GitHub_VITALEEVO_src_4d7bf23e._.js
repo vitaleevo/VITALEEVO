@@ -1289,7 +1289,7 @@ const Home = ()=>{
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Documents$2f$GitHub$2f$VITALEEVO$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 className: "relative z-10 w-full h-full drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform-gpu rotate-[-10deg] hover:rotate-[0deg] transition-all duration-700 ease-out",
                                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Documents$2f$GitHub$2f$VITALEEVO$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                                    src: "/hero-card.png",
+                                                    src: "/hero-card.webp",
                                                     alt: "VitalEvo Digital Interface",
                                                     className: "w-full h-auto object-contain pointer-events-none"
                                                 }, void 0, false, {

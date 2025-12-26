@@ -8,20 +8,22 @@ interface Props {
     params: { slug: string };
 }
 
-// Generate metadata for each page for SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
     const service = servicesData.find((s) => s.slug === slug);
 
-    if (!service) {
-        return {
-            title: 'Serviço Não Encontrado',
-        };
-    }
+    if (!service) return { title: 'Serviço Não Encontrado' };
 
     return {
-        title: `${service.title} | VitalEvo`,
+        title: service.title,
         description: service.subtitle,
+        openGraph: {
+            title: `${service.title} | VitalEvo`,
+            description: service.subtitle,
+            type: 'article',
+            url: `https://vitalevo.com/services/${slug}`,
+            images: [{ url: service.image }],
+        },
     };
 }
 

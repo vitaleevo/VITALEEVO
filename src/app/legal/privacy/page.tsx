@@ -1,4 +1,10 @@
 import FeatureLayout from '@/shared/components/FeatureLayout';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Política de Privacidade',
+    description: 'Conheça como a VitalEvo trata seus dados pessoais com transparência e segurança.',
+};
 
 export default function PrivacyPage() {
     return (
