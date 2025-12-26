@@ -1,11 +1,12 @@
-import FeatureLayout from "@/shared/components/FeatureLayout";
-import Contact from "@/features/contact/components/Contact";
-import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/shared/utils/seo';
+import FeatureLayout from '@/shared/components/FeatureLayout';
+import Contact from '@/features/contact/components/Contact';
 
-export const metadata: Metadata = {
-    title: 'Fale Conosco | VitalEvo',
-    description: 'Entre em contato com a VitalEvo e transforme sua visão digital em realidade.',
-};
+export const metadata = generateSEOMetadata({
+    title: 'Contacto',
+    description: 'Entre em contacto com a VitalEvo. Solicite uma consultoria gratuita para seu projeto de website, marketing digital ou branding em Angola.',
+    path: '/contact',
+});
 
 export default function ContactPage() {
     return (

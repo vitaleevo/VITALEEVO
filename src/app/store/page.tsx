@@ -1,11 +1,12 @@
-import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/shared/utils/seo';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Store from '@/features/store/components/Store';
 
-export const metadata: Metadata = {
-    title: 'Loja | VitalEvo',
-    description: 'Compre equipamentos de rede, câmeras de segurança e hardware com os melhores preços.',
-};
+export const metadata = generateSEOMetadata({
+    title: 'Loja',
+    description: 'Loja oficial VitalEvo. Câmeras de segurança, equipamentos de rede, hardware e acessórios com os melhores preços em Angola.',
+    path: '/store',
+});
 
 export default function StorePage() {
     return (

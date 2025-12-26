@@ -1,6 +1,41 @@
 {
   "version": 3,
-  "middleware": {},
-  "sortedMiddleware": [],
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge/chunks/28923_next_8b565e53._.js",
+        "server/edge/chunks/28923_@clerk_shared_dist_runtime_a5e89ac0._.js",
+        "server/edge/chunks/28923_@clerk_backend_dist_8406a852._.js",
+        "server/edge/chunks/28923_@clerk_nextjs_dist_esm_88a8c70d._.js",
+        "server/edge/chunks/28923_cookie_dist_index_c9151cf0.js",
+        "server/edge/chunks/[root-of-the-server]__f762bcbd._.js",
+        "server/edge/chunks/be063_next_dist_esm_build_templates_edge-wrapper_00ec855f.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*))(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)"
+        },
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/(api|trpc))(.*)(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/(api|trpc)(.*)"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "development",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "HqMYmAtV0C8PPlfnB/IIxo7+11bsKsep5Nc+9ytqmYc=",
+        "__NEXT_PREVIEW_MODE_ID": "f071295990f9e2d1266d05f2d91b6fbd",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "9ef8131aaf820bf90c9c8ae5506b8f9dafd1df225a3f6a3610369f5b834da431",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "04ae042c1cb5fb9cc8f9bb9839e2ac2eeced57722e3fdce730b6dbd000d47645"
+      }
+    }
+  },
+  "sortedMiddleware": [
+    "/"
+  ],
   "functions": {}
 }

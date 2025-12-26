@@ -1,11 +1,13 @@
 "use client";
 
+import { useUser, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from './Logo';
 import { View } from '@/shared/types';
 import { useTheme } from './ThemeProvider';
+import { useCart } from '@/shared/providers/CartProvider';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,6 +15,8 @@ const Navbar: React.FC = () => {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const isDarkMode = theme === 'dark';
+  const { isSignedIn, isLoaded } = useUser();
+  const { totalItems } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,8 +43,8 @@ const Navbar: React.FC = () => {
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled
-        ? 'py-2 bg-white/80 dark:bg-[#0b1120]/90 backdrop-blur-xl shadow-lg shadow-black/5 border-b border-gray-200/50 dark:border-white/5'
-        : 'py-4 bg-transparent'
+      ? 'py-2 bg-white/80 dark:bg-[#0b1120]/90 backdrop-blur-xl shadow-lg shadow-black/5 border-b border-gray-200/50 dark:border-white/5'
+      : 'py-4 bg-transparent'
       }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
@@ -59,8 +63,8 @@ const Navbar: React.FC = () => {
                   key={item.value}
                   href={item.href}
                   className={`relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${isActive(item.href)
-                      ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-md'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
+                    ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-md'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
                     }`}
                 >
                   {item.label}
@@ -78,19 +82,38 @@ const Navbar: React.FC = () => {
               className="relative p-3 rounded-xl bg-gray-100/80 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all border border-gray-200/50 dark:border-white/10 group"
             >
               <span className="material-icons-round text-xl group-hover:scale-110 transition-transform">shopping_cart</span>
-              <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-4 w-4 bg-primary text-white text-[10px] font-bold items-center justify-center">2</span>
-              </span>
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-4 w-4 bg-primary text-white text-[10px] font-bold items-center justify-center">{totalItems}</span>
+                </span>
+              )}
             </Link>
 
-            {/* Account Button */}
-            <Link
-              href="/account"
-              className="p-3 rounded-xl bg-gray-100/80 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all border border-gray-200/50 dark:border-white/10 group"
-            >
-              <span className="material-icons-round text-xl group-hover:scale-110 transition-transform">person</span>
-            </Link>
+            {/* Account / User Button */}
+            {isLoaded && (
+              <>
+                {isSignedIn ? (
+                  <div className="p-1.5 rounded-xl bg-gray-100/80 dark:bg-white/5 border border-gray-200/50 dark:border-white/10">
+                    <UserButton
+                      afterSignOutUrl="/"
+                      appearance={{
+                        elements: {
+                          avatarBox: "w-9 h-9",
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <Link
+                    href="/sign-in"
+                    className="p-3 rounded-xl bg-gray-100/80 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all border border-gray-200/50 dark:border-white/10 group"
+                  >
+                    <span className="material-icons-round text-xl group-hover:scale-110 transition-transform">person</span>
+                  </Link>
+                )}
+              </>
+            )}
 
             {/* Theme Toggle */}
             <button
@@ -116,7 +139,9 @@ const Navbar: React.FC = () => {
           <div className="lg:hidden flex items-center gap-3">
             <Link href="/cart" className="relative p-2.5 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300">
               <span className="material-icons-round">shopping_cart</span>
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary rounded-full text-white text-[10px] font-bold flex items-center justify-center">2</span>
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary rounded-full text-white text-[10px] font-bold flex items-center justify-center">{totalItems}</span>
+              )}
             </Link>
 
             <button
@@ -137,7 +162,7 @@ const Navbar: React.FC = () => {
       </div>
 
       {/* Mobile Menu */}
-      <div className={`lg:hidden absolute top-full left-0 w-full transition-all duration-500 ease-out overflow-hidden ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+      <div className={`lg:hidden absolute top-full left-0 w-full transition-all duration-500 ease-out overflow-hidden ${isOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
         }`}>
         <div className="bg-white dark:bg-[#0b1120] border-t border-gray-200 dark:border-white/5 shadow-2xl">
           <div className="max-w-7xl mx-auto px-4 py-6 space-y-2">
@@ -147,8 +172,8 @@ const Navbar: React.FC = () => {
                 href={item.href}
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-4 px-4 py-3.5 rounded-xl text-base font-semibold transition-all ${isActive(item.href)
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'
                   }`}
               >
                 <span className={`material-icons-round ${isActive(item.href) ? 'text-primary' : 'text-gray-400'}`}>{item.icon}</span>
@@ -157,14 +182,27 @@ const Navbar: React.FC = () => {
             ))}
 
             <div className="pt-4 border-t border-gray-100 dark:border-white/5 space-y-3">
-              <Link
-                href="/account"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-base font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5"
-              >
-                <span className="material-icons-round text-gray-400">person</span>
-                Minha Conta
-              </Link>
+              {isLoaded && (
+                isSignedIn ? (
+                  <Link
+                    href="/account"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-base font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5"
+                  >
+                    <span className="material-icons-round text-gray-400">person</span>
+                    Minha Conta
+                  </Link>
+                ) : (
+                  <Link
+                    href="/sign-in"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-base font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5"
+                  >
+                    <span className="material-icons-round text-gray-400">login</span>
+                    Entrar / Cadastrar
+                  </Link>
+                )
+              )}
 
               <Link
                 href="/contact"

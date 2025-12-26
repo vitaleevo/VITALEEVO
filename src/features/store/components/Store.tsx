@@ -4,9 +4,22 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { products } from '../data';
+import { useCart } from '@/shared/providers/CartProvider';
 
 const Store: React.FC = () => {
     const [activeCategory, setActiveCategory] = useState('Todos');
+    const { addItem, totalItems } = useCart();
+
+    const handleAddToCart = (e: React.MouseEvent, product: typeof products[0]) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addItem({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+        });
+    };
 
 
     const categories = ['Todos', 'Câmeras de Segurança', 'Redes & Wi-Fi', 'Hardware', 'Cabos e Conectores'];
@@ -33,16 +46,17 @@ const Store: React.FC = () => {
                         />
                     </div>
                     <div className="flex gap-2">
-                        <button className="relative flex items-center justify-center h-10 w-10 rounded-lg bg-gray-100 dark:bg-background-dark text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                        <Link href="/cart" className="relative flex items-center justify-center h-10 w-10 rounded-lg bg-gray-100 dark:bg-background-dark text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
                             <span className="material-icons-round">shopping_cart</span>
-                            <span className="absolute top-1 right-1 flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                            </span>
-                        </button>
-                        <button className="flex items-center justify-center h-10 w-10 rounded-lg bg-gray-100 dark:bg-background-dark text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                            {totalItems > 0 && (
+                                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold">
+                                    {totalItems}
+                                </span>
+                            )}
+                        </Link>
+                        <Link href="/account" className="flex items-center justify-center h-10 w-10 rounded-lg bg-gray-100 dark:bg-background-dark text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition">
                             <span className="material-icons-round">person</span>
-                        </button>
+                        </Link>
                     </div>
                 </div>
 
@@ -199,9 +213,12 @@ const Store: React.FC = () => {
                                                 {product.oldPrice && <p className="text-xs text-gray-400 line-through">Kz {product.oldPrice.toFixed(2)}</p>}
                                                 <p className="text-xl font-bold text-gray-900 dark:text-white">Kz {product.price.toFixed(2)}</p>
                                             </div>
-                                            <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors shadow-lg shadow-primary/30">
+                                            <button
+                                                onClick={(e) => handleAddToCart(e, product)}
+                                                className="flex items-center justify-center h-10 w-10 rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors shadow-lg shadow-primary/30 hover:scale-110"
+                                            >
                                                 <span className="material-icons-round">add_shopping_cart</span>
-                                            </div>
+                                            </button>
                                         </div>
                                     </div>
                                 </Link>

@@ -4,7 +4,7 @@
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
       "static/media/e8f2fbee2754df70-s.p.9b7a96b4.woff2"
     ],
-    "[project]/Documents/GitHub/VITALEEVO/src/app/about/page": [
+    "[project]/Documents/GitHub/VITALEEVO/src/app/account/orders/[id]/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
       "static/media/e8f2fbee2754df70-s.p.9b7a96b4.woff2"
     ],
@@ -16,15 +16,7 @@
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
       "static/media/e8f2fbee2754df70-s.p.9b7a96b4.woff2"
     ],
-    "[project]/Documents/GitHub/VITALEEVO/src/app/blog/page": [
-      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
-      "static/media/e8f2fbee2754df70-s.p.9b7a96b4.woff2"
-    ],
-    "[project]/Documents/GitHub/VITALEEVO/src/app/cart/page": [
-      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
-      "static/media/e8f2fbee2754df70-s.p.9b7a96b4.woff2"
-    ],
-    "[project]/Documents/GitHub/VITALEEVO/src/app/contact/page": [
+    "[project]/Documents/GitHub/VITALEEVO/src/app/account/profile/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
       "static/media/e8f2fbee2754df70-s.p.9b7a96b4.woff2"
     ],
@@ -32,19 +24,15 @@
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
       "static/media/e8f2fbee2754df70-s.p.9b7a96b4.woff2"
     ],
-    "[project]/Documents/GitHub/VITALEEVO/src/app/portfolio/[id]/page": [
+    "[project]/Documents/GitHub/VITALEEVO/src/app/sign-in/[[...sign-in]]/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
       "static/media/e8f2fbee2754df70-s.p.9b7a96b4.woff2"
     ],
-    "[project]/Documents/GitHub/VITALEEVO/src/app/portfolio/page": [
+    "[project]/Documents/GitHub/VITALEEVO/src/app/sign-up/[[...sign-up]]/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
       "static/media/e8f2fbee2754df70-s.p.9b7a96b4.woff2"
     ],
-    "[project]/Documents/GitHub/VITALEEVO/src/app/services/[slug]/page": [
-      "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
-      "static/media/e8f2fbee2754df70-s.p.9b7a96b4.woff2"
-    ],
-    "[project]/Documents/GitHub/VITALEEVO/src/app/services/page": [
+    "[project]/Documents/GitHub/VITALEEVO/src/app/store/[id]/page": [
       "static/media/83afe278b6a6bb3c-s.p.3a6ba036.woff2",
       "static/media/e8f2fbee2754df70-s.p.9b7a96b4.woff2"
     ],

@@ -1,11 +1,12 @@
-import FeatureLayout from "@/shared/components/FeatureLayout";
-import About from "@/features/about/components/About";
-import { Metadata } from 'next';
+import { generateSEOMetadata } from '@/shared/utils/seo';
+import FeatureLayout from '@/shared/components/FeatureLayout';
+import About from '@/features/about/components/About';
 
-export const metadata: Metadata = {
-    title: 'Sobre Nós | VitalEvo',
-    description: 'Conheça a VitalEvo, uma agência de tecnologia e marketing em Angola focada em resultados.',
-};
+export const metadata = generateSEOMetadata({
+    title: 'Sobre Nós',
+    description: 'Conheça a VitalEvo, a agência parceira do seu crescimento digital em Angola. Nossa missão é transformar negócios através da tecnologia.',
+    path: '/about',
+});
 
 export default function AboutPage() {
     return (
