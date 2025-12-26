@@ -1,11 +1,10 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useUser } from "@clerk/nextjs";
 
 interface CartItem {
-    id: number;
-    productId: number;
+    id: string | number;
+    productId: string | number;
     name: string;
     price: number;
     quantity: number;
@@ -14,9 +13,9 @@ interface CartItem {
 
 interface CartContextType {
     items: CartItem[];
-    addItem: (product: { id: number; name: string; price: number; image: string }, quantity?: number) => void;
-    removeItem: (productId: number) => void;
-    updateQuantity: (productId: number, quantity: number) => void;
+    addItem: (product: { id: string | number; name: string; price: number; image: string }, quantity?: number) => void;
+    removeItem: (productId: string | number) => void;
+    updateQuantity: (productId: string | number, quantity: number) => void;
     clearCart: () => void;
     totalItems: number;
     subtotal: number;
@@ -26,7 +25,6 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([]);
-    const { user } = useUser();
 
     // Load cart from localStorage on mount
     useEffect(() => {
@@ -45,7 +43,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("vitaleevo_cart", JSON.stringify(items));
     }, [items]);
 
-    const addItem = (product: { id: number; name: string; price: number; image: string }, quantity = 1) => {
+    const addItem = (product: { id: string | number; name: string; price: number; image: string }, quantity = 1) => {
         setItems((prev) => {
             const existingItem = prev.find((item) => item.productId === product.id);
 
@@ -60,7 +58,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             return [
                 ...prev,
                 {
-                    id: Date.now(),
+                    id: typeof product.id === 'string' ? product.id : Date.now(),
                     productId: product.id,
                     name: product.name,
                     price: product.price,
@@ -71,11 +69,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         });
     };
 
-    const removeItem = (productId: number) => {
+    const removeItem = (productId: string | number) => {
         setItems((prev) => prev.filter((item) => item.productId !== productId));
     };
 
-    const updateQuantity = (productId: number, quantity: number) => {
+    const updateQuantity = (productId: string | number, quantity: number) => {
         if (quantity <= 0) {
             removeItem(productId);
             return;

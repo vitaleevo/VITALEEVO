@@ -25,6 +25,10 @@ const nextConfig = {
                         key: 'Permissions-Policy',
                         value: 'camera=(), microphone=(), geolocation=()',
                     },
+                    {
+                        key: 'Content-Security-Policy',
+                        value: "img-src 'self' data: https: blob:;",
+                    },
                 ],
             },
         ];
@@ -42,6 +46,22 @@ const nextConfig = {
             {
                 protocol: 'https',
                 hostname: 'lh3.googleusercontent.com',
+            },
+            {
+                protocol: 'https',
+                hostname: '*.convex.cloud',
+            },
+            {
+                protocol: 'https',
+                hostname: 'convex.cloud',
+            },
+            {
+                protocol: 'https',
+                hostname: '*.convex.site',
+            },
+            {
+                protocol: 'https',
+                hostname: 'convex.site',
             },
         ],
         formats: ['image/avif', 'image/webp'],

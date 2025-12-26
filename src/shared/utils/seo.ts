@@ -16,17 +16,17 @@ export function generateSEOMetadata({
     const fullUrl = `${baseUrl}${path}`;
 
     return {
-        title: `${title} | VitalEvo`,
+        title: `${title} | Vitaleevo`,
         description,
         metadataBase: new URL(baseUrl),
         alternates: {
             canonical: fullUrl,
         },
         openGraph: {
-            title: `${title} | VitalEvo`,
+            title: `${title} | Vitaleevo`,
             description,
             url: fullUrl,
-            siteName: 'VitalEvo',
+            siteName: 'Vitaleevo',
             images: [
                 {
                     url: image,
@@ -40,7 +40,7 @@ export function generateSEOMetadata({
         },
         twitter: {
             card: 'summary_large_image',
-            title: `${title} | VitalEvo`,
+            title: `${title} | Vitaleevo`,
             description,
             images: [image],
         },
@@ -61,12 +61,12 @@ export function generateSEOMetadata({
 // Common metadata for all pages
 export const defaultMetadata: Metadata = {
     title: {
-        default: 'VitalEvo - Conectando Possibilidades',
-        template: '%s | VitalEvo',
+        default: 'Vitaleevo - Conectando Possibilidades',
+        template: '%s | Vitaleevo',
     },
     description: 'Transformamos marcas através de tecnologia de ponta e design estratégico em Angola. Criação de sites, marketing digital, branding e muito mais.',
     keywords: [
-        'VitalEvo',
+        'Vitaleevo',
         'Angola',
         'Luanda',
         'web design',
@@ -80,9 +80,9 @@ export const defaultMetadata: Metadata = {
         'infraestrutura TI',
         'câmeras de segurança',
     ],
-    authors: [{ name: 'VitalEvo' }],
-    creator: 'VitalEvo',
-    publisher: 'VitalEvo',
+    authors: [{ name: 'Vitaleevo' }],
+    creator: 'Vitaleevo',
+    publisher: 'Vitaleevo',
     formatDetection: {
         email: false,
         address: false,

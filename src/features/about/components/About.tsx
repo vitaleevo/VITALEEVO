@@ -16,6 +16,8 @@ import {
   Code,
   Rocket
 } from "lucide-react";
+import FeaturedProjectsSlider from '@/shared/components/FeaturedProjectsSlider';
+import FeaturedArticlesSlider from '@/shared/components/FeaturedArticlesSlider';
 
 const About: React.FC = () => {
   return (
@@ -65,7 +67,7 @@ const About: React.FC = () => {
               </div>
 
               <h1 className="font-display font-black text-4xl md:text-5xl lg:text-px leading-tight text-white mb-6">
-                Nós somos a <span className="text-primary">VitalEvo</span>.
+                Nós somos a <span className="text-primary">Vitaleevo</span>.
               </h1>
 
               <p className="text-lg text-gray-400 mb-6 leading-relaxed font-light">
@@ -130,6 +132,9 @@ const About: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Featured Projects Slider */}
+      <FeaturedProjectsSlider />
 
       {/* Focus on Angola Market */}
       <section className="py-24 bg-[#0f172a] relative overflow-hidden">
@@ -198,6 +203,9 @@ const About: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Featured Articles Slider */}
+      <FeaturedArticlesSlider />
 
       {/* Work Process Section */}
       <section className="py-24 bg-white dark:bg-[#0b1120] relative">

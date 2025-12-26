@@ -1,31 +1,46 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { projects } from '@/features/portfolio/data';
+import { fetchQuery } from "convex/nextjs";
+import { api } from "../../../../convex/_generated/api";
+import { Id } from "../../../../convex/_generated/dataModel";
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle } from "lucide-react";
 
 interface Props {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const { id } = await params;
-    const project = projects.find((p) => p.id === id);
+export async function generateMetadata(props: Props): Promise<Metadata> {
+    const params = await props.params;
+    const { id } = params;
 
-    if (!project) {
+    try {
+        const project = await fetchQuery(api.projects.getById, { id: id as Id<"projects"> });
+
+        if (!project) {
+            return { title: 'Projeto Não Encontrado' };
+        }
+
+        return {
+            title: `${project.title} | VitalEvo Portfolio`,
+            description: project.fullDescription || project.title,
+        };
+    } catch (e) {
         return { title: 'Projeto Não Encontrado' };
     }
-
-    return {
-        title: `${project.title} | VitalEvo Portfolio`,
-        description: project.fullDescription || project.title,
-    };
 }
 
-export default async function ProjectPage({ params }: Props) {
-    const { id } = await params;
-    const project = projects.find((p) => p.id === id);
+export default async function ProjectPage(props: Props) {
+    const params = await props.params;
+    const { id } = params;
+
+    let project;
+    try {
+        project = await fetchQuery(api.projects.getById, { id: id as Id<"projects"> });
+    } catch (e) {
+        notFound();
+    }
 
     if (!project) {
         notFound();
@@ -60,62 +75,93 @@ export default async function ProjectPage({ params }: Props) {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
                         {/* Main Content */}
-                        <div className="lg:col-span-2 space-y-12">
-                            <div>
-                                <h2 className="font-display font-bold text-2xl text-gray-900 dark:text-white mb-4">O Desafio</h2>
-                                <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
-                                    {project.challenge || "Descrição do desafio do projeto."}
-                                </p>
-                            </div>
+                        <div className="lg:col-span-2 space-y-16">
 
-                            <div>
-                                <h2 className="font-display font-bold text-2xl text-gray-900 dark:text-white mb-4">A Solução</h2>
-                                <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
-                                    {project.solution || "Detalhes da solução implementada."}
-                                </p>
-                            </div>
+                            {/* Rich Text Description */}
+                            {project.fullDescription && (
+                                <div className="prose prose-lg dark:prose-invert max-w-none prose-p:leading-relaxed prose-headings:font-display prose-headings:font-bold prose-img:rounded-2xl">
+                                    <div dangerouslySetInnerHTML={{ __html: project.fullDescription }} />
+                                </div>
+                            )}
 
-                            {/* Gallery Placeholders */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="aspect-video bg-gray-100 dark:bg-[#151e32] rounded-2xl"></div>
-                                <div className="aspect-video bg-gray-100 dark:bg-[#151e32] rounded-2xl"></div>
-                            </div>
+                            {/* Challenge & Solution (Legacy/Optional fields) */}
+                            {(project.challenge || project.solution) && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-8 border-t border-gray-100 dark:border-white/5">
+                                    {project.challenge && (
+                                        <div>
+                                            <h2 className="font-display font-bold text-2xl text-gray-900 dark:text-white mb-4">O Desafio</h2>
+                                            <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+                                                {project.challenge}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {project.solution && (
+                                        <div>
+                                            <h2 className="font-display font-bold text-2xl text-gray-900 dark:text-white mb-4">A Solução</h2>
+                                            <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
+                                                {project.solution}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Gallery Section */}
+                            {project.images && project.images.length > 0 && (
+                                <div className="pt-12 border-t border-gray-100 dark:border-white/5">
+                                    <h2 className="font-display font-bold text-3xl text-gray-900 dark:text-white mb-8">Galeria do Projeto</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {project.images.map((img: string, i: number) => (
+                                            <div key={i} className={`relative overflow-hidden rounded-2xl group ${i % 3 === 0 ? 'md:col-span-2 aspect-video' : 'aspect-square'}`}>
+                                                <img
+                                                    src={img}
+                                                    alt={`Gallery ${i}`}
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Sidebar Info */}
                         <div className="space-y-8">
-                            <div className="bg-gray-50 dark:bg-[#151e32] p-8 rounded-3xl border border-gray-100 dark:border-white/5">
-                                <h3 className="font-bold text-gray-900 dark:text-white mb-6">Resultados Chave</h3>
-                                <ul className="space-y-4">
-                                    {project.results ? project.results.map((res, i) => (
+                            <div className="bg-gray-50 dark:bg-[#151e32] p-8 rounded-3xl border border-gray-100 dark:border-white/5 sticky top-24">
+                                <h3 className="font-bold text-gray-900 dark:text-white mb-6 text-xl">Resultados Chave</h3>
+                                <ul className="space-y-4 mb-8">
+                                    {project.results && project.results.length > 0 ? project.results.map((res: string, i: number) => (
                                         <li key={i} className="flex items-start gap-3">
-                                            <CheckCircle className="w-5 h-5 text-green-500 mt-1" />
-                                            <span className="text-gray-600 dark:text-gray-300 text-sm font-medium">{res}</span>
+                                            <div className="mt-1 w-5 h-5 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                                                <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                                            </div>
+                                            <span className="text-gray-600 dark:text-gray-300 text-sm font-medium leading-relaxed">{res}</span>
                                         </li>
                                     )) : (
                                         <li className="text-gray-500 italic">Resultados em processamento.</li>
                                     )}
                                 </ul>
-                            </div>
 
-                            <div className="bg-gray-50 dark:bg-[#151e32] p-8 rounded-3xl border border-gray-100 dark:border-white/5">
-                                <h3 className="font-bold text-gray-900 dark:text-white mb-4">Tecnologias</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {project.tags.map(tag => (
-                                        <span key={tag} className="px-3 py-1 bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg text-sm text-gray-600 dark:text-gray-400">
-                                            {tag}
-                                        </span>
-                                    ))}
+                                <div className="border-t border-gray-200 dark:border-white/10 pt-6 mb-8">
+                                    <h3 className="font-bold text-gray-900 dark:text-white mb-4 text-sm uppercase tracking-wider">Tecnologias</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {project.tags && project.tags.map((tag: string) => (
+                                            <span key={tag} className="px-3 py-1.5 bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-400 hover:text-primary hover:border-primary/30 transition-colors">
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className="p-8 rounded-3xl bg-primary text-center text-white relative overflow-hidden">
-                                <div className="relative z-10">
-                                    <h3 className="font-bold text-xl mb-4">Gostou desse projeto?</h3>
-                                    <p className="text-sm opacity-90 mb-6">Podemos fazer algo incrível pela sua empresa também.</p>
-                                    <Link href="/contact" className="inline-block bg-white text-primary px-6 py-3 rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">
-                                        Falar Conosco
-                                    </Link>
+                                <div className="p-6 rounded-2xl bg-primary text-center text-white relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-30"></div>
+                                    <div className="relative z-10">
+                                        <h3 className="font-bold text-lg mb-2">Gostou desse projeto?</h3>
+                                        <p className="text-sm opacity-90 mb-5">Podemos fazer algo incrível pela sua empresa também.</p>
+                                        <Link href="/contact" className="inline-block w-full bg-white text-primary px-6 py-3 rounded-xl font-bold shadow-lg hover:scale-105 transition-transform">
+                                            Falar Conosco
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         </div>

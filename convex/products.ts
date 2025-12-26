@@ -16,13 +16,47 @@ export const getAll = query({
                 .withIndex("by_category", (q) => q.eq("category", category))
                 .filter((q) => q.eq(q.field("isActive"), true))
                 .collect();
+
+            // Sort in memory since we can't easily sort by creation time with category index in this setup
+            products.sort((a, b) => b._creationTime - a._creationTime);
         } else {
             products = await ctx.db
                 .query("products")
-                .withIndex("by_active", (q) => q.eq("isActive", true))
+                .filter((q) => q.eq(q.field("isActive"), true))
+                .order("desc")
                 .collect();
         }
 
+        return products;
+    },
+});
+
+// Get featured products
+export const getFeatured = query({
+    args: { limit: v.optional(v.number()) },
+    handler: async (ctx, args) => {
+        const featured = await ctx.db
+            .query("products")
+            .withIndex("by_featured", (q) => q.eq("isFeatured", true))
+            .filter((q) => q.eq(q.field("isActive"), true))
+            .collect();
+
+        if (args.limit) {
+            return featured.slice(0, args.limit);
+        }
+        return featured;
+    },
+});
+
+
+// Get all products (for admin - includes inactive)
+export const getAllAdmin = query({
+    args: {},
+    handler: async (ctx) => {
+        const products = await ctx.db
+            .query("products")
+            .order("desc")
+            .collect();
         return products;
     },
 });
@@ -59,12 +93,14 @@ export const create = mutation({
         image: v.string(),
         images: v.optional(v.array(v.string())),
         category: v.string(),
+        brand: v.optional(v.string()),
         specs: v.optional(v.array(v.object({
             label: v.string(),
             value: v.string(),
         }))),
         stock: v.number(),
         isNew: v.boolean(),
+        isFeatured: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
         const productId = await ctx.db.insert("products", {
@@ -89,9 +125,15 @@ export const update = mutation({
         oldPrice: v.optional(v.number()),
         image: v.optional(v.string()),
         category: v.optional(v.string()),
+        brand: v.optional(v.string()),
         stock: v.optional(v.number()),
         isNew: v.optional(v.boolean()),
         isActive: v.optional(v.boolean()),
+        specs: v.optional(v.array(v.object({
+            label: v.string(),
+            value: v.string(),
+        }))),
+        isFeatured: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
         const { id, ...updates } = args;

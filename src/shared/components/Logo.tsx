@@ -10,7 +10,7 @@ const Logo: React.FC<LogoProps> = ({ className = "" }) => {
     <div className={`relative ${className || 'w-40 h-10'}`}>
       <Image
         src="/logo.png"
-        alt="VitalEvo Logo"
+        alt="Vitaleevo Logo"
         fill
         sizes="(max-width: 768px) 120px, 160px"
         className="object-contain object-left"

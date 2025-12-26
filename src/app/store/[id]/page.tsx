@@ -2,11 +2,14 @@
 
 import { useState, use } from "react";
 import { notFound } from "next/navigation";
-import { products } from "@/features/store/data";
+import { useQuery } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
+import { Id } from "../../../../convex/_generated/dataModel";
 import { useCart } from "@/shared/providers/CartProvider";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import Link from "next/link";
-import { ChevronRight, Star, Minus, Plus, Check, ShoppingCart } from "lucide-react";
+import { ChevronRight, Star, Minus, Plus, Check, ShoppingCart, Loader2, Heart } from "lucide-react";
+import WishlistButton from "@/shared/components/WishlistButton";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -14,20 +17,29 @@ interface Props {
 
 export default function ProductPage({ params }: Props) {
     const { id } = use(params);
-    const productId = parseInt(id);
-    const product = products.find((p) => p.id === productId);
+    const product = useQuery(api.products.getById, { id: id as Id<"products"> });
     const { addItem } = useCart();
     const [quantity, setQuantity] = useState(1);
     const [added, setAdded] = useState(false);
 
-    if (!product) {
+    if (product === undefined) {
+        return (
+            <FeatureLayout>
+                <div className="pt-32 pb-20 bg-gray-50 dark:bg-[#0b1120] min-h-screen flex items-center justify-center">
+                    <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                </div>
+            </FeatureLayout>
+        );
+    }
+
+    if (product === null) {
         notFound();
     }
 
     const handleAddToCart = () => {
         addItem(
             {
-                id: product.id,
+                id: product._id,
                 name: product.name,
                 price: product.price,
                 image: product.image,
@@ -67,6 +79,10 @@ export default function ProductPage({ params }: Props) {
                                         Novo Lançamento
                                     </span>
                                 )}
+                                <WishlistButton
+                                    productId={product._id}
+                                    className="absolute top-6 right-6 z-10 scale-150 !bg-white dark:!bg-[#151e32] !text-gray-400 hover:!text-red-500 !border-gray-100 dark:!border-white/5 shadow-xl"
+                                />
                             </div>
                         </div>
 
@@ -81,11 +97,11 @@ export default function ProductPage({ params }: Props) {
                                     {[...Array(5)].map((_, i) => (
                                         <Star
                                             key={i}
-                                            className={`w-4 h-4 fill-current ${i < Math.floor(product.stars) ? "" : "text-gray-300 dark:text-gray-600 fill-transparent"}`}
+                                            className={`w-4 h-4 fill-current ${i < Math.floor(product.rating) ? "" : "text-gray-300 dark:text-gray-600 fill-transparent"}`}
                                         />
                                     ))}
                                 </div>
-                                <span className="text-sm text-gray-500">({product.rating} avaliações)</span>
+                                <span className="text-sm text-gray-500">({product.reviewCount || 0} avaliações)</span>
                             </div>
 
                             <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed mb-8">

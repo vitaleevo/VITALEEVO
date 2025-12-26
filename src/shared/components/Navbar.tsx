@@ -1,6 +1,5 @@
 "use client";
 
-import { useUser, UserButton } from "@clerk/nextjs";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -19,20 +18,23 @@ import {
   Store,
   Briefcase,
   FileText,
-  LogIn
+  LogOut,
+  Settings
 } from "lucide-react";
 import { View } from '@/shared/types';
 import { useTheme } from './ThemeProvider';
 import { useCart } from '@/shared/providers/CartProvider';
+import { useAuth } from '@/shared/providers/AuthProvider';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const isDarkMode = theme === 'dark';
-  const { isSignedIn, isLoaded } = useUser();
   const { totalItems } = useCart();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -41,6 +43,15 @@ const Navbar: React.FC = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClick = () => setShowUserMenu(false);
+    if (showUserMenu) {
+      document.addEventListener('click', handleClick);
+      return () => document.removeEventListener('click', handleClick);
+    }
+  }, [showUserMenu]);
 
   const menuItems = [
     { label: 'Home', icon: <HomeIcon className="w-4 h-4" />, value: View.Home, href: '/' },
@@ -106,29 +117,65 @@ const Navbar: React.FC = () => {
               )}
             </Link>
 
-            {/* Account / User Button */}
-            {isLoaded && (
-              <>
-                {isSignedIn ? (
-                  <div className="p-1.5 rounded-xl bg-gray-100/80 dark:bg-white/5 border border-gray-200/50 dark:border-white/10">
-                    <UserButton
-                      afterSignOutUrl="/"
-                      appearance={{
-                        elements: {
-                          avatarBox: "w-9 h-9",
-                        }
-                      }}
-                    />
+            {/* User Button */}
+            {isAuthenticated ? (
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowUserMenu(!showUserMenu);
+                  }}
+                  className="flex items-center gap-2 p-2 pl-3 rounded-xl bg-gray-100/80 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all border border-gray-200/50 dark:border-white/10"
+                >
+                  <span className="text-sm font-bold truncate max-w-[100px]">{user?.name?.split(' ')[0]}</span>
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">
+                    {user?.name?.charAt(0).toUpperCase()}
                   </div>
-                ) : (
-                  <Link
-                    href="/sign-in"
-                    className="p-3 rounded-xl bg-gray-100/80 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all border border-gray-200/50 dark:border-white/10 group"
-                  >
-                    <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  </Link>
+                </button>
+
+                {/* Dropdown Menu */}
+                {showUserMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-[#151e32] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 py-2 z-50">
+                    <div className="px-4 py-3 border-b border-gray-100 dark:border-white/5">
+                      <p className="font-bold text-gray-900 dark:text-white truncate">{user?.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                    </div>
+
+                    <Link
+                      href="/conta"
+                      className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                    >
+                      <User className="w-4 h-4" />
+                      Minha Conta
+                    </Link>
+
+                    {isAdmin && (
+                      <Link
+                        href="/admin"
+                        className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                      >
+                        <Settings className="w-4 h-4" />
+                        Painel Admin
+                      </Link>
+                    )}
+
+                    <button
+                      onClick={logout}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sair
+                    </button>
+                  </div>
                 )}
-              </>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="p-3 rounded-xl bg-gray-100/80 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all border border-gray-200/50 dark:border-white/10 group"
+              >
+                <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              </Link>
             )}
 
             {/* Theme Toggle */}
@@ -162,17 +209,20 @@ const Navbar: React.FC = () => {
               {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            {isLoaded && isSignedIn && (
-              <div className="p-1 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200/50 dark:border-white/5">
-                <UserButton
-                  afterSignOutUrl="/"
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-8 h-8",
-                    }
-                  }}
-                />
-              </div>
+            {isAuthenticated ? (
+              <button
+                onClick={logout}
+                className="p-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="p-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300"
+              >
+                <User className="w-5 h-5" />
+              </Link>
             )}
           </div>
         </div>

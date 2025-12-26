@@ -1,4 +1,5 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, action } from "./_generated/server";
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 
 // Generate unique order number
@@ -45,9 +46,11 @@ export const getByOrderNumber = query({
 // Create a new order
 export const create = mutation({
     args: {
-        userId: v.id("users"),
+        userId: v.optional(v.id("users")),
+        guestEmail: v.optional(v.string()),
+        guestName: v.optional(v.string()),
         items: v.array(v.object({
-            productId: v.id("products"),
+            productId: v.string(),
             name: v.string(),
             price: v.number(),
             quantity: v.number(),
@@ -62,8 +65,10 @@ export const create = mutation({
             city: v.string(),
             address: v.string(),
             reference: v.optional(v.string()),
+            nif: v.optional(v.string()),
         }),
         paymentMethod: v.string(),
+        notes: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const orderNumber = generateOrderNumber();
@@ -76,6 +81,19 @@ export const create = mutation({
             createdAt: now,
             updatedAt: now,
         });
+
+        // Add notification if it's a registered user
+        if (args.userId) {
+            await ctx.db.insert("notifications", {
+                userId: args.userId,
+                title: "Pedido Recebido! 📦",
+                message: `Seu pedido #${orderNumber} foi recebido e está aguardando confirmação de pagamento.`,
+                type: "order",
+                status: "unread",
+                metadata: { orderId: orderId, link: `/conta/pedidos/${orderId}` },
+                createdAt: now,
+            });
+        }
 
         return { orderId, orderNumber };
     },
@@ -106,6 +124,48 @@ export const updateStatus = mutation({
         }
 
         await ctx.db.patch(args.orderId, updates);
+
+        // Add notification for status change
+        const order = await ctx.db.get(args.orderId);
+        if (order && order.userId) {
+            let title = "";
+            let message = "";
+
+            switch (args.status) {
+                case "paid":
+                    title = "Pagamento Confirmado! ✅";
+                    message = `O pagamento do pedido #${order.orderNumber} foi confirmado.`;
+                    break;
+                case "processing":
+                    title = "Pedido em Preparação 🛠️";
+                    message = `Estamos preparando os itens do seu pedido #${order.orderNumber}.`;
+                    break;
+                case "shipped":
+                    title = "Pedido Enviado! 🚚";
+                    message = `Seu pedido #${order.orderNumber} já está a caminho!`;
+                    break;
+                case "delivered":
+                    title = "Pedido Entregue! 🎉";
+                    message = `O pedido #${order.orderNumber} foi entregue com sucesso.`;
+                    break;
+                case "cancelled":
+                    title = "Pedido Cancelado ⚠️";
+                    message = `O pedido #${order.orderNumber} foi cancelado.`;
+                    break;
+            }
+
+            if (title) {
+                await ctx.db.insert("notifications", {
+                    userId: order.userId,
+                    title,
+                    message,
+                    type: "order",
+                    status: "unread",
+                    metadata: { orderId: order._id, link: `/conta/pedidos/${order._id}` },
+                    createdAt: Date.now(),
+                });
+            }
+        }
     },
 });
 
@@ -142,5 +202,53 @@ export const getByStatus = query({
             .collect();
 
         return orders;
+    },
+});
+
+// Get order statistics for admin dashboard
+export const getStats = query({
+    args: {},
+    handler: async (ctx) => {
+        const orders = await ctx.db.query("orders").collect();
+        const now = Date.now();
+        const twentyFourHoursAgo = now - (24 * 60 * 60 * 1000);
+
+        const stats = {
+            totalRevenue: 0,
+            pendingOrders: 0,
+            ordersToday: 0,
+            totalOrders: orders.length,
+            recentOrders: 0,
+        };
+
+        orders.forEach(order => {
+            if (order.status !== 'cancelled') {
+                stats.totalRevenue += order.total;
+            }
+            if (order.status === 'pending') {
+                stats.pendingOrders += 1;
+            }
+            if (order.createdAt >= twentyFourHoursAgo) {
+                stats.ordersToday += 1;
+            }
+        });
+
+        return stats;
+    },
+});
+
+// Paginated orders for admin
+export const getPaginated = query({
+    args: { paginationOpts: paginationOptsValidator, status: v.optional(v.string()) },
+    handler: async (ctx, args) => {
+        let query;
+
+        if (args.status && args.status !== 'all') {
+            query = ctx.db.query("orders").withIndex("by_status", (q) => q.eq("status", args.status as any));
+        } else {
+            query = ctx.db.query("orders").order("desc");
+        }
+
+        return await query.paginate(args.paginationOpts);
     },
 });

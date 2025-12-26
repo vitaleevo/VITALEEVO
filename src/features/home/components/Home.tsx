@@ -13,6 +13,9 @@ import {
   Star,
   ChevronDown
 } from "lucide-react";
+import FeaturedProjectsSlider from '@/shared/components/FeaturedProjectsSlider';
+import FeaturedProductsSlider from '@/shared/components/FeaturedProductsSlider';
+import FeaturedArticlesSlider from '@/shared/components/FeaturedArticlesSlider';
 
 const Home: React.FC = () => {
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
@@ -170,6 +173,12 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* Featured Projects Slider */}
+      <FeaturedProjectsSlider />
+
+      {/* Featured Products Slider */}
+      <FeaturedProductsSlider />
+
       {/* Testimonials */}
       <section className="py-24 bg-gray-50 dark:bg-[#0f172a] relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -184,10 +193,9 @@ const Home: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { name: "João Silva", role: "CEO, Tech Angola", text: "A VitalEvo transformou nossa presença digital. O novo site triplicou nossos leads e a identidade visual nos colocou em outro patamar." },
-              { name: "Maria Antónia", role: "Diretora de Marketing", text: "Profissionalismo impecável. A equipe entendeu nossa visão e entregou muito além do esperado. Recomendo fortemente." },
-              { name: "Pedro Kiala", role: "Empreendedor", text: "Melhor agência em Luanda. Atendimento rápido, entrega de alta qualidade e suporte contínuo que faz a diferença." }
+            {[{ name: "João Silva", role: "CEO, Tech Angola", text: "A VitalEvo transformou nossa presença digital. O novo site triplicou nossos leads e a identidade visual nos colocou em outro patamar." },
+            { name: "Maria Antónia", role: "Diretora de Marketing", text: "Profissionalismo impecável. A equipe entendeu nossa visão e entregou muito além do esperado. Recomendo fortemente." },
+            { name: "Pedro Kiala", role: "Empreendedor", text: "Melhor agência em Luanda. Atendimento rápido, entrega de alta qualidade e suporte contínuo que faz a diferença." }
             ].map((t, i) => (
               <div key={i} className="bg-white dark:bg-[#1e293b]/50 backdrop-blur-lg p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-white/5 relative hover:-translate-y-2 transition-transform duration-500">
                 <div className="flex text-amber-400 mb-6">
@@ -206,6 +214,9 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Featured Articles Slider */}
+      <FeaturedArticlesSlider />
 
       {/* FAQ Section */}
       <section className="py-24 bg-white dark:bg-[#0b1120]">

@@ -1,35 +1,21 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-const isPublicRoute = createRouteMatcher([
-    '/',
-    '/about',
-    '/services(.*)',
-    '/portfolio(.*)',
-    '/blog(.*)',
-    '/store(.*)',
-    '/contact',
-    '/legal(.*)',
-    '/auth(.*)',
-    '/sign-in(.*)',
-    '/sign-up(.*)',
-    '/api/webhooks(.*)',
-    '/manifest.json',
-    '/robots.txt',
-]);
-
-export default clerkMiddleware(async (auth, req) => {
-    if (!isPublicRoute(req)) {
-        await auth.protect();
-    }
-});
+// Simple middleware without Clerk - all routes are public
+export function middleware(request: NextRequest) {
+    // Allow all requests to pass through
+    return NextResponse.next();
+}
 
 export const config = {
     matcher: [
-        // Skip Next.js internals and all static files
-        '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-        // Explicitly exclude manifest.json and robots.txt from middleware
-        '/((?!manifest.json|robots.txt).*)',
-        // Always run for API routes
-        '/(api|trpc)(.*)',
+        /*
+         * Match all request paths except for the ones starting with:
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * - public folder files
+         */
+        '/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|logo.png|hero-card.png|og-image.png|manifest.json|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|css|js)$).*)',
     ],
 };

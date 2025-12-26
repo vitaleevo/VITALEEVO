@@ -59,6 +59,22 @@ self.__SERVER_FILES_MANIFEST={
         {
           "protocol": "https",
           "hostname": "lh3.googleusercontent.com"
+        },
+        {
+          "protocol": "https",
+          "hostname": "*.convex.cloud"
+        },
+        {
+          "protocol": "https",
+          "hostname": "convex.cloud"
+        },
+        {
+          "protocol": "https",
+          "hostname": "*.convex.site"
+        },
+        {
+          "protocol": "https",
+          "hostname": "convex.site"
         }
       ],
       "qualities": [

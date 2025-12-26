@@ -62,7 +62,7 @@ export const products: Product[] = [
         id: 3,
         name: "Switch 8 Portas Gigabit",
         description: "Expanda sua rede cabeada com facilidade e alta performance.",
-        description_long: "Switch não gerenciável de 8 portas 10/100/1000 Mbps. Gabinete metálico robusto, ideal para expandir redes em escritórios e pequenas empresas.",
+        fullDescription: "Switch não gerenciável de 8 portas 10/100/1000 Mbps. Gabinete metálico robusto, ideal para expandir redes em escritórios e pequenas empresas.",
         price: 14990.90,
         oldPrice: null,
         rating: 15,

@@ -19,6 +19,8 @@ import {
   Shield,
   TrendingUp
 } from "lucide-react";
+import FeaturedProjectsSlider from '@/shared/components/FeaturedProjectsSlider';
+import FeaturedArticlesSlider from '@/shared/components/FeaturedArticlesSlider';
 
 const Services: React.FC = () => {
   const categories = [
@@ -112,7 +114,6 @@ const Services: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {categories.map((cat, idx) => {
-              // Map categories to slugs naively for now based on data.ts structure
               const slugMap: Record<string, string> = {
                 'Branding e Design': 'branding-design',
                 'Desenvolvimento Web': 'web-development',
@@ -156,12 +157,14 @@ const Services: React.FC = () => {
         </div>
       </section>
 
+      {/* Slide Section - Featured Projects */}
+      <FeaturedProjectsSlider />
+
       {/* Tech Stack Banner */}
       <section className="py-20 bg-[#0f172a] border-y border-white/5 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mb-10">Tecnologias que Dominamos</p>
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-70 grayscale hover:grayscale-0 transition-all duration-500">
-            {/* Disclaimer: These are text representations for icons, normally would be SVGs or Images */}
             {['React', 'Next.js', 'Node.js', 'TypeScript', 'Tailwind', 'Python', 'AWS', 'Flutter'].map((tech, i) => (
               <span key={i} className="text-2xl md:text-3xl font-black text-white/50 hover:text-white transition-colors cursor-default">{tech}</span>
             ))}
@@ -176,7 +179,7 @@ const Services: React.FC = () => {
 
             <div className="order-2 lg:order-1 relative">
               <div className="absolute -inset-4 bg-primary opacity-20 blur-3xl rounded-full"></div>
-              <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+              <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl aspect-video lg:aspect-square bg-gray-900">
                 <div className="absolute inset-0 bg-black/40 z-10"></div>
                 <img src="https://images.unsplash.com/photo-1553877606-3c6691aac949?auto=format&fit=crop&q=80&w=800" alt="Team Working" className="w-full h-full object-cover" />
 
@@ -225,6 +228,9 @@ const Services: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Slide Section - Featured Articles */}
+      <FeaturedArticlesSlider />
 
       {/* Final CTA */}
       <section className="py-24 bg-gray-50 dark:bg-[#0f172a] border-t border-gray-200 dark:border-white/5 text-center">

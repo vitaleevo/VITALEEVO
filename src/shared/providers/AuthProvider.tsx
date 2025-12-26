@@ -1,64 +1,150 @@
 "use client";
 
-import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
-import { useTheme } from "@/shared/components/ThemeProvider";
-import { ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { Id } from "../../../convex/_generated/dataModel";
 
-const clerkPtBR = {
-    signIn: {
-        start: {
-            title: "Entrar na sua conta",
-            subtitle: "Bem-vindo de volta! Faça login para continuar.",
-            actionText: "Não tem uma conta?",
-            actionLink: "Criar conta",
-        },
-    },
-    signUp: {
-        start: {
-            title: "Criar sua conta",
-            subtitle: "Junte-se a nós para ter acesso exclusivo.",
-            actionText: "Já tem uma conta?",
-            actionLink: "Fazer login",
-        },
-    },
-    userButton: {
-        action__manageAccount: "Gerenciar conta",
-        action__signOut: "Sair",
-    },
-};
+interface User {
+    _id: Id<"users">;
+    email: string;
+    name: string;
+    role: string;
+    avatarUrl?: string;
+    phone?: string;
+}
+
+interface AuthContextType {
+    user: User | null;
+    isLoading: boolean;
+    isAuthenticated: boolean;
+    isAdmin: boolean;
+    login: (email: string, password: string) => Promise<void>;
+    register: (email: string, password: string, name: string, phone?: string) => Promise<void>;
+    logout: () => void;
+    error: string | null;
+    clearError: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const AUTH_STORAGE_KEY = "vitaleevo_auth";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const { theme } = useTheme();
-    const isDark = theme === "dark";
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const loginMutation = useMutation(api.auth.login);
+    const registerMutation = useMutation(api.auth.register);
+
+    const dbUser = useQuery(api.auth.getById, user?._id ? { userId: user._id } : "skip");
+
+    // Sync with database updates
+    useEffect(() => {
+        if (dbUser) {
+            setUser(prev => {
+                if (!prev) return dbUser as any;
+                // Only update if something changed to avoid potential loops/renders
+                if (JSON.stringify(prev) !== JSON.stringify(dbUser)) {
+                    return { ...prev, ...dbUser };
+                }
+                return prev;
+            });
+        }
+    }, [dbUser]);
+
+    // Load user from localStorage on mount
+    useEffect(() => {
+        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                setUser(parsed);
+            } catch (e) {
+                localStorage.removeItem(AUTH_STORAGE_KEY);
+            }
+        }
+        setIsLoading(false);
+    }, []);
+
+    // Save user to localStorage when it changes
+    useEffect(() => {
+        if (user) {
+            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+        } else {
+            localStorage.removeItem(AUTH_STORAGE_KEY);
+        }
+    }, [user]);
+
+    const login = async (email: string, password: string) => {
+        setError(null);
+        setIsLoading(true);
+        try {
+            const result = await loginMutation({ email, password });
+            setUser({
+                _id: result.userId as Id<"users">,
+                email: result.email,
+                name: result.name,
+                role: result.role,
+                avatarUrl: result.avatarUrl,
+                phone: result.phone,
+            });
+        } catch (err: any) {
+            const message = err.message || "Erro ao fazer login";
+            setError(message);
+            throw new Error(message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const register = async (email: string, password: string, name: string, phone?: string) => {
+        setError(null);
+        setIsLoading(true);
+        try {
+            await registerMutation({ email, password, name, phone });
+            // Auto-login after registration
+            await login(email, password);
+        } catch (err: any) {
+            const message = err.message || "Erro ao criar conta";
+            setError(message);
+            throw new Error(message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const logout = () => {
+        setUser(null);
+        localStorage.removeItem(AUTH_STORAGE_KEY);
+    };
+
+    const clearError = () => setError(null);
 
     return (
-        <ClerkProvider
-            appearance={{
-                baseTheme: isDark ? dark : undefined,
-                variables: {
-                    colorPrimary: "#8625d2",
-                    colorBackground: isDark ? "#151e32" : "#ffffff",
-                    colorInputBackground: isDark ? "#0b1120" : "#f9fafb",
-                    colorInputText: isDark ? "#ffffff" : "#1f2937",
-                    borderRadius: "0.75rem",
-                },
-                elements: {
-                    formButtonPrimary:
-                        "bg-primary hover:bg-primary-dark shadow-lg shadow-primary/25",
-                    card: "shadow-xl border border-gray-100 dark:border-white/5",
-                    headerTitle: "font-display font-bold",
-                    headerSubtitle: "text-gray-500",
-                    socialButtonsBlockButton:
-                        "border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5",
-                    formFieldInput:
-                        "rounded-xl border-gray-200 dark:border-white/10 focus:border-primary focus:ring-primary",
-                    footerActionLink: "text-primary hover:text-primary-dark font-bold",
-                },
+        <AuthContext.Provider
+            value={{
+                user,
+                isLoading,
+                isAuthenticated: !!user,
+                isAdmin: user?.role === "admin",
+                login,
+                register,
+                logout,
+                error,
+                clearError,
             }}
-            localization={clerkPtBR}
         >
             {children}
-        </ClerkProvider>
+        </AuthContext.Provider>
     );
+}
+
+export function useAuth() {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error("useAuth must be used within an AuthProvider");
+    }
+    return context;
 }

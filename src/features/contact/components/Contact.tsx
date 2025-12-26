@@ -11,11 +11,13 @@ import {
   Send
 } from "lucide-react";
 
-import { useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
-import { sendContactEmail } from '@/app/actions/contact';
+import FeaturedProjectsSlider from '@/shared/components/FeaturedProjectsSlider';
 
 const Contact: React.FC = () => {
+  const settings = useQuery(api.settings.get);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,6 +31,15 @@ const Contact: React.FC = () => {
 
   const submitMessage = useMutation(api.contacts.submit);
 
+  // Default config fallback
+  const config = settings || {
+    contactEmail: 'info@vitaleevo.ao',
+    contactPhone: '+244 935 348 327',
+    whatsapp: '244935348327',
+    address: 'Bairro Benfica ao lado da dona xepa, Luanda, Angola',
+    siteName: 'Vitaleevo'
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -39,7 +50,7 @@ const Contact: React.FC = () => {
     setError(null);
 
     try {
-      // 1. Store in Convex (Database backup)
+      // 1. Store in Convex
       await submitMessage({
         name: formData.name,
         email: formData.email,
@@ -48,15 +59,12 @@ const Contact: React.FC = () => {
         message: formData.message,
       });
 
-      // 2. Email is temporarily disabled until domain is verified
-      // const result = await sendContactEmail(formData);
-
       setIsSubmitting(false);
       setIsSubmitted(true);
 
-      // 3. Direct WhatsApp Redirect
+      // 3. WhatsApp Redirect
       const whatsappMessage = `Olá! Meu nome é ${formData.name}.%0A%0AAssunto: ${formData.subject}%0A%0AMensagem: ${formData.message}`;
-      const whatsappUrl = `https://wa.me/244935348327?text=${whatsappMessage}`;
+      const whatsappUrl = `https://wa.me/${config.whatsapp}?text=${whatsappMessage}`;
 
       // Open WhatsApp automatically
       setTimeout(() => {
@@ -85,7 +93,7 @@ const Contact: React.FC = () => {
           </p>
           <div className="flex flex-col gap-4">
             <a
-              href="https://wa.me/244935348327"
+              href={`https://wa.me/${config.whatsapp}`}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
@@ -111,13 +119,13 @@ const Contact: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           <div className="space-y-10 lg:sticky lg:top-32">
             <div className="space-y-4">
-              <h4 className="text-secondary font-bold tracking-wider uppercase text-sm">VitalEvo Angola</h4>
+              <h4 className="text-secondary font-bold tracking-wider uppercase text-sm">{config.siteName} Angola</h4>
               <h1 className="font-display font-black text-4xl sm:text-6xl text-gray-900 dark:text-white leading-tight">
                 Dê vida à sua <br />
                 <span className="text-primary">Visão Digital.</span>
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-300 max-w-lg leading-relaxed">
-                Estamos localizados no coração de Benfica. Venha tomar um café conosco ou envie-nos uma mensagem agora mesmo!
+                Estamos prontos para impulsionar o seu negócio. Venha tomar um café conosco ou envie-nos uma mensagem agora mesmo!
               </p>
             </div>
 
@@ -145,9 +153,9 @@ const Contact: React.FC = () => {
 
               <div className="space-y-6">
                 {[
-                  { icon: <MapPin className="w-6 h-6" />, title: 'Localização', line1: 'Bairro Benfica ao lado da dona xepa', line2: 'Luanda, Angola' },
-                  { icon: <Mail className="w-6 h-6" />, title: 'E-mail', line1: 'info@vitaleevo.ao', line2: 'Resposta em 24h' },
-                  { icon: <Phone className="w-6 h-6" />, title: 'Contacto', line1: '+244 935 348 327', line2: '+244 959 822 513' }
+                  { icon: <MapPin className="w-6 h-6" />, title: 'Localização', line1: config.address, line2: 'Angola' },
+                  { icon: <Mail className="w-6 h-6" />, title: 'E-mail', line1: config.contactEmail, line2: 'Resposta em 24h' },
+                  { icon: <Phone className="w-6 h-6" />, title: 'Contacto', line1: config.contactPhone, line2: 'Atendimento Geral' }
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-start space-x-4 group">
                     <div className="flex-shrink-0 w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
@@ -164,7 +172,7 @@ const Contact: React.FC = () => {
 
               {/* WhatsApp CTA */}
               <a
-                href="https://wa.me/244935348327"
+                href={`https://wa.me/${config.whatsapp}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-3 w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-green-500/30 transition-all hover:-translate-y-1"
@@ -279,6 +287,11 @@ const Contact: React.FC = () => {
               Sua mensagem será enviada com segurança para nossa equipa.
             </p>
           </div>
+        </div>
+
+        {/* Featured Projects Slider */}
+        <div className="mt-24">
+          <FeaturedProjectsSlider />
         </div>
       </div>
     </div>

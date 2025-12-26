@@ -1,0 +1,1 @@
+src/app/admin/profile/page.tsx(29,22): error TS2339: Property 'phone' does not exist on type 'User'.

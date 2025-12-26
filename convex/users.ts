@@ -7,19 +7,7 @@ export const getByEmail = query({
     handler: async (ctx, args) => {
         const user = await ctx.db
             .query("users")
-            .withIndex("by_email", (q) => q.eq("email", args.email))
-            .first();
-        return user;
-    },
-});
-
-// Get user by Clerk ID
-export const getByClerkId = query({
-    args: { clerkId: v.string() },
-    handler: async (ctx, args) => {
-        const user = await ctx.db
-            .query("users")
-            .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
+            .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase()))
             .first();
         return user;
     },
@@ -29,43 +17,19 @@ export const getByClerkId = query({
 export const getById = query({
     args: { userId: v.id("users") },
     handler: async (ctx, args) => {
-        return await ctx.db.get(args.userId);
-    },
-});
+        const user = await ctx.db.get(args.userId);
+        if (!user) return null;
 
-// Create or update user (for auth sync)
-export const upsert = mutation({
-    args: {
-        clerkId: v.optional(v.string()),
-        email: v.string(),
-        name: v.string(),
-        phone: v.optional(v.string()),
-        avatarUrl: v.optional(v.string()),
-    },
-    handler: async (ctx, args) => {
-        // Check if user already exists by email
-        const existingUser = await ctx.db
-            .query("users")
-            .withIndex("by_email", (q) => q.eq("email", args.email))
-            .first();
-
-        if (existingUser) {
-            // Update existing user
-            await ctx.db.patch(existingUser._id, {
-                name: args.name,
-                phone: args.phone,
-                avatarUrl: args.avatarUrl,
-                clerkId: args.clerkId,
-            });
-            return existingUser._id;
-        } else {
-            // Create new user
-            const userId = await ctx.db.insert("users", {
-                ...args,
-                createdAt: Date.now(),
-            });
-            return userId;
-        }
+        // Don't return password hash
+        return {
+            _id: user._id,
+            email: user.email,
+            name: user.name,
+            phone: user.phone,
+            avatarUrl: user.avatarUrl,
+            role: user.role || "user",
+            createdAt: user.createdAt,
+        };
     },
 });
 
@@ -88,5 +52,54 @@ export const updateProfile = mutation({
         if (Object.keys(cleanUpdates).length > 0) {
             await ctx.db.patch(userId, cleanUpdates);
         }
+
+        return { success: true };
+    },
+});
+
+// Get all users (admin only)
+export const getAllAdmin = query({
+    args: {},
+    handler: async (ctx) => {
+        const users = await ctx.db
+            .query("users")
+            .order("desc")
+            .collect();
+
+        // Don't return password hashes
+        return users.map(user => ({
+            _id: user._id,
+            email: user.email,
+            name: user.name,
+            phone: user.phone,
+            avatarUrl: user.avatarUrl,
+            role: user.role || "user",
+            isActive: user.isActive !== false,
+            createdAt: user.createdAt,
+        }));
+    },
+});
+
+// Update user role (admin only)
+export const updateRole = mutation({
+    args: {
+        userId: v.id("users"),
+        role: v.string(),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.userId, { role: args.role });
+        return { success: true };
+    },
+});
+
+// Toggle user active status (admin only)
+export const toggleActive = mutation({
+    args: {
+        userId: v.id("users"),
+        isActive: v.boolean(),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.userId, { isActive: args.isActive });
+        return { success: true };
     },
 });

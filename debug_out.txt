@@ -1,0 +1,18 @@
+{
+  "_creationTime": 1766759522300.2632,
+  "_id": "kn78dtahf9qvcnn1yd7krrmpj97y0y49",
+  "category": "Equipamentos",
+  "createdAt": 1766759522302,
+  "description": "teclado sem fio",
+  "fullDescription": "teclado sem fioteclado sem fioteclado sem fio",
+  "image": "https://clever-roadrunner-851.convex.cloud/api/storage/kg294b4637zvrqmf6sctn3mccx7y13g8",
+  "isActive": true,
+  "isNew": true,
+  "name": "teclado",
+  "oldPrice": 20000,
+  "price": 15000,
+  "rating": 0,
+  "reviewCount": 0,
+  "slug": "teclado",
+  "stock": 50
+}

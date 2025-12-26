@@ -3,28 +3,22 @@
   "middleware": {
     "/": {
       "files": [
-        "server/edge/chunks/[root-of-the-server]__7944e3fd._.js",
-        "server/edge/chunks/28923_next_dist_esm_api_headers_36d3ac59.js",
-        "server/edge/chunks/[root-of-the-server]__d8bffc5a._.js",
-        "server/edge/chunks/28923_next_dist_11d6defc._.js",
-        "server/edge/chunks/be063_next_dist_esm_build_templates_edge-wrapper_cbc6f967.js"
+        "server/edge/chunks/28923_next_dist_esm_build_templates_edge-wrapper_c878f9ef.js",
+        "server/edge/chunks/[root-of-the-server]__a2b11c43._.js",
+        "server/edge/chunks/be063_next_dist_esm_build_templates_edge-wrapper_02bc0301.js"
       ],
       "name": "middleware",
       "page": "/",
       "matchers": [
         {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*))(\\\\.json)?[\\/#\\?]?$",
-          "originalSource": "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)"
-        },
-        {
-          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/(api|trpc))(.*)(\\\\.json)?[\\/#\\?]?$",
-          "originalSource": "/(api|trpc)(.*)"
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/((?!_next\\/static|_next\\/image|favicon.ico|icon.png|apple-icon.png|logo.png|hero-card.png|og-image.png|manifest.json|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|css|js)$).*))(\\\\.json)?[\\/#\\?]?$",
+          "originalSource": "/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|logo.png|hero-card.png|og-image.png|manifest.json|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|css|js)$).*)"
         }
       ],
       "wasm": [],
       "assets": [],
       "env": {
-        "__NEXT_BUILD_ID": "0oamnfkm6HswdTz6B5jLr",
+        "__NEXT_BUILD_ID": "7yeFPZtnjTqIkvSSmqwiz",
         "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "QOMrv5TSiMeyRfSyjR2v/pQGjMhezEyUdpKxCxuPK5Q=",
         "__NEXT_PREVIEW_MODE_ID": "694add2d186ea3d0c47788ec1ccef75a",
         "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "f18436c4b4fc9930a991e2790bfc46573c521bee19d5e19ffc722ef1dbd01d46",

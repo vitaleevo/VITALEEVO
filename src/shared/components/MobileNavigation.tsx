@@ -21,7 +21,7 @@ const MobileNavigation = () => {
         { label: 'Início', icon: Home, href: '/' },
         { label: 'Loja', icon: Store, href: '/store' },
         { label: 'Serviços', icon: Briefcase, href: '/services' },
-        { label: 'Pedidos', icon: Package, href: '/account' },
+        { label: 'Conta', icon: Package, href: '/conta' },
         { label: 'Falar', icon: MessageCircle, href: '/contact' },
     ];
 
