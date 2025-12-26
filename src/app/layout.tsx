@@ -35,7 +35,12 @@ export async function generateMetadata(
     _props: any,
     parent: ResolvingMetadata
 ): Promise<Metadata> {
-    const settings = await fetchQuery(api.settings.get);
+    let settings = null;
+    try {
+        settings = await fetchQuery(api.settings.get);
+    } catch (error) {
+        console.error("Failed to fetch settings for metadata:", error);
+    }
 
     const previousImages = (await parent).openGraph?.images || [];
     const siteName = settings?.siteName || "Vitaleevo";

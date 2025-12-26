@@ -13,26 +13,35 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
-    const article = await fetchQuery(api.articles.getBySlug, { slug });
+    try {
+        const article = await fetchQuery(api.articles.getBySlug, { slug });
+        if (!article) return { title: 'Artigo Não Encontrado' };
 
-    if (!article) return { title: 'Artigo Não Encontrado' };
-
-    return {
-        title: article.title,
-        description: article.excerpt,
-        openGraph: {
-            title: `${article.title} | VitalEvo Blog`,
+        return {
+            title: article.title,
             description: article.excerpt,
-            type: 'article',
-            url: `https://vitaleevo.ao/blog/${slug}`,
-            images: [{ url: article.image }],
-        },
-    };
+            openGraph: {
+                title: `${article.title} | Vitaleevo Blog`,
+                description: article.excerpt,
+                type: 'article',
+                url: `https://vitaleevo.ao/blog/${slug}`,
+                images: [{ url: article.image }],
+            },
+        };
+    } catch (error) {
+        console.error("Failed to fetch article metadata:", error);
+        return { title: 'Blog | Vitaleevo' };
+    }
 }
 
 export default async function ArticlePage({ params }: Props) {
     const { slug } = await params;
-    const article = await fetchQuery(api.articles.getBySlug, { slug });
+    let article = null;
+    try {
+        article = await fetchQuery(api.articles.getBySlug, { slug });
+    } catch (error) {
+        console.error("Failed to fetch article for page:", error);
+    }
 
     if (!article) {
         notFound();
