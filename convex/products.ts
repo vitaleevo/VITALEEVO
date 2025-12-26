@@ -10,9 +10,10 @@ export const getAll = query({
         let products;
 
         if (args.category && args.category !== "Todos") {
+            const category = args.category;
             products = await ctx.db
                 .query("products")
-                .withIndex("by_category", (q) => q.eq("category", args.category))
+                .withIndex("by_category", (q) => q.eq("category", category))
                 .filter((q) => q.eq(q.field("isActive"), true))
                 .collect();
         } else {
