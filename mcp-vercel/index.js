@@ -16,7 +16,7 @@ class VercelMcpServer {
         this.server = new Server(
             {
                 name: "vercel-mcp-server",
-                version: "0.2.0",
+                version: "0.3.0",
             },
             {
                 capabilities: {
@@ -79,9 +79,24 @@ class VercelMcpServer {
                     },
                 },
                 {
+                    name: "add_project_domain",
+                    title: "Add Custom Domain",
+                    description: "Add a custom domain to a Vercel project.",
+                    inputSchema: {
+                        type: "object",
+                        properties: {
+                            projectId: { type: "string", description: "The project ID or name." },
+                            domain: { type: "string", description: "The domain name (e.g., example.com)." },
+                            redirect: { type: "string", description: "Optional domain to redirect to." },
+                            teamId: { type: "string", description: "Optional team ID." }
+                        },
+                        required: ["projectId", "domain"]
+                    }
+                },
+                {
                     name: "create_deployment",
                     title: "Create New Deployment",
-                    description: "Trigger a new deployment for a project. Useful for re-deploying a branch or a specific commit.",
+                    description: "Trigger a new deployment for a project.",
                     inputSchema: {
                         type: "object",
                         properties: {
@@ -92,12 +107,12 @@ class VercelMcpServer {
                                 properties: {
                                     type: { type: "string", enum: ["github", "gitlab", "bitbucket"] },
                                     repoId: { type: "string", description: "The repository ID." },
-                                    ref: { type: "string", description: "The branch or commit hash to deploy (e.g., 'main')." }
+                                    ref: { type: "string", description: "The branch or commit hash to deploy." }
                                 },
                                 required: ["type", "repoId", "ref"]
                             },
                             teamId: { type: "string", description: "Optional team ID." },
-                            target: { type: "string", enum: ["production", "staging"], description: "The target environment (default: production)." }
+                            target: { type: "string", enum: ["production", "staging"] }
                         },
                         required: ["name"]
                     },
@@ -105,28 +120,15 @@ class VercelMcpServer {
                 {
                     name: "list_deployments",
                     title: "List Project Deployments",
-                    description: "List recent deployments for a specific Vercel project.",
+                    description: "List recent deployments for a specific project.",
                     inputSchema: {
                         type: "object",
                         properties: {
                             projectId: { type: "string", description: "The ID of the project." },
                             teamId: { type: "string", description: "Optional team ID." },
-                            limit: { type: "number", description: "Max deployments to return.", default: 10 },
+                            limit: { type: "number", default: 10 },
                         },
                         required: ["projectId"],
-                    },
-                },
-                {
-                    name: "get_deployment",
-                    title: "Get Deployment Details",
-                    description: "Retrieve details for a specific deployment.",
-                    inputSchema: {
-                        type: "object",
-                        properties: {
-                            deploymentId: { type: "string", description: "The unique ID of the deployment." },
-                            teamId: { type: "string", description: "Optional team ID." },
-                        },
-                        required: ["deploymentId"],
                     },
                 },
                 {
@@ -137,31 +139,17 @@ class VercelMcpServer {
                         type: "object",
                         properties: {
                             projectId: { type: "string", description: "The project ID." },
-                            key: { type: "string", description: "The name of the variable (e.g., API_KEY)." },
+                            key: { type: "string", description: "The name of the variable." },
                             value: { type: "string", description: "The value of the variable." },
                             type: { type: "string", enum: ["plain", "secret", "encrypted", "system"], default: "encrypted" },
                             target: {
                                 type: "array",
-                                items: { type: "string", enum: ["production", "preview", "development"] },
-                                description: "Environments where this variable will be available."
+                                items: { type: "string", enum: ["production", "preview", "development"] }
                             },
                             teamId: { type: "string", description: "Optional team ID." }
                         },
                         required: ["projectId", "key", "value", "target"]
                     }
-                },
-                {
-                    name: "list_project_env_vars",
-                    title: "List Environment Variables",
-                    description: "List all configured environment variables for a project.",
-                    inputSchema: {
-                        type: "object",
-                        properties: {
-                            projectId: { type: "string", description: "The project ID." },
-                            teamId: { type: "string", description: "Optional team ID." },
-                        },
-                        required: ["projectId"],
-                    },
                 }
             ],
         }));
@@ -189,6 +177,23 @@ class VercelMcpServer {
                         };
                     }
 
+                    case "add_project_domain": {
+                        const endpoint = args.teamId
+                            ? `/v9/projects/${args.projectId}/domains?teamId=${args.teamId}`
+                            : `/v9/projects/${args.projectId}/domains`;
+                        const body = {
+                            name: args.domain,
+                            redirect: args.redirect
+                        };
+                        const data = await this.fetchVercel(endpoint, {
+                            method: "POST",
+                            body: JSON.stringify(body)
+                        });
+                        return {
+                            content: [{ type: "text", text: `Domain '${args.domain}' added to project ${args.projectId} successfully.` }],
+                        };
+                    }
+
                     case "create_deployment": {
                         const endpoint = args.teamId ? `/v13/deployments?teamId=${args.teamId}` : "/v13/deployments";
                         const body = {
@@ -201,27 +206,7 @@ class VercelMcpServer {
                             body: JSON.stringify(body)
                         });
                         return {
-                            content: [{ type: "text", text: `Deployment created successfully!\nID: ${data.id}\nURL: ${data.url}\nStatus: ${data.status}` }],
-                        };
-                    }
-
-                    case "list_deployments": {
-                        let endpoint = `/v6/deployments?projectId=${args.projectId}`;
-                        if (args.teamId) endpoint += `&teamId=${args.teamId}`;
-                        if (args.limit) endpoint += `&limit=${args.limit}`;
-                        const data = await this.fetchVercel(endpoint);
-                        return {
-                            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
-                        };
-                    }
-
-                    case "get_deployment": {
-                        const endpoint = args.teamId
-                            ? `/v13/deployments/${args.deploymentId}?teamId=${args.teamId}`
-                            : `/v13/deployments/${args.deploymentId}`;
-                        const data = await this.fetchVercel(endpoint);
-                        return {
-                            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+                            content: [{ type: "text", text: `Deployment created successfully!\nID: ${data.id}\nURL: ${data.url}` }],
                         };
                     }
 
@@ -240,17 +225,7 @@ class VercelMcpServer {
                             body: JSON.stringify(body)
                         });
                         return {
-                            content: [{ type: "text", text: `Environment variable '${args.key}' created for project ${args.projectId}.` }],
-                        };
-                    }
-
-                    case "list_project_env_vars": {
-                        const endpoint = args.teamId
-                            ? `/v9/projects/${args.projectId}/env?teamId=${args.teamId}`
-                            : `/v9/projects/${args.projectId}/env`;
-                        const data = await this.fetchVercel(endpoint);
-                        return {
-                            content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+                            content: [{ type: "text", text: `Environment variable '${args.key}' created.` }],
                         };
                     }
 
