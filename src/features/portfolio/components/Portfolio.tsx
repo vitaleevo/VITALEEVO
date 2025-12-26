@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Project } from '@/shared/types';
 import Link from 'next/link';
+import { LayoutGrid, SearchX, ArrowRight } from "lucide-react";
 
 import { projects } from '../data';
 
@@ -27,7 +28,7 @@ const Portfolio: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-white font-medium text-sm tracking-wider uppercase shadow-lg shadow-purple-500/10 mb-8">
-            <span className="material-icons-round text-sm text-secondary">view_quilt</span>
+            <LayoutGrid className="w-4 h-4 text-secondary" />
             Nossos Trabalhos
           </div>
 
@@ -64,7 +65,7 @@ const Portfolio: React.FC = () => {
 
           {filteredProjects.length === 0 ? (
             <div className="text-center py-20">
-              <span className="material-icons-round text-6xl text-gray-300 mb-4">search_off</span>
+              <SearchX className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <p className="text-xl text-gray-500">Nenhum projeto encontrado nesta categoria.</p>
             </div>
           ) : (
@@ -83,7 +84,7 @@ const Portfolio: React.FC = () => {
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
                       <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                         <span className="bg-white text-black px-8 py-3 rounded-full font-bold flex items-center gap-2 hover:scale-105 transition-transform">
-                          Ver Detalhes <span className="material-icons-round text-sm">arrow_forward</span>
+                          Ver Detalhes <ArrowRight className="w-4 h-4" />
                         </span>
                       </div>
                     </div>

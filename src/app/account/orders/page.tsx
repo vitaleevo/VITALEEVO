@@ -2,6 +2,7 @@
 
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Link from 'next/link';
+import { ArrowLeft, ChevronRight } from "lucide-react";
 
 const mockOrders = [
     { id: 'VE-88392', date: '22 Dez 2024', status: 'Entregue', total: 18500.00, items: 2 },
@@ -18,7 +19,7 @@ export default function OrdersPage() {
 
                     <div className="flex items-center gap-4 mb-8">
                         <Link href="/account" className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors">
-                            <span className="material-icons-round text-gray-500">arrow_back</span>
+                            <ArrowLeft className="w-5 h-5 text-gray-500" />
                         </Link>
                         <h1 className="font-display font-black text-3xl text-gray-900 dark:text-white">Meus Pedidos</h1>
                     </div>
@@ -48,7 +49,7 @@ export default function OrdersPage() {
                                         <p className="font-black text-xl text-gray-900 dark:text-white">
                                             Kz {order.total.toLocaleString('pt-AO', { minimumFractionDigits: 2 })}
                                         </p>
-                                        <span className="material-icons-round text-gray-400 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+                                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary group-hover:translate-x-1 transition-all" />
                                     </div>
                                 </div>
                             </Link>

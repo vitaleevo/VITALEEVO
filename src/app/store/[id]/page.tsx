@@ -6,6 +6,7 @@ import { products } from "@/features/store/data";
 import { useCart } from "@/shared/providers/CartProvider";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import Link from "next/link";
+import { ChevronRight, Star, Minus, Plus, Check, ShoppingCart } from "lucide-react";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -46,7 +47,7 @@ export default function ProductPage({ params }: Props) {
                         <Link href="/store" className="hover:text-primary transition-colors">
                             Loja
                         </Link>
-                        <span className="material-icons-round text-xs">chevron_right</span>
+                        <ChevronRight className="w-4 h-4 text-gray-400" />
                         <span className="text-gray-900 dark:text-white font-medium truncate">
                             {product.name}
                         </span>
@@ -78,12 +79,10 @@ export default function ProductPage({ params }: Props) {
                             <div className="flex items-center gap-4 mb-6">
                                 <div className="flex items-center text-yellow-400">
                                     {[...Array(5)].map((_, i) => (
-                                        <span
+                                        <Star
                                             key={i}
-                                            className={`material-icons-round ${i < Math.floor(product.stars) ? "" : "text-gray-300 dark:text-gray-600"}`}
-                                        >
-                                            star
-                                        </span>
+                                            className={`w-4 h-4 fill-current ${i < Math.floor(product.stars) ? "" : "text-gray-300 dark:text-gray-600 fill-transparent"}`}
+                                        />
                                     ))}
                                 </div>
                                 <span className="text-sm text-gray-500">({product.rating} avaliações)</span>
@@ -137,7 +136,7 @@ export default function ProductPage({ params }: Props) {
                                             onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                             className="w-12 h-14 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 rounded-l-xl transition-colors"
                                         >
-                                            <span className="material-icons-round">remove</span>
+                                            <Minus className="w-5 h-5" />
                                         </button>
                                         <span className="w-12 text-center font-bold text-gray-900 dark:text-white text-lg">
                                             {quantity}
@@ -146,7 +145,7 @@ export default function ProductPage({ params }: Props) {
                                             onClick={() => setQuantity(quantity + 1)}
                                             className="w-12 h-14 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 rounded-r-xl transition-colors"
                                         >
-                                            <span className="material-icons-round">add</span>
+                                            <Plus className="w-5 h-5" />
                                         </button>
                                     </div>
                                     <button
@@ -159,12 +158,12 @@ export default function ProductPage({ params }: Props) {
                                     >
                                         {added ? (
                                             <>
-                                                <span className="material-icons-round">check</span>
+                                                <Check className="w-5 h-5" />
                                                 Adicionado!
                                             </>
                                         ) : (
                                             <>
-                                                <span className="material-icons-round">shopping_cart</span>
+                                                <ShoppingCart className="w-5 h-5" />
                                                 Adicionar ao Carrinho
                                             </>
                                         )}

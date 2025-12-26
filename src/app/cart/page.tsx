@@ -4,6 +4,7 @@ import { useCart } from "@/shared/providers/CartProvider";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import Link from "next/link";
 import Image from "next/image";
+import { ShoppingCart, Trash2, Minus, Plus } from "lucide-react";
 
 export default function CartPage() {
     const { items, removeItem, updateQuantity, subtotal, totalItems, clearCart } = useCart();
@@ -17,7 +18,7 @@ export default function CartPage() {
                 <div className="pt-32 pb-24 bg-gray-50 dark:bg-[#0b1120] min-h-screen">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                         <div className="w-32 h-32 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-8">
-                            <span className="material-icons-round text-6xl text-gray-400">shopping_cart</span>
+                            <ShoppingCart className="w-16 h-16 text-gray-400" />
                         </div>
                         <h1 className="font-display font-black text-3xl text-gray-900 dark:text-white mb-4">
                             Seu carrinho está vazio
@@ -47,7 +48,7 @@ export default function CartPage() {
                             onClick={clearCart}
                             className="text-red-500 hover:text-red-600 font-bold text-sm flex items-center gap-2"
                         >
-                            <span className="material-icons-round text-lg">delete</span>
+                            <Trash2 className="w-5 h-5" />
                             Limpar Carrinho
                         </button>
                     </div>
@@ -80,7 +81,7 @@ export default function CartPage() {
                                                     onClick={() => updateQuantity(item.productId, item.quantity - 1)}
                                                     className="w-10 h-10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 rounded-l-lg transition-colors"
                                                 >
-                                                    <span className="material-icons-round">remove</span>
+                                                    <Minus className="w-5 h-5" />
                                                 </button>
                                                 <span className="w-12 text-center font-bold text-gray-900 dark:text-white">
                                                     {item.quantity}
@@ -89,14 +90,14 @@ export default function CartPage() {
                                                     onClick={() => updateQuantity(item.productId, item.quantity + 1)}
                                                     className="w-10 h-10 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 rounded-r-lg transition-colors"
                                                 >
-                                                    <span className="material-icons-round">add</span>
+                                                    <Plus className="w-5 h-5" />
                                                 </button>
                                             </div>
                                             <button
                                                 onClick={() => removeItem(item.productId)}
                                                 className="text-red-500 hover:text-red-600 transition-colors"
                                             >
-                                                <span className="material-icons-round">delete_outline</span>
+                                                <Trash2 className="w-5 h-5" />
                                             </button>
                                         </div>
                                     </div>

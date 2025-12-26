@@ -2,6 +2,17 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import {
+    AlertTriangle,
+    Minus,
+    Plus,
+    Trash2,
+    ArrowLeft,
+    ArrowRight,
+    Lock,
+    ShieldCheck,
+    CreditCard
+} from "lucide-react";
 
 const Cart: React.FC = () => {
     // Mock Cart Data
@@ -111,7 +122,7 @@ const Cart: React.FC = () => {
                                         <h3 className="font-bold text-lg text-gray-900 dark:text-white">{item.name}</h3>
                                         {item.isLowStock ? (
                                             <p className="text-sm text-yellow-500 flex items-center gap-1 font-medium">
-                                                <span className="material-icons-round text-[16px]">warning</span>
+                                                <AlertTriangle className="w-4 h-4" />
                                                 Estoque Baixo
                                             </p>
                                         ) : (
@@ -125,7 +136,7 @@ const Cart: React.FC = () => {
                                                 onClick={() => updateQuantity(item.id, -1)}
                                                 className="flex h-8 w-8 items-center justify-center text-gray-500 hover:text-primary transition-colors"
                                             >
-                                                <span className="material-icons-round text-[18px]">remove</span>
+                                                <Minus className="w-4 h-4" />
                                             </button>
                                             <input
                                                 className="w-12 bg-transparent text-center text-sm font-medium focus:outline-none border-none p-0 text-gray-900 dark:text-white"
@@ -137,7 +148,7 @@ const Cart: React.FC = () => {
                                                 onClick={() => updateQuantity(item.id, 1)}
                                                 className="flex h-8 w-8 items-center justify-center text-gray-500 hover:text-primary transition-colors"
                                             >
-                                                <span className="material-icons-round text-[18px]">add</span>
+                                                <Plus className="w-4 h-4" />
                                             </button>
                                         </div>
                                         <div className="text-right">
@@ -149,7 +160,7 @@ const Cart: React.FC = () => {
                                                 onClick={() => removeItem(item.id)}
                                                 className="text-xs text-red-500 hover:text-red-600 hover:underline flex items-center justify-end gap-1 mt-1 ml-auto"
                                             >
-                                                <span className="material-icons-round text-[14px]">delete</span>
+                                                <Trash2 className="w-3.5 h-3.5" />
                                                 Remover
                                             </button>
                                         </div>
@@ -161,7 +172,7 @@ const Cart: React.FC = () => {
                         {/* Back Button */}
                         <div className="pt-4">
                             <Link href="/store" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-primary transition-colors">
-                                <span className="material-icons-round text-[18px]">arrow_back</span>
+                                <ArrowLeft className="w-4 h-4" />
                                 Continuar Comprando
                             </Link>
                         </div>
@@ -208,7 +219,7 @@ const Cart: React.FC = () => {
 
                                     <button className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-4 text-base font-bold text-white hover:bg-primary-dark active:scale-[0.98] transition-all shadow-[0_4px_14px_0_rgba(19,236,91,0.39)]">
                                         Ir para Pagamento
-                                        <span className="material-icons-round">arrow_forward</span>
+                                        <ArrowRight className="w-5 h-5" />
                                     </button>
                                 </div>
 
@@ -216,9 +227,9 @@ const Cart: React.FC = () => {
                                 <div className="mt-6 flex flex-col gap-3 text-center">
                                     <p className="text-xs text-gray-400 dark:text-gray-500">Pagamento Seguro via VitalEvo Pay</p>
                                     <div className="flex justify-center gap-4 text-gray-300 dark:text-gray-600">
-                                        <span className="material-icons-round text-[24px]">lock</span>
-                                        <span className="material-icons-round text-[24px]">verified_user</span>
-                                        <span className="material-icons-round text-[24px]">credit_card</span>
+                                        <Lock className="w-6 h-6" />
+                                        <ShieldCheck className="w-6 h-6" />
+                                        <CreditCard className="w-6 h-6" />
                                     </div>
                                 </div>
                             </div>

@@ -14,6 +14,12 @@
           "exportedName": "collectKeylessMetadata",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
         },
+        "app/account/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/account/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
         "app/blog/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/blog/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -22,6 +28,12 @@
         },
         "app/cart/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/cart/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/contact/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/contact/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "collectKeylessMetadata",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
@@ -44,6 +56,24 @@
           "exportedName": "collectKeylessMetadata",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
         },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/sign-up/[[...sign-up]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-up/[[...sign-up]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/store/[id]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "collectKeylessMetadata",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
         "app/store/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -54,11 +84,16 @@
       "layer": {
         "app/_not-found/page": "rsc",
         "app/about/page": "rsc",
+        "app/account/page": "rsc",
         "app/blog/page": "rsc",
         "app/cart/page": "rsc",
+        "app/contact/page": "rsc",
         "app/page": "rsc",
         "app/portfolio/page": "rsc",
         "app/services/page": "rsc",
+        "app/sign-in/[[...sign-in]]/page": "rsc",
+        "app/sign-up/[[...sign-up]]/page": "rsc",
+        "app/store/[id]/page": "rsc",
         "app/store/page": "rsc"
       },
       "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js",
@@ -78,6 +113,12 @@
           "exportedName": "formatMetadataHeaders",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
         },
+        "app/account/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/account/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
         "app/blog/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/blog/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -86,6 +127,12 @@
         },
         "app/cart/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/cart/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/contact/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/contact/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "formatMetadataHeaders",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
@@ -108,6 +155,24 @@
           "exportedName": "formatMetadataHeaders",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
         },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/sign-up/[[...sign-up]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-up/[[...sign-up]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
+        "app/store/[id]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "formatMetadataHeaders",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js"
+        },
         "app/store/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -118,11 +183,16 @@
       "layer": {
         "app/_not-found/page": "rsc",
         "app/about/page": "rsc",
+        "app/account/page": "rsc",
         "app/blog/page": "rsc",
         "app/cart/page": "rsc",
+        "app/contact/page": "rsc",
         "app/page": "rsc",
         "app/portfolio/page": "rsc",
         "app/services/page": "rsc",
+        "app/sign-in/[[...sign-in]]/page": "rsc",
+        "app/sign-up/[[...sign-up]]/page": "rsc",
+        "app/store/[id]/page": "rsc",
         "app/store/page": "rsc"
       },
       "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js",
@@ -142,6 +212,12 @@
           "exportedName": "deleteKeylessAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         },
+        "app/account/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/account/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
         "app/blog/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/blog/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -150,6 +226,12 @@
         },
         "app/cart/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/cart/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/contact/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/contact/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "deleteKeylessAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
@@ -172,6 +254,24 @@
           "exportedName": "deleteKeylessAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/sign-up/[[...sign-up]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-up/[[...sign-up]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/store/[id]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "deleteKeylessAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
         "app/store/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -182,11 +282,16 @@
       "layer": {
         "app/_not-found/page": "action-browser",
         "app/about/page": "action-browser",
+        "app/account/page": "action-browser",
         "app/blog/page": "action-browser",
         "app/cart/page": "action-browser",
+        "app/contact/page": "action-browser",
         "app/page": "action-browser",
         "app/portfolio/page": "action-browser",
         "app/services/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser",
+        "app/sign-up/[[...sign-up]]/page": "action-browser",
+        "app/store/[id]/page": "action-browser",
         "app/store/page": "action-browser"
       },
       "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
@@ -206,6 +311,12 @@
           "exportedName": "createOrReadKeylessAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         },
+        "app/account/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/account/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
         "app/blog/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/blog/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -214,6 +325,12 @@
         },
         "app/cart/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/cart/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/contact/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/contact/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "createOrReadKeylessAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
@@ -236,6 +353,24 @@
           "exportedName": "createOrReadKeylessAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/sign-up/[[...sign-up]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-up/[[...sign-up]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/store/[id]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
         "app/store/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -246,11 +381,16 @@
       "layer": {
         "app/_not-found/page": "action-browser",
         "app/about/page": "action-browser",
+        "app/account/page": "action-browser",
         "app/blog/page": "action-browser",
         "app/cart/page": "action-browser",
+        "app/contact/page": "action-browser",
         "app/page": "action-browser",
         "app/portfolio/page": "action-browser",
         "app/services/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser",
+        "app/sign-up/[[...sign-up]]/page": "action-browser",
+        "app/store/[id]/page": "action-browser",
         "app/store/page": "action-browser"
       },
       "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
@@ -270,6 +410,12 @@
           "exportedName": "detectKeylessEnvDriftAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         },
+        "app/account/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/account/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
         "app/blog/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/blog/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -278,6 +424,12 @@
         },
         "app/cart/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/cart/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/contact/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/contact/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "detectKeylessEnvDriftAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
@@ -300,6 +452,24 @@
           "exportedName": "detectKeylessEnvDriftAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/sign-up/[[...sign-up]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-up/[[...sign-up]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/store/[id]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
         "app/store/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -310,11 +480,16 @@
       "layer": {
         "app/_not-found/page": "action-browser",
         "app/about/page": "action-browser",
+        "app/account/page": "action-browser",
         "app/blog/page": "action-browser",
         "app/cart/page": "action-browser",
+        "app/contact/page": "action-browser",
         "app/page": "action-browser",
         "app/portfolio/page": "action-browser",
         "app/services/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser",
+        "app/sign-up/[[...sign-up]]/page": "action-browser",
+        "app/store/[id]/page": "action-browser",
         "app/store/page": "action-browser"
       },
       "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
@@ -334,6 +509,12 @@
           "exportedName": "syncKeylessConfigAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         },
+        "app/account/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/account/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
         "app/blog/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/blog/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -342,6 +523,12 @@
         },
         "app/cart/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/cart/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/contact/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/contact/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "syncKeylessConfigAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
@@ -364,6 +551,24 @@
           "exportedName": "syncKeylessConfigAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
         },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/sign-up/[[...sign-up]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-up/[[...sign-up]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/store/[id]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "syncKeylessConfigAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
         "app/store/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -374,11 +579,16 @@
       "layer": {
         "app/_not-found/page": "action-browser",
         "app/about/page": "action-browser",
+        "app/account/page": "action-browser",
         "app/blog/page": "action-browser",
         "app/cart/page": "action-browser",
+        "app/contact/page": "action-browser",
         "app/page": "action-browser",
         "app/portfolio/page": "action-browser",
         "app/services/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser",
+        "app/sign-up/[[...sign-up]]/page": "action-browser",
+        "app/store/[id]/page": "action-browser",
         "app/store/page": "action-browser"
       },
       "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
@@ -398,6 +608,12 @@
           "exportedName": "invalidateCacheAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
         },
+        "app/account/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/account/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
         "app/blog/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/blog/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -406,6 +622,12 @@
         },
         "app/cart/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/cart/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/contact/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/contact/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "invalidateCacheAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
@@ -428,6 +650,24 @@
           "exportedName": "invalidateCacheAction",
           "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
         },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-in/[[...sign-in]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/sign-up/[[...sign-up]]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/sign-up/[[...sign-up]]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/store/[id]/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
         "app/store/page": {
           "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/store/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/server/keyless-custom-headers.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -438,11 +678,16 @@
       "layer": {
         "app/_not-found/page": "action-browser",
         "app/about/page": "action-browser",
+        "app/account/page": "action-browser",
         "app/blog/page": "action-browser",
         "app/cart/page": "action-browser",
+        "app/contact/page": "action-browser",
         "app/page": "action-browser",
         "app/portfolio/page": "action-browser",
         "app/services/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser",
+        "app/sign-up/[[...sign-up]]/page": "action-browser",
+        "app/store/[id]/page": "action-browser",
         "app/store/page": "action-browser"
       },
       "filename": "Documents/GitHub/VITALEEVO/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js",

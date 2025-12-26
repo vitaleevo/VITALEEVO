@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { articles } from '@/features/blog/data';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Link from 'next/link';
+import { ArrowLeft } from "lucide-react";
 
 interface Props {
     params: { id: string };
@@ -43,7 +44,7 @@ export default async function ArticlePage({ params }: Props) {
                     {/* Header */}
                     <div className="text-center mb-12">
                         <Link href="/blog" className="inline-flex items-center gap-2 text-primary font-bold uppercase tracking-wider text-xs mb-6 hover:underline">
-                            <span className="material-icons-round text-sm">arrow_back</span>
+                            <ArrowLeft className="w-4 h-4" />
                             Voltar para o Blog
                         </Link>
 

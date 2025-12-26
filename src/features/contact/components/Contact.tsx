@@ -1,16 +1,33 @@
 "use client";
 
 import React, { useState } from 'react';
+import {
+  CheckCircle,
+  Clock,
+  MapPin,
+  Mail,
+  Phone,
+  RefreshCw,
+  Send
+} from "lucide-react";
+
+import { useMutation } from 'convex/react';
+import { api } from '../../../../convex/_generated/api';
+import { sendContactEmail } from '@/app/actions/contact';
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     phone: '',
     subject: 'Criação de Website',
     message: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submitMessage = useMutation(api.contacts.submit);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -19,21 +36,38 @@ const Contact: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
-    // Simulate API call (replace with actual Convex mutation when ready)
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // 1. Store in Convex (Database backup)
+      await submitMessage({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        subject: formData.subject,
+        message: formData.message,
+      });
 
-    // For now, open WhatsApp with the message
-    const whatsappMessage = `Olá! Meu nome é ${formData.name}.%0A%0AAssunto: ${formData.subject}%0A%0A${formData.message}`;
-    const whatsappUrl = `https://wa.me/244935348327?text=${whatsappMessage}`;
+      // 2. Email is temporarily disabled until domain is verified
+      // const result = await sendContactEmail(formData);
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+      setIsSubmitting(false);
+      setIsSubmitted(true);
 
-    // Open WhatsApp after a small delay
-    setTimeout(() => {
-      window.open(whatsappUrl, '_blank');
-    }, 500);
+      // 3. Direct WhatsApp Redirect
+      const whatsappMessage = `Olá! Meu nome é ${formData.name}.%0A%0AAssunto: ${formData.subject}%0A%0AMensagem: ${formData.message}`;
+      const whatsappUrl = `https://wa.me/244935348327?text=${whatsappMessage}`;
+
+      // Open WhatsApp automatically
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+      }, 800);
+
+    } catch (err: any) {
+      console.error("Form submission error:", err);
+      setError("Ocorreu um erro ao processar. Por favor, tente falar diretamente pelo WhatsApp.");
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {
@@ -41,20 +75,30 @@ const Contact: React.FC = () => {
       <div className="pt-28 pb-20 min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
           <div className="w-24 h-24 bg-green-100 dark:bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">
-            <span className="material-icons-round text-5xl text-green-500">check_circle</span>
+            <CheckCircle className="w-12 h-12 text-green-500" />
           </div>
           <h1 className="font-display font-black text-3xl text-gray-900 dark:text-white mb-4">
-            Mensagem Enviada!
+            Mensagem Recebida!
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-8">
-            Obrigado pelo contato! Responderemos em até 24 horas. Você também pode continuar a conversa pelo WhatsApp.
+            Obrigado pelo contacto! A sua mensagem foi guardada. Estamos a redirecioná-lo para o WhatsApp para um atendimento imediato.
           </p>
-          <button
-            onClick={() => setIsSubmitted(false)}
-            className="bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded-xl font-bold transition-all"
-          >
-            Enviar Nova Mensagem
-          </button>
+          <div className="flex flex-col gap-4">
+            <a
+              href="https://wa.me/244935348327"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+            >
+              Abrir WhatsApp Novamente
+            </a>
+            <button
+              onClick={() => setIsSubmitted(false)}
+              className="text-gray-500 hover:text-gray-700 font-semibold"
+            >
+              Enviar Nova Mensagem
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -80,7 +124,7 @@ const Contact: React.FC = () => {
             <div className="space-y-8">
               <div className="bg-gray-50 dark:bg-gray-800/50 p-6 rounded-2xl border border-gray-100 dark:border-gray-800">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                  <span className="material-icons-round text-secondary">schedule</span>
+                  <Clock className="w-5 h-5 text-secondary" />
                   Horário de Funcionamento
                 </h3>
                 <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
@@ -101,13 +145,13 @@ const Contact: React.FC = () => {
 
               <div className="space-y-6">
                 {[
-                  { icon: 'location_on', title: 'Localização', line1: 'Bairro Benfica ao lado da dona xepa', line2: 'Luanda, Angola' },
-                  { icon: 'email', title: 'E-mail', line1: 'info@vitaleevo.ao', line2: 'Resposta em 24h' },
-                  { icon: 'phone', title: 'Contacto', line1: '+244 935 348 327', line2: '+244 959 822 513' }
+                  { icon: <MapPin className="w-6 h-6" />, title: 'Localização', line1: 'Bairro Benfica ao lado da dona xepa', line2: 'Luanda, Angola' },
+                  { icon: <Mail className="w-6 h-6" />, title: 'E-mail', line1: 'info@vitaleevo.ao', line2: 'Resposta em 24h' },
+                  { icon: <Phone className="w-6 h-6" />, title: 'Contacto', line1: '+244 935 348 327', line2: '+244 959 822 513' }
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-start space-x-4 group">
                     <div className="flex-shrink-0 w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                      <span className="material-icons-round">{item.icon}</span>
+                      {item.icon}
                     </div>
                     <div>
                       <h3 className="font-bold text-gray-900 dark:text-white text-lg">{item.title}</h3>
@@ -136,6 +180,13 @@ const Contact: React.FC = () => {
           <div className="bg-surface-light dark:bg-surface-dark p-8 md:p-12 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-2 bg-primary"></div>
             <h2 className="font-display font-bold text-2xl text-gray-900 dark:text-white mb-8">Solicitar Consultoria Gratuita</h2>
+
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm border border-red-100 dark:border-red-900/30">
+                {error}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -150,7 +201,21 @@ const Contact: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Seu WhatsApp</label>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Seu Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full h-14 px-5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-800 focus:border-primary focus:ring-1 focus:ring-primary outline-none text-gray-900 dark:text-white transition-all"
+                    placeholder="lucas@exemplo.com"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">WhatsApp / Telefone</label>
                   <input
                     name="phone"
                     value={formData.phone}
@@ -160,24 +225,24 @@ const Contact: React.FC = () => {
                     placeholder="+244 ..."
                   />
                 </div>
-              </div>
-              <div>
-                <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Assunto do Projecto</label>
-                <select
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  className="w-full h-14 px-5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-800 focus:border-primary focus:ring-1 focus:ring-primary outline-none text-gray-900 dark:text-white transition-all"
-                >
-                  <option>Criação de Website</option>
-                  <option>Design & Branding</option>
-                  <option>Marketing Digital (Tráfego)</option>
-                  <option>Gestão de Redes Sociais</option>
-                  <option>Consultoria de TI</option>
-                  <option>Infraestrutura e Segurança</option>
-                  <option>Compra de Equipamentos</option>
-                  <option>Outro</option>
-                </select>
+                <div>
+                  <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Assunto do Projecto</label>
+                  <select
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    className="w-full h-14 px-5 rounded-xl bg-gray-50 dark:bg-background-dark border border-gray-200 dark:border-gray-800 focus:border-primary focus:ring-1 focus:ring-primary outline-none text-gray-900 dark:text-white transition-all"
+                  >
+                    <option>Criação de Website</option>
+                    <option>Design & Branding</option>
+                    <option>Marketing Digital (Tráfego)</option>
+                    <option>Gestão de Redes Sociais</option>
+                    <option>Consultoria de TI</option>
+                    <option>Infraestrutura e Segurança</option>
+                    <option>Compra de Equipamentos</option>
+                    <option>Outro</option>
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Descreva sua Necessidade</label>
@@ -198,12 +263,12 @@ const Contact: React.FC = () => {
               >
                 {isSubmitting ? (
                   <>
-                    <span className="animate-spin material-icons-round">refresh</span>
+                    <RefreshCw className="w-5 h-5 animate-spin" />
                     Enviando...
                   </>
                 ) : (
                   <>
-                    <span className="material-icons-round">send</span>
+                    <Send className="w-5 h-5" />
                     Enviar Proposta
                   </>
                 )}
@@ -211,7 +276,7 @@ const Contact: React.FC = () => {
             </form>
 
             <p className="text-center text-sm text-gray-500 mt-6">
-              Ao enviar, você será redirecionado para o WhatsApp para continuar a conversa.
+              Sua mensagem será enviada com segurança para nossa equipa.
             </p>
           </div>
         </div>

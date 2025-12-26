@@ -12,8 +12,10 @@ const Logo: React.FC<LogoProps> = ({ className = "" }) => {
         src="/logo.png"
         alt="VitalEvo Logo"
         fill
+        sizes="(max-width: 768px) 120px, 160px"
         className="object-contain object-left"
         priority
+        unoptimized
       />
     </div>
   );

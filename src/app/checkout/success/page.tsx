@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import FeatureLayout from '@/shared/components/FeatureLayout';
+import { CheckCircle } from "lucide-react";
 
 export default function OrderSuccessPage() {
     return (
@@ -8,7 +9,7 @@ export default function OrderSuccessPage() {
                 <div className="max-w-md w-full px-4 text-center">
 
                     <div className="w-24 h-24 bg-green-100 dark:bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">
-                        <span className="material-icons-round text-5xl text-green-500">check_circle</span>
+                        <CheckCircle className="w-12 h-12 text-green-500" />
                     </div>
 
                     <h1 className="font-display font-black text-3xl md:text-4xl text-gray-900 dark:text-white mb-4">

@@ -6,12 +6,25 @@ import Link from 'next/link';
 import { products, Product } from '../data';
 import { useCart } from '@/shared/providers/CartProvider';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Search,
+    ShoppingCart,
+    User,
+    ChevronRight,
+    CheckCircle,
+    Star,
+    ChevronDown,
+    Heart,
+    Plus,
+    SearchX
+} from "lucide-react";
 
 const Store: React.FC = () => {
     const { addItem, totalItems } = useCart();
 
     // Filters State
     const [searchQuery, setSearchQuery] = useState('');
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [activeCategory, setActiveCategory] = useState('Todos');
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
     const [priceRange, setPriceRange] = useState({ min: 0, max: 200000 });
@@ -73,14 +86,14 @@ const Store: React.FC = () => {
                 {/* Breadcrumb */}
                 <div className="flex items-center gap-2 py-4 mb-4 text-sm text-gray-500">
                     <Link href="/" className="hover:text-primary transition-colors">Home</Link>
-                    <span className="material-icons-round text-xs">chevron_right</span>
+                    <ChevronRight className="w-3 h-3" />
                     <span className="text-gray-900 dark:text-white font-semibold">Loja</span>
                 </div>
 
                 {/* Store Header & Search */}
                 <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 dark:bg-surface-dark/80 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 sticky top-24 z-30">
                     <div className="flex-1 max-w-2xl relative group">
-                        <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">search</span>
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" />
                         <input
                             type="text"
                             value={searchQuery}
@@ -91,7 +104,7 @@ const Store: React.FC = () => {
                     </div>
                     <div className="flex gap-3">
                         <Link href="/cart" className="relative flex items-center justify-center h-12 w-12 rounded-xl bg-white dark:bg-background-dark text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-white/10 hover:border-primary/50 hover:text-primary transition-all shadow-sm">
-                            <span className="material-icons-round">shopping_cart</span>
+                            <ShoppingCart className="w-5 h-5" />
                             {totalItems > 0 && (
                                 <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white text-[11px] font-bold shadow-lg shadow-primary/40 animate-pulse">
                                     {totalItems}
@@ -99,7 +112,7 @@ const Store: React.FC = () => {
                             )}
                         </Link>
                         <Link href="/account" className="flex items-center justify-center h-12 w-12 rounded-xl bg-white dark:bg-background-dark text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-white/10 hover:border-primary/50 hover:text-primary transition-all shadow-sm">
-                            <span className="material-icons-round">person</span>
+                            <User className="w-5 h-5" />
                         </Link>
                     </div>
                 </div>
@@ -107,7 +120,7 @@ const Store: React.FC = () => {
                 <div className="flex flex-col lg:flex-row gap-8">
 
                     {/* Sidebar / Filters */}
-                    <aside className="w-full lg:w-72 shrink-0">
+                    <aside className={`w-full lg:w-72 shrink-0 ${showMobileFilters ? 'block' : 'hidden lg:block'}`}>
                         <div className="bg-white dark:bg-surface-dark rounded-3xl p-6 border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none space-y-8 sticky top-48">
 
                             {/* Header Sidebar */}
@@ -130,12 +143,12 @@ const Store: React.FC = () => {
                                             key={cat}
                                             onClick={() => setActiveCategory(cat)}
                                             className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all group ${activeCategory === cat
-                                                    ? 'bg-primary/10 text-primary border border-primary/20'
-                                                    : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-400'
+                                                ? 'bg-primary/10 text-primary border border-primary/20'
+                                                : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-400'
                                                 }`}
                                         >
                                             <span className="text-sm font-medium">{cat}</span>
-                                            {activeCategory === cat && <span className="material-icons-round text-sm">check_circle</span>}
+                                            {activeCategory === cat && <CheckCircle className="w-4 h-4" />}
                                         </button>
                                     ))}
                                 </div>
@@ -155,10 +168,10 @@ const Store: React.FC = () => {
                                                     className="peer h-5 w-5 opacity-0 absolute cursor-pointer"
                                                 />
                                                 <div className={`h-5 w-5 rounded-md border-2 transition-all flex items-center justify-center ${selectedBrands.includes(brand)
-                                                        ? 'bg-primary border-primary'
-                                                        : 'border-gray-300 dark:border-gray-600'
+                                                    ? 'bg-primary border-primary'
+                                                    : 'border-gray-300 dark:border-gray-600'
                                                     }`}>
-                                                    {selectedBrands.includes(brand) && <span className="material-icons-round text-white text-xs">check</span>}
+                                                    {selectedBrands.includes(brand) && <CheckCircle className="w-3 h-3 text-white" />}
                                                 </div>
                                             </div>
                                             <span className={`text-sm transition-colors ${selectedBrands.includes(brand) ? 'text-primary font-bold' : 'text-gray-600 dark:text-gray-400'}`}>
@@ -204,9 +217,16 @@ const Store: React.FC = () => {
                         {/* Results Header */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-2">
                             <div>
-                                <h2 className="text-2xl font-bold font-display text-gray-900 dark:text-white">
-                                    {filteredProducts.length} <span className="text-gray-400 font-normal">resultados encontrados</span>
+                                <h2 className="text-2xl font-bold font-display text-gray-900 dark:text-white flex items-center gap-2">
+                                    {filteredProducts.length} <span className="text-gray-400 font-normal text-base md:text-2xl">resultados</span>
                                 </h2>
+                                <button
+                                    onClick={() => setShowMobileFilters(!showMobileFilters)}
+                                    className="lg:hidden mt-2 text-primary font-bold text-sm flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-lg"
+                                >
+                                    <Plus className={`w-4 h-4 transition-transform ${showMobileFilters ? 'rotate-45' : ''}`} />
+                                    {showMobileFilters ? 'Fechar Filtros' : 'Filtrar Busca'}
+                                </button>
                             </div>
 
                             <div className="flex items-center gap-4">
@@ -221,7 +241,7 @@ const Store: React.FC = () => {
                                         <option>Menor Preço</option>
                                         <option>Maior Preço</option>
                                     </select>
-                                    <span className="material-icons-round absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
+                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                 </div>
                             </div>
                         </div>
@@ -248,7 +268,7 @@ const Store: React.FC = () => {
                                                     <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/40">Novo</div>
                                                 )}
                                                 <button className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/20 hover:bg-white backdrop-blur-md text-white hover:text-red-500 transition-all border border-white/30">
-                                                    <span className="material-icons-round text-sm">favorite</span>
+                                                    <Heart className="w-4 h-4" />
                                                 </button>
                                                 <img
                                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
@@ -263,7 +283,7 @@ const Store: React.FC = () => {
                                                 <div className="flex items-center justify-between mb-3">
                                                     <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{product.category}</span>
                                                     <div className="flex items-center gap-1">
-                                                        <span className="material-icons-round text-yellow-400 text-sm">star</span>
+                                                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                                                         <span className="text-xs font-bold text-gray-500">{product.stars}</span>
                                                     </div>
                                                 </div>
@@ -286,7 +306,7 @@ const Store: React.FC = () => {
                                                         onClick={(e) => handleAddToCart(e, product)}
                                                         className="flex items-center justify-center h-12 w-12 rounded-2xl bg-primary hover:bg-primary-dark text-white transition-all shadow-lg shadow-primary/20 hover:scale-110 active:scale-95 group/btn"
                                                     >
-                                                        <span className="material-icons-round group-hover/btn:rotate-12 transition-transform">add_shopping_cart</span>
+                                                        <ShoppingCart className="w-5 h-5 group-hover/btn:rotate-12 transition-transform" />
                                                     </button>
                                                 </div>
                                             </div>
@@ -304,7 +324,7 @@ const Store: React.FC = () => {
                                 className="flex flex-col items-center justify-center py-20 text-center"
                             >
                                 <div className="h-20 w-20 rounded-full bg-gray-100 dark:bg-surface-dark flex items-center justify-center mb-6">
-                                    <span className="material-icons-round text-4xl text-gray-400">search_off</span>
+                                    <SearchX className="w-10 h-10 text-gray-400" />
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Nenhum produto encontrado</h3>
                                 <p className="text-gray-500 max-w-xs mb-8">Tente ajustar seus filtros ou buscar por algo mais genérico.</p>

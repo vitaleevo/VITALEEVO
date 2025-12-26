@@ -2,6 +2,17 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import {
+  ArrowRight,
+  TrendingUp,
+  Database,
+  Diamond,
+  Rocket,
+  Brain,
+  ShieldCheck,
+  Star,
+  ChevronDown
+} from "lucide-react";
 
 const Home: React.FC = () => {
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
@@ -22,7 +33,7 @@ const Home: React.FC = () => {
   return (
     <div className="overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-[#0f172a]">
+      <section className="relative pt-24 pb-16 lg:pt-48 lg:pb-32 overflow-hidden bg-[#0f172a]">
         {/* Background Elements */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] animate-pulse-slow"></div>
@@ -57,7 +68,7 @@ const Home: React.FC = () => {
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     Solicitar Orçamento
-                    <span className="material-icons-round text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </span>
                   <div className="absolute inset-0 rounded-xl ring-2 ring-white/20 group-hover:ring-white/40 transition-all"></div>
                 </Link>
@@ -78,7 +89,7 @@ const Home: React.FC = () => {
                 {/* The Realistic Card Image */}
                 <div className="relative z-10 w-full h-full drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform-gpu rotate-[-10deg] hover:rotate-[0deg] transition-all duration-700 ease-out">
                   <img
-                    src="/hero-card.webp"
+                    src="/hero-card.png"
                     alt="VitalEvo Digital Interface"
                     className="w-full h-auto object-contain pointer-events-none"
                   />
@@ -88,7 +99,7 @@ const Home: React.FC = () => {
                 <div className="absolute -right-8 top-20 bg-black/60 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-xl animate-float" style={{ animationDelay: '1s' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
-                      <span className="material-icons-round">trending_up</span>
+                      <TrendingUp className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="text-xs text-gray-400 uppercase font-bold">Crescimento</div>
@@ -100,7 +111,7 @@ const Home: React.FC = () => {
                 <div className="absolute -left-4 bottom-20 bg-black/60 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-xl animate-float" style={{ animationDelay: '2s' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400">
-                      <span className="material-icons-round text-sm">storage</span>
+                      <Database className="w-4 h-4" />
                     </div>
                     <div>
                       <div className="text-xs text-gray-400 font-bold">Base de Dados</div>
@@ -138,16 +149,16 @@ const Home: React.FC = () => {
             <p className="text-gray-500 dark:text-gray-400 text-lg">Entregamos mais do que software e design; entregamos resultados mensuráveis e experiências memoráveis.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="flex overflow-x-auto snap-x snap-mandatory pb-8 px-4 -mx-4 gap-4 no-scrollbar md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible md:pb-0 md:px-0 md:mx-0">
             {[
-              { icon: 'diamond', title: 'Design Premium', desc: 'Interfaces que encantam e fidelizam usuários desde o primeiro clique.' },
-              { icon: 'rocket_launch', title: 'Alta Performance', desc: 'Códigos otimizados para velocidade máxima e SEO de ponta.' },
-              { icon: 'psychology', title: 'Estratégia IA', desc: 'Utilizamos inteligência artificial para otimizar campanhas e processos.' },
-              { icon: 'verified_user', title: 'Segurança Total', desc: 'Proteção de dados e infraestrutura robusta para sua tranquilidade.' }
+              { icon: <Diamond className="w-6 h-6" />, title: 'Design Premium', desc: 'Interfaces que encantam e fidelizam usuários desde o primeiro clique.' },
+              { icon: <Rocket className="w-6 h-6" />, title: 'Alta Performance', desc: 'Códigos otimizados para velocidade máxima e SEO de ponta.' },
+              { icon: <Brain className="w-6 h-6" />, title: 'Estratégia IA', desc: 'Utilizamos inteligência artificial para otimizar campanhas e processos.' },
+              { icon: <ShieldCheck className="w-6 h-6" />, title: 'Segurança Total', desc: 'Proteção de dados e infraestrutura robusta para sua tranquilidade.' }
             ].map((item, idx) => (
-              <div key={idx} className="group relative p-8 rounded-3xl bg-gray-50 dark:bg-[#151e32] border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10">
+              <div key={idx} className="snap-center shrink-0 w-[85vw] md:w-auto group relative p-8 rounded-3xl bg-gray-50 dark:bg-[#151e32] border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/10">
                 <div className="w-14 h-14 bg-primary rounded-xl flex items-center justify-center mb-6 text-white shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform duration-300">
-                  <span className="material-icons-round text-2xl">{item.icon}</span>
+                  {item.icon}
                 </div>
                 <h3 className="font-display font-bold text-xl text-gray-900 dark:text-white mb-3">{item.title}</h3>
                 <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{item.desc}</p>
@@ -168,7 +179,7 @@ const Home: React.FC = () => {
               <h2 className="font-display font-black text-3xl md:text-5xl text-gray-900 dark:text-white mt-2">O sucesso dos clientes</h2>
             </div>
             <Link href="/portfolio" className="text-primary font-bold hover:text-primary-dark transition-colors flex items-center gap-2">
-              Ver todos os cases <span className="material-icons-round">arrow_forward</span>
+              Ver todos os cases <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -180,7 +191,7 @@ const Home: React.FC = () => {
             ].map((t, i) => (
               <div key={i} className="bg-white dark:bg-[#1e293b]/50 backdrop-blur-lg p-8 rounded-3xl shadow-xl border border-gray-100 dark:border-white/5 relative hover:-translate-y-2 transition-transform duration-500">
                 <div className="flex text-amber-400 mb-6">
-                  {[1, 2, 3, 4, 5].map(s => <span key={s} className="material-icons-round text-sm">star</span>)}
+                  {[1, 2, 3, 4, 5].map(s => <Star key={s} className="w-4 h-4 fill-amber-400" />)}
                 </div>
                 <p className="text-gray-600 dark:text-gray-300 italic mb-8 leading-relaxed">"{t.text}"</p>
                 <div className="flex items-center gap-4">
@@ -208,7 +219,7 @@ const Home: React.FC = () => {
                   className="w-full flex items-center justify-between p-6 text-left font-bold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
                 >
                   {faq.q}
-                  <span className={`material-icons-round transition-transform duration-300 ${activeFaq === i ? 'rotate-180' : ''}`}>expand_more</span>
+                  <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${activeFaq === i ? 'rotate-180' : ''}`} />
                 </button>
                 <div
                   className={`overflow-hidden transition-all duration-300 ease-in-out ${activeFaq === i ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
@@ -226,7 +237,7 @@ const Home: React.FC = () => {
       {/* Final CTA */}
       <section className="relative py-32 overflow-hidden">
         <div className="absolute inset-0 bg-[#0f172a]"></div>
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[120px]"></div>
 
         <div className="max-w-5xl mx-auto px-4 text-center relative z-10">

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { projects } from '@/features/portfolio/data';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Link from 'next/link';
+import { ArrowLeft, CheckCircle } from "lucide-react";
 
 interface Props {
     params: { id: string };
@@ -43,7 +44,7 @@ export default async function ProjectPage({ params }: Props) {
                     <div className="absolute bottom-0 left-0 w-full p-8 pb-16">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             <Link href="/portfolio" className="inline-flex items-center gap-2 text-white/60 hover:text-white mb-6 transition-colors">
-                                <span className="material-icons-round">arrow_back</span>
+                                <ArrowLeft className="w-5 h-5" />
                                 Voltar ao Portfolio
                             </Link>
                             <div className="flex flex-wrap gap-2 mb-4">
@@ -88,7 +89,7 @@ export default async function ProjectPage({ params }: Props) {
                                 <ul className="space-y-4">
                                     {project.results ? project.results.map((res, i) => (
                                         <li key={i} className="flex items-start gap-3">
-                                            <span className="material-icons-round text-green-500 mt-1">check_circle</span>
+                                            <CheckCircle className="w-5 h-5 text-green-500 mt-1" />
                                             <span className="text-gray-600 dark:text-gray-300 text-sm font-medium">{res}</span>
                                         </li>
                                     )) : (

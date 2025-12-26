@@ -3,6 +3,34 @@ import { notFound } from 'next/navigation';
 import { servicesData } from '@/features/services/data';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Link from 'next/link';
+import {
+    ArrowLeft,
+    ArrowRight,
+    CheckCircle,
+    Layers,
+    Monitor,
+    Smartphone,
+    Rocket,
+    Brain,
+    BarChart3,
+    Router,
+    Shield,
+    Zap,
+    TrendingUp,
+    Target,
+    BarChart,
+    Eye,
+    Type,
+    Coins,
+    MousePointer2,
+    Lock,
+    WifiOff,
+    PiggyBank,
+    Gavel,
+    History,
+    Search,
+    Check
+} from "lucide-react";
 
 interface Props {
     params: { slug: string };
@@ -56,7 +84,7 @@ export default async function ServicePage({ params }: Props) {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full pt-20">
                         <div className="max-w-4xl">
                             <Link href="/services" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors">
-                                <span className="material-icons-round text-sm">arrow_back</span>
+                                <ArrowLeft className="w-4 h-4" />
                                 <span className="text-sm font-bold uppercase tracking-wider">Voltar para Serviços</span>
                             </Link>
 
@@ -78,7 +106,7 @@ export default async function ServicePage({ params }: Props) {
                                     className="bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded-xl font-bold text-lg shadow-[0_0_40px_-10px_rgba(134,37,210,0.6)] hover:shadow-primary/40 transition-all hover:-translate-y-1 flex items-center justify-center gap-2"
                                 >
                                     {service.ctaText}
-                                    <span className="material-icons-round">arrow_forward</span>
+                                    <ArrowRight className="w-5 h-5" />
                                 </Link>
                                 <a
                                     href="#details"
@@ -110,7 +138,7 @@ export default async function ServicePage({ params }: Props) {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {service.features.map((feature, idx) => (
                                         <div key={idx} className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5">
-                                            <span className="material-icons-round text-primary">check_circle</span>
+                                            <CheckCircle className="w-5 h-5 text-primary" />
                                             <span className="font-bold text-sm text-gray-700 dark:text-gray-300">{feature}</span>
                                         </div>
                                     ))}
@@ -119,19 +147,48 @@ export default async function ServicePage({ params }: Props) {
 
                             {/* Right Benefits Cards */}
                             <div className="w-full lg:w-1/2 space-y-6">
-                                {service.benefits.map((benefit, idx) => (
-                                    <div key={idx} className="flex group bg-white dark:bg-[#151e32] p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-colors">
-                                        <div className="flex-shrink-0 mr-6">
-                                            <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
-                                                <span className="material-icons-round text-2xl">{benefit.icon}</span>
+                                {service.benefits.map((benefit, idx) => {
+                                    const IconComponent = (() => {
+                                        switch (benefit.icon) {
+                                            case 'visibility': return Eye;
+                                            case 'style': return Type;
+                                            case 'monetization_on': return Coins;
+                                            case 'speed': return Zap;
+                                            case 'shield': return Shield;
+                                            case 'trending_up': return TrendingUp;
+                                            case 'touch_app': return MousePointer2;
+                                            case 'bolt': return Zap;
+                                            case 'wifi_off': return WifiOff;
+                                            case 'attach_money': return Coins;
+                                            case 'target': return Target;
+                                            case 'analytics': return BarChart;
+                                            case 'savings': return PiggyBank;
+                                            case 'rocket_launch': return Rocket;
+                                            case 'gavel': return Gavel;
+                                            case 'query_stats': return History;
+                                            case 'screen_search_desktop': return Search;
+                                            case 'check_circle': return Check;
+                                            case 'router': return Router;
+                                            case 'security': return Shield;
+                                            case 'how_to_reg': return CheckCircle;
+                                            default: return Check;
+                                        }
+                                    })();
+
+                                    return (
+                                        <div key={idx} className="flex group bg-white dark:bg-[#151e32] p-6 rounded-2xl shadow-lg border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-colors">
+                                            <div className="flex-shrink-0 mr-6">
+                                                <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                                                    <IconComponent className="w-7 h-7" />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-2">{benefit.title}</h4>
+                                                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{benefit.desc}</p>
                                             </div>
                                         </div>
-                                        <div>
-                                            <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-2">{benefit.title}</h4>
-                                            <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{benefit.desc}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>

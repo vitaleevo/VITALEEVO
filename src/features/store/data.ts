@@ -27,7 +27,7 @@ export const products: Product[] = [
         stars: 4.5,
         category: "Câmeras de Segurança",
         brand: "Intelbras",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuABcWMISndX6pv2fQQPg99VGi-i8_P3_wq9cU9-HM2TrDkA3mK4qGdT4gPW-tG_fmqqx-Hu1P2uqBvOAnAcMpoUedfR7P5BYDC9AMV4BHN90hA_PTEY34EWkkgUM8VEhxIUacyr3Cy2DAtlNKc80k1tf3CiaGMQEISii7UyY-fc3G1-oFeqBe1-jssVc3L0dSmUoMM25HFVp03xj5sQWZSWt8rjwBb9ogYrwEy3UrodbIkDskCYOp7QgxsyZ3hIySrw1Swahu6bEcC5",
+        image: "https://images.unsplash.com/photo-1557597774-9d2739fb88b9?auto=format&fit=crop&q=80&w=800",
         isNew: false,
         specs: [
             { label: 'Resolução', value: '1920x1080p (Full HD)' },
@@ -48,7 +48,7 @@ export const products: Product[] = [
         stars: 5,
         category: "Redes & Wi-Fi",
         brand: "TP-Link",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCJ8h9AocixsCy8hMrbos9rtyw7wWpsXDIDwyoC8IK1XesvAVs_oQnushttRo8VC-0kqvKZxSjEGFHY6aSYhyYyG71NXu9j8VWHSOTh-75T0zHw0GAosgLFpyW8zg5wp_8VMAGolKXjyhdCrT6i8rfjfv_pVKaIUqckUxHr3KalWZjIG62WViXq1YCMvfwv7jl7rXURJJ_hA2kN9_EH2DZlwq2HUVvfXNxGq1ZR3b-8pe_8n3a1Ly_6SlnwB-NSs4tiDPPCZ5gDnkRP",
+        image: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=800",
         isNew: true,
         specs: [
             { label: 'Padrão Wi-Fi', value: 'Wi-Fi 6 (802.11ax)' },
@@ -69,7 +69,7 @@ export const products: Product[] = [
         stars: 4,
         category: "Redes & Wi-Fi",
         brand: "TP-Link",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAoCjLdO0xZnzz3RnsTM2FXlFFmrImwWFDFtWE9BDaUTutQyAKJ6qJ2fubxXxwoM8eVxCrK2Q-aqYw8b4jK_O-4xSUXknZX4YNIf6ljY1asBE_JnD71IFUh8rx9WBVRS2e6nXj9jELFA_4hBFynBoIk9po9mILwB59Rx6nrhxf11S-CSGMSzm3pN27ne2MlzIG5dosIFGp2O9HT9qV8GFxFaStKivyP3cA_h96bRAt0qXN09d5tw_o5Lyfo7062DDrxVnsWoDQWe054",
+        image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800",
         isNew: false,
         specs: [
             { label: 'Portas', value: '8x 10/100/1000 Mbps' },
@@ -89,7 +89,7 @@ export const products: Product[] = [
         stars: 5,
         category: "Cabos e Conectores",
         brand: "Ubiquiti",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuD36i7Ax1h-MGJ--Z2ZoyOwbsPsdfDLmOi1EFFcEQ86qFRA9Nl2_ozr0Xg401BE79AzOqA81FRwpvfuYpTfMsSKG2LD9nbAUcBRLekgcQMMZkx8fuI57UN0gIa5vfDkUFqp7ogmp5tjMhaAO9j17YWHeQS0o-H_8N87zw9Mascx0cjPv19u5M2iWuHdJGePtHjUn1jmOETQRIHeTl_8kp2pqy_n6XuN6sS99fIwtkNBDZmr0HHfdck9GsP6ZhFnLgVMeFkIld9XNesK",
+        image: "https://images.unsplash.com/photo-1558494949-efdeb6bf80a1?auto=format&fit=crop&q=80&w=800",
         isNew: false,
         specs: [
             { label: 'Categoria', value: 'CAT6' },
@@ -108,7 +108,7 @@ export const products: Product[] = [
         stars: 5,
         category: "Câmeras de Segurança",
         brand: "Hikvision",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDxy2z0PmiH2vPB6C5mjeOnFRmIaNLgPcV24LTPI9pd1qcU4UblU3dnMjuL48xs3VIp3hUZhhDxcKVgPQW7apCUtjFrmma43i2GXbJ_nRufTGzLiIZ46u96Iu1pzqp5YKjDCvU7s4LTbUwNzr9y7nITjW04zMWIQM65agfNityKYPguLM16Wk4qsyqOh9ZWuJOhcSxnstvx6D_J3bYtlZmyWT6CXjVf84kcTgHWS17S4n85MHslyRIsC1WkE92cZYL1q5B3S6SsJlMM",
+        image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80&w=800",
         isNew: false,
         specs: [
             { label: 'Câmeras', value: '4x Bullet HD 720p' },
@@ -126,7 +126,7 @@ export const products: Product[] = [
         stars: 4.5,
         category: "Hardware",
         brand: "Intelbras",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCqQ5VgkWUunjiHd1n9iL7P1qgK5VIH_xlKEcxx3urYmzfPGm_HsYAaYwSFLhi2yoKUKSOXAvQQGJLUyDqK-qqCUIR6wJvJrboauh0CJwHIwarqF9np3jIy2XDrvm0JEEWVDBtA-vLYYYdrn8l_hUstgjjOZKjifRJA3lDVYc6vZ73gWcBCcpzeDT-Tf1vVFIl0wV-qKkWW4O7irpWkEwq_OnR0GeFrjdCyd8lLRwrzcS13LNiG18LVOaaweNcYk1dkYVmIPWaDkmxK",
+        image: "https://images.unsplash.com/photo-1531492746076-1a1bd9b29fc0?auto=format&fit=crop&q=80&w=800",
         isNew: false,
         specs: [
             { label: 'Capacidade', value: '2TB' },

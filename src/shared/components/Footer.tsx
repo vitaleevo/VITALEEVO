@@ -3,6 +3,14 @@
 import React from 'react';
 import Link from 'next/link';
 import Logo from './Logo';
+import {
+  Instagram,
+  Facebook,
+  Music2,
+  MapPin,
+  Mail,
+  Phone
+} from "lucide-react";
 
 const Footer: React.FC = () => {
   return (
@@ -18,19 +26,19 @@ const Footer: React.FC = () => {
             </p>
             <div className="flex gap-4">
               {[
-                { name: 'Instagram', icon: 'camera_alt', url: 'https://www.instagram.com/vitaleevo/' },
-                { name: 'Facebook', icon: 'facebook', url: 'https://www.facebook.com/vitaleevo' },
-                { name: 'TikTok', icon: 'audiotrack', url: 'https://www.tiktok.com/@vitaleevonegocios' }
-              ].map((social) => (
+                { name: 'Instagram', icon: <Instagram className="w-5 h-5" />, url: 'https://www.instagram.com/vitaleevo/' },
+                { name: 'Facebook', icon: <Facebook className="w-5 h-5" />, url: 'https://www.facebook.com/vitaleevo' },
+                { name: 'TikTok', icon: <Music2 className="w-5 h-5" />, url: 'https://www.tiktok.com/@vitaleevonegocios' }
+              ].map((social, idx) => (
                 <a
-                  key={social.url}
+                  key={idx}
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-primary hover:text-white transition-all shadow-sm"
                   aria-label={social.name}
                 >
-                  <span className="material-icons-round text-lg">{social.icon}</span>
+                  {social.icon}
                 </a>
               ))}
             </div>
@@ -55,16 +63,16 @@ const Footer: React.FC = () => {
             <h4 className="font-bold text-gray-900 dark:text-white mb-6 uppercase tracking-widest text-xs">Contacto Direto</h4>
             <ul className="space-y-4 text-sm text-gray-600 dark:text-gray-400">
               <li className="flex items-start gap-3">
-                <span className="material-icons-round text-secondary text-lg">location_on</span>
+                <MapPin className="w-5 h-5 text-secondary shrink-0" />
                 <span>Bairro Benfica ao lado da dona xepa,<br />Luanda, Angola</span>
               </li>
               <li className="flex items-center gap-3">
-                <span className="material-icons-round text-secondary text-lg">email</span>
+                <Mail className="w-5 h-5 text-secondary" />
                 <a href="mailto:info@vitaleevo.ao" className="hover:text-primary">info@vitaleevo.ao</a>
               </li>
               <li className="flex flex-col gap-2">
                 <div className="flex items-center gap-3">
-                  <span className="material-icons-round text-secondary text-lg">phone</span>
+                  <Phone className="w-5 h-5 text-secondary" />
                   <a href="tel:+244935348327" className="hover:text-primary">+244 935 348 327</a>
                 </div>
                 <div className="flex items-center gap-3 ml-8">

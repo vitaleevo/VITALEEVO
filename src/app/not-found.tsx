@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import FeatureLayout from '@/shared/components/FeatureLayout';
+import { Home } from "lucide-react";
 
 export default function NotFound() {
     return (
@@ -32,7 +33,7 @@ export default function NotFound() {
                         className="group relative inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded-xl font-bold text-lg shadow-[0_0_40px_-10px_rgba(134,37,210,0.5)] transition-all hover:scale-105"
                     >
                         <span>Voltar para o Início</span>
-                        <span className="material-icons-round text-sm transition-transform group-hover:translate-x-1">home</span>
+                        <Home className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                     </Link>
                 </div>
             </div>

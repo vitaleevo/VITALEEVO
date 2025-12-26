@@ -2,6 +2,20 @@
 
 import React from 'react';
 import Link from 'next/link';
+import {
+  CheckCircle,
+  Flag,
+  Eye,
+  Diamond,
+  Store,
+  GraduationCap,
+  Globe,
+  TrendingUp,
+  Search,
+  LayoutGrid,
+  Code,
+  Rocket
+} from "lucide-react";
 
 const About: React.FC = () => {
   return (
@@ -46,7 +60,7 @@ const About: React.FC = () => {
             {/* Text Side */}
             <div className="w-full lg:w-1/2">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-white font-medium text-sm tracking-wider uppercase shadow-lg shadow-purple-500/10 mb-6">
-                <span className="material-icons-round text-sm text-secondary">verified</span>
+                <CheckCircle className="w-4 h-4 text-secondary" />
                 Quem Somos
               </div>
 
@@ -81,7 +95,7 @@ const About: React.FC = () => {
             {/* Mission */}
             <div className="group p-8 rounded-3xl bg-gray-50 dark:bg-[#151e32] border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all duration-300 hover:-translate-y-2">
               <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mb-6 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all">
-                <span className="material-icons-round text-3xl">flag</span>
+                <Flag className="w-8 h-8" />
               </div>
               <h3 className="font-display font-bold text-2xl text-gray-900 dark:text-white mb-4">Missão</h3>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
@@ -92,7 +106,7 @@ const About: React.FC = () => {
             {/* Vision */}
             <div className="group p-8 rounded-3xl bg-gray-50 dark:bg-[#151e32] border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all duration-300 hover:-translate-y-2">
               <div className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-6 text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-all">
-                <span className="material-icons-round text-3xl">visibility</span>
+                <Eye className="w-8 h-8" />
               </div>
               <h3 className="font-display font-bold text-2xl text-gray-900 dark:text-white mb-4">Visão</h3>
               <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
@@ -103,7 +117,7 @@ const About: React.FC = () => {
             {/* Values */}
             <div className="group p-8 rounded-3xl bg-gray-50 dark:bg-[#151e32] border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all duration-300 hover:-translate-y-2">
               <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center mb-6 text-green-500 group-hover:bg-green-500 group-hover:text-white transition-all">
-                <span className="material-icons-round text-3xl">diamond</span>
+                <Diamond className="w-8 h-8" />
               </div>
               <h3 className="font-display font-bold text-2xl text-gray-900 dark:text-white mb-4">Valores</h3>
               <ul className="space-y-2 text-gray-600 dark:text-gray-400">
@@ -135,13 +149,13 @@ const About: React.FC = () => {
 
               <div className="space-y-6">
                 {[
-                  { title: 'Digitalização de PMEs', desc: 'Levar ferramentas de gestão e presença online para pequenas e médias empresas, a espinha dorsal da economia.' },
-                  { title: 'Educação Tecnológica', desc: 'Capacitar equipes locais com workshops e transferências de conhecimento em cada projeto.' },
-                  { title: 'Conectividade Global', desc: 'Criar plataformas que permitam produtos angolanos alcançarem mercados internacionais.' }
+                  { title: 'Digitalização de PMEs', desc: 'Levar ferramentas de gestão e presença online para pequenas e médias empresas, a espinha dorsal da economia.', icon: <Store className="w-6 h-6 text-secondary" /> },
+                  { title: 'Educação Tecnológica', desc: 'Capacitar equipes locais com workshops e transferências de conhecimento em cada projeto.', icon: <GraduationCap className="w-6 h-6 text-secondary" /> },
+                  { title: 'Conectividade Global', desc: 'Criar plataformas que permitam produtos angolanos alcançarem mercados internacionais.', icon: <Globe className="w-6 h-6 text-secondary" /> }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4">
                     <div className="flex-shrink-0 w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-                      <span className="material-icons-round text-secondary">{['storefront', 'school', 'public'][i]}</span>
+                      {item.icon}
                     </div>
                     <div>
                       <h4 className="text-white font-bold text-lg">{item.title}</h4>
@@ -161,7 +175,7 @@ const About: React.FC = () => {
                     <h3 className="text-3xl text-white font-black">2024 - 2030</h3>
                   </div>
                   <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center text-green-500">
-                    <span className="material-icons-round">trending_up</span>
+                    <TrendingUp className="w-6 h-6" />
                   </div>
                 </div>
                 {/* Abstract Chart Representation */}
@@ -200,10 +214,10 @@ const About: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
               {[
-                { icon: 'search', title: 'Imersão', desc: 'Entendemos profundamente seus objetivos e mercado.' },
-                { icon: 'architecture', title: 'Estratégia', desc: 'Definimos o plano de ação e cronograma.' },
-                { icon: 'code', title: 'Execução', desc: 'Designers e devs trabalham juntos para dar vida.' },
-                { icon: 'rocket_launch', title: 'Entrega', desc: 'Lançamento e monitoramento contínuo.' }
+                { icon: <Search className="w-8 h-8" />, title: 'Imersão', desc: 'Entendemos profundamente seus objetivos e mercado.' },
+                { icon: <LayoutGrid className="w-8 h-8" />, title: 'Estratégia', desc: 'Definimos o plano de ação e cronograma.' },
+                { icon: <Code className="w-8 h-8" />, title: 'Execução', desc: 'Designers e devs trabalham juntos para dar vida.' },
+                { icon: <Rocket className="w-8 h-8" />, title: 'Entrega', desc: 'Lançamento e monitoramento contínuo.' }
               ].map((step, idx) => (
                 <div key={idx} className="group relative p-8 pt-12 rounded-3xl bg-gray-50 dark:bg-[#151e32] border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all duration-500 hover:-translate-y-2 text-center">
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 size-16 rounded-full bg-[#0f172a] border-4 border-gray-50 dark:border-[#0b1120] flex items-center justify-center z-20 shadow-xl">
@@ -214,7 +228,7 @@ const About: React.FC = () => {
 
                   <div className="mb-6 flex justify-center">
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
-                      <span className="material-icons-round text-3xl">{step.icon}</span>
+                      {step.icon}
                     </div>
                   </div>
 

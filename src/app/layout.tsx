@@ -6,6 +6,7 @@ import { ConvexClientProvider } from "@/shared/providers/ConvexClientProvider";
 import { CartProvider } from "@/shared/providers/CartProvider";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
+import MobileNavigation from "@/shared/components/MobileNavigation";
 
 const inter = Inter({
     variable: "--font-inter",
@@ -18,7 +19,18 @@ const montserrat = Montserrat({
     weight: ["400", "500", "600", "700", "800", "900"],
 });
 
+import type { Metadata, Viewport } from "next";
+
+export const viewport: Viewport = {
+    themeColor: "#8625d2",
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+};
+
 export const metadata: Metadata = {
+    metadataBase: new URL("https://vitaleevo.ao"),
     title: {
         default: "VitalEvo - Conectando Possibilidades",
         template: "%s | VitalEvo"
@@ -76,18 +88,19 @@ export default function RootLayout({
                 },
             }}
         >
-            <html lang="pt-BR">
-                <head>
-                    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
-                    <meta name="theme-color" content="#8625d2" />
-                </head>
+            <html lang="pt-BR" data-scroll-behavior="smooth">
                 <body
                     className={`${inter.variable} ${montserrat.variable} antialiased bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-300`}
                 >
                     <ConvexClientProvider>
                         <CartProvider>
                             <ThemeProvider>
-                                {children}
+                                <div className="flex flex-col min-h-screen">
+                                    <div className="flex-grow pb-16 lg:pb-0">
+                                        {children}
+                                    </div>
+                                    <MobileNavigation />
+                                </div>
                             </ThemeProvider>
                         </CartProvider>
                     </ConvexClientProvider>

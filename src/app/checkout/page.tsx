@@ -6,6 +6,18 @@ import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import Link from "next/link";
+import {
+    ShoppingCart,
+    User,
+    Truck,
+    CreditCard,
+    QrCode,
+    Building2,
+    RefreshCw,
+    Check
+} from "lucide-react";
+
+import { sendOrderEmail } from "@/app/actions/contact";
 
 export default function CheckoutPage() {
     const { items, subtotal, clearCart } = useCart();
@@ -14,6 +26,7 @@ export default function CheckoutPage() {
 
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         name: user?.fullName || "",
@@ -35,13 +48,36 @@ export default function CheckoutPage() {
 
     const handleSubmitOrder = async () => {
         setIsLoading(true);
+        setError(null);
 
-        // Simulate order creation (will be replaced with Convex mutation)
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        try {
+            // Simulate order creation (will be replaced with Convex mutation later)
+            // For now we just send the email notification
+            const orderNumber = "VE-" + Math.floor(10000 + Math.random() * 90000);
 
-        // Clear cart and redirect to success
-        clearCart();
-        router.push("/checkout/success");
+            await sendOrderEmail({
+                orderNumber,
+                customerName: formData.name,
+                customerEmail: formData.email,
+                customerPhone: formData.phone,
+                total,
+                items,
+                shippingAddress: {
+                    city: formData.city,
+                    address: formData.address,
+                    reference: formData.reference,
+                },
+                paymentMethod: formData.paymentMethod,
+            });
+
+            // Clear cart and redirect to success
+            clearCart();
+            router.push("/checkout/success");
+        } catch (err: any) {
+            console.error("Checkout error:", err);
+            setError("Ocorreu um erro ao processar seu pedido. Por favor, tente novamente.");
+            setIsLoading(false);
+        }
     };
 
     if (items.length === 0) {
@@ -49,7 +85,7 @@ export default function CheckoutPage() {
             <FeatureLayout>
                 <div className="pt-32 pb-24 bg-gray-50 dark:bg-[#0b1120] min-h-screen text-center">
                     <div className="max-w-md mx-auto px-4">
-                        <span className="material-icons-round text-6xl text-gray-400 mb-4">shopping_cart</span>
+                        <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                         <h1 className="font-display font-bold text-2xl text-gray-900 dark:text-white mb-4">
                             Seu carrinho está vazio
                         </h1>
@@ -69,6 +105,12 @@ export default function CheckoutPage() {
                     <h1 className="font-display font-black text-3xl md:text-4xl text-gray-900 dark:text-white mb-8 text-center">
                         Finalizar Compra
                     </h1>
+
+                    {error && (
+                        <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl text-center border border-red-100 dark:border-red-900/30">
+                            {error}
+                        </div>
+                    )}
 
                     {/* Stepper */}
                     <div className="flex items-center justify-center mb-12">
@@ -92,7 +134,7 @@ export default function CheckoutPage() {
                             {/* Step 1: Identification */}
                             <div className={`bg-white dark:bg-[#151e32] p-8 rounded-3xl border ${step === 1 ? "border-primary shadow-lg ring-1 ring-primary/20" : "border-gray-100 dark:border-white/5 opacity-60 pointer-events-none"}`}>
                                 <h2 className="font-bold text-xl text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                                    <span className="material-icons-round text-primary">person</span>
+                                    <User className="w-5 h-5 text-primary" />
                                     Dados Pessoais
                                 </h2>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -138,7 +180,7 @@ export default function CheckoutPage() {
                             {/* Step 2: Shipping */}
                             <div className={`bg-white dark:bg-[#151e32] p-8 rounded-3xl border ${step === 2 ? "border-primary shadow-lg ring-1 ring-primary/20" : "border-gray-100 dark:border-white/5 opacity-60 pointer-events-none"}`}>
                                 <h2 className="font-bold text-xl text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                                    <span className="material-icons-round text-primary">local_shipping</span>
+                                    <Truck className="w-5 h-5 text-primary" />
                                     Endereço de Entrega
                                 </h2>
                                 <div className="space-y-4">
@@ -188,7 +230,7 @@ export default function CheckoutPage() {
                             {/* Step 3: Payment */}
                             <div className={`bg-white dark:bg-[#151e32] p-8 rounded-3xl border ${step === 3 ? "border-primary shadow-lg ring-1 ring-primary/20" : "border-gray-100 dark:border-white/5 opacity-60 pointer-events-none"}`}>
                                 <h2 className="font-bold text-xl text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-                                    <span className="material-icons-round text-primary">payment</span>
+                                    <CreditCard className="w-5 h-5 text-primary" />
                                     Pagamento
                                 </h2>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -196,18 +238,14 @@ export default function CheckoutPage() {
                                         onClick={() => setFormData({ ...formData, paymentMethod: "multicaixa" })}
                                         className={`border p-4 rounded-xl cursor-pointer flex items-center gap-3 ${formData.paymentMethod === "multicaixa" ? "border-primary bg-primary/5" : "border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-black/20"}`}
                                     >
-                                        <span className={`material-icons-round ${formData.paymentMethod === "multicaixa" ? "text-primary" : "text-gray-400"}`}>
-                                            qr_code
-                                        </span>
+                                        <QrCode className={`w-6 h-6 ${formData.paymentMethod === "multicaixa" ? "text-primary" : "text-gray-400"}`} />
                                         <span className="font-bold text-gray-900 dark:text-white">Multicaixa (Referência)</span>
                                     </div>
                                     <div
                                         onClick={() => setFormData({ ...formData, paymentMethod: "transferencia" })}
                                         className={`border p-4 rounded-xl cursor-pointer flex items-center gap-3 ${formData.paymentMethod === "transferencia" ? "border-primary bg-primary/5" : "border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-black/20"}`}
                                     >
-                                        <span className={`material-icons-round ${formData.paymentMethod === "transferencia" ? "text-primary" : "text-gray-400"}`}>
-                                            account_balance
-                                        </span>
+                                        <Building2 className={`w-6 h-6 ${formData.paymentMethod === "transferencia" ? "text-primary" : "text-gray-400"}`} />
                                         <span className="font-bold text-gray-900 dark:text-white">Transferência Bancária</span>
                                     </div>
                                 </div>
@@ -227,12 +265,12 @@ export default function CheckoutPage() {
                                         >
                                             {isLoading ? (
                                                 <>
-                                                    <span className="animate-spin material-icons-round">refresh</span>
+                                                    <RefreshCw className="w-5 h-5 animate-spin" />
                                                     Processando...
                                                 </>
                                             ) : (
                                                 <>
-                                                    Confirmar Pedido <span className="material-icons-round">check</span>
+                                                    Confirmar Pedido <Check className="w-5 h-5" />
                                                 </>
                                             )}
                                         </button>

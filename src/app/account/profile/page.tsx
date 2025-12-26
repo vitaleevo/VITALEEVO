@@ -3,6 +3,7 @@
 import { useUser, SignedIn, SignedOut } from "@clerk/nextjs";
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Link from 'next/link';
+import { ArrowLeft, User } from "lucide-react";
 
 export default function ProfilePage() {
     const { user, isLoaded } = useUser();
@@ -34,7 +35,7 @@ export default function ProfilePage() {
                     <SignedIn>
                         <div className="flex items-center gap-4 mb-8">
                             <Link href="/account" className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-white/10 transition-colors">
-                                <span className="material-icons-round text-gray-500">arrow_back</span>
+                                <ArrowLeft className="w-5 h-5 text-gray-500" />
                             </Link>
                             <h1 className="font-display font-black text-3xl text-gray-900 dark:text-white">Editar Perfil</h1>
                         </div>
@@ -48,7 +49,7 @@ export default function ProfilePage() {
                                         <img src={user.imageUrl} alt={user.fullName || ''} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center">
-                                            <span className="material-icons-round text-5xl text-primary">person</span>
+                                            <User className="w-12 h-12 text-primary" />
                                         </div>
                                     )}
                                 </div>

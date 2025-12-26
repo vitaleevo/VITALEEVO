@@ -3,6 +3,7 @@
 import React from 'react';
 import { Article } from '@/shared/types';
 import Link from 'next/link';
+import { Rss, Clock, ArrowRight } from "lucide-react";
 
 import { articles } from '../data';
 
@@ -21,7 +22,7 @@ const Blog: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-white font-medium text-sm tracking-wider uppercase shadow-lg shadow-purple-500/10 mb-8">
-            <span className="material-icons-round text-sm text-secondary">rss_feed</span>
+            <Rss className="w-4 h-4 text-secondary" />
             Blog & Insights
           </div>
 
@@ -50,7 +51,7 @@ const Blog: React.FC = () => {
               <div className="p-8 md:p-16 space-y-8 relative z-10">
                 <div className="flex items-center gap-4">
                   <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Destaque da Semana</span>
-                  <span className="text-gray-400 text-sm flex items-center gap-1"><span className="material-icons-round text-sm">schedule</span> 12 min de leitura</span>
+                  <span className="text-gray-400 text-sm flex items-center gap-1"><Clock className="w-4 h-4" /> 12 min de leitura</span>
                 </div>
 
                 <h2 className="font-display font-black text-3xl md:text-5xl text-white leading-tight group-hover:text-primary transition-colors">
@@ -61,7 +62,7 @@ const Blog: React.FC = () => {
                 </p>
 
                 <button className="flex items-center gap-2 text-white font-bold border-b-2 border-primary pb-1 hover:text-primary transition-colors">
-                  Ler Artigo Completo <span className="material-icons-round text-sm">arrow_forward</span>
+                  Ler Artigo Completo <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -107,7 +108,7 @@ const Blog: React.FC = () => {
 
                   <div className="pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
                     <span className="text-sm font-bold text-primary group-hover:underline">Ler Mais</span>
-                    <span className="material-icons-round text-gray-400 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <ArrowRight className="w-4 h-4 text-gray-400 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </Link>

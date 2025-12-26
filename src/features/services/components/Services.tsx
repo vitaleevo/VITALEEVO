@@ -2,47 +2,64 @@
 
 import React from 'react';
 import Link from 'next/link';
+import {
+  Layers,
+  Calendar,
+  Brush,
+  Code,
+  Smartphone,
+  Rocket,
+  Brain,
+  BarChart3,
+  Router,
+  CheckCircle,
+  ArrowRight,
+  Headset,
+  Zap,
+  Shield,
+  TrendingUp
+} from "lucide-react";
 
 const Services: React.FC = () => {
   const categories = [
     {
-      icon: 'brush',
+      icon: <Brush className="w-8 h-8 text-primary" />,
       title: 'Branding e Design',
       desc: 'Criamos identidades visuais memoráveis que conectam sua marca ao coração do público.',
       items: ['Logotipos & Identidade', 'UI/UX Design', 'Material Gráfico', 'Design Systems']
     },
     {
-      icon: 'code',
+      icon: <Code className="w-8 h-8 text-primary" />,
       title: 'Desenvolvimento Web',
       desc: 'Sites e aplicações web de alta performance, seguros e otimizados para conversão.',
       items: ['Websites Institucionais', 'E-commerce', 'Sistemas Web (SaaS)', 'Landing Pages']
     },
     {
-      icon: 'smartphone',
+      icon: <Smartphone className="w-8 h-8 text-primary" />,
       title: 'Apps Mobile',
       desc: 'Aplicativos nativos e híbridos que colocam seu negócio na palma da mão do cliente.',
       items: ['iOS & Android', 'React Native / Flutter', 'Prototipagem', 'Hospedagem em Lojas']
     },
     {
-      icon: 'rocket_launch',
+      icon: <Rocket className="w-8 h-8 text-primary" />,
       title: 'Marketing Digital',
       desc: 'Estratégias baseadas em dados para escalar suas vendas e presença online.',
       items: ['Gestão de Tráfego', 'SEO & Conteúdo', 'Social Media', 'E-mail Marketing']
     },
     {
-      icon: 'psychology',
+      icon: <Brain className="w-8 h-8 text-primary" />,
       title: 'Consultoria Tech',
       desc: 'Orientação especializada para modernizar processos e escolher as melhores ferramentas.',
       items: ['Transformação Digital', 'Arquitetura de Software', 'Auditoria de Código', 'Cloud Computing']
     },
     {
-      icon: 'analytics',
+      icon: <BarChart3 className="w-8 h-8 text-primary" />,
       title: 'Data & Analytics',
       desc: 'Transforme dados brutos em insights acionáveis para tomadas de decisão inteligentes.',
       items: ['Dashboards BI', 'Google Analytics 4', 'Rastreament de Dados', 'Relatórios Mensais']
     },
     {
-      icon: 'router',
+      icon: <Router className="w-8 h-8 text-primary" />,
       title: 'Infra E Segurança',
       desc: 'Soluções robustas para proteção e conectividade do seu negócio.',
       items: ['Redes e Cabeamento', 'Câmeras de Segurança (CFTV)', 'Sistemas Biométricos', 'Controlo de Acesso']
@@ -63,7 +80,7 @@ const Services: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-white font-medium text-sm tracking-wider uppercase shadow-lg shadow-purple-500/10 mb-8">
-            <span className="material-icons-round text-sm text-secondary">layers</span>
+            <Layers className="w-4 h-4 text-secondary" />
             Soluções 360º
           </div>
 
@@ -83,7 +100,7 @@ const Services: React.FC = () => {
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
                 Agendar Consultoria
-                <span className="material-icons-round text-sm transition-transform group-hover:translate-x-1">calendar_today</span>
+                <Calendar className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
           </div>
@@ -110,7 +127,7 @@ const Services: React.FC = () => {
               return (
                 <Link key={idx} href={`/services/${slug}`} className="group relative p-8 rounded-[2rem] bg-gray-50 dark:bg-[#151e32] border border-gray-100 dark:border-white/5 hover:border-primary/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/10 block">
                   <div className="w-16 h-16 bg-gray-200 dark:bg-white/10 rounded-2xl flex items-center justify-center mb-8 border border-white/20 shadow-inner group-hover:scale-110 transition-transform duration-300">
-                    <span className="material-icons-round text-3xl text-primary">{cat.icon}</span>
+                    {cat.icon}
                   </div>
 
                   <h3 className="font-display font-bold text-2xl text-gray-900 dark:text-white mb-4 group-hover:text-primary transition-colors">{cat.title}</h3>
@@ -119,7 +136,7 @@ const Services: React.FC = () => {
                   <div className="space-y-3 border-t border-gray-200 dark:border-white/5 pt-6">
                     {cat.items.map((item, i) => (
                       <div key={i} className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                        <span className="material-icons-round text-secondary text-base">check_circle</span>
+                        <CheckCircle className="w-4 h-4 text-secondary" />
                         {item}
                       </div>
                     ))}
@@ -129,7 +146,7 @@ const Services: React.FC = () => {
 
                   <div className="absolute bottom-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity">
                     <div className="flex items-center gap-2 text-primary font-bold text-sm">
-                      Saber mais <span className="material-icons-round text-base">arrow_forward</span>
+                      Saber mais <ArrowRight className="w-4 h-4" />
                     </div>
                   </div>
                 </Link>
@@ -166,7 +183,7 @@ const Services: React.FC = () => {
                 <div className="absolute bottom-0 left-0 w-full p-8 z-20 bg-black/90">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white shadow-lg shadow-green-500/30">
-                      <span className="material-icons-round">support_agent</span>
+                      <Headset className="w-6 h-6" />
                     </div>
                     <div>
                       <p className="text-white font-bold text-lg">Suporte Dedicado</p>
@@ -188,13 +205,13 @@ const Services: React.FC = () => {
 
               <div className="space-y-6">
                 {[
-                  { title: 'Velocidade Incomparável', desc: 'Sites que carregam em milissegundos, melhorando seu ranking no Google e a satisfação do cliente.' },
-                  { title: 'Segurança Militar', desc: 'Proteção contra ataques DDoS, criptografia de dados e backups automáticos diários.' },
-                  { title: 'Escalabilidade', desc: 'Sistemas preparados para crescer junto com seu negócio, sem necessidade de refazer tudo do zero.' }
+                  { title: 'Velocidade Incomparável', desc: 'Sites que carregam em milissegundos, melhorando seu ranking no Google e a satisfação do cliente.', icon: <Zap className="w-6 h-6 text-primary" /> },
+                  { title: 'Segurança Militar', desc: 'Proteção contra ataques DDoS, criptografia de dados e backups automáticos diários.', icon: <Shield className="w-6 h-6 text-primary" /> },
+                  { title: 'Escalabilidade', desc: 'Sistemas preparados para crescer junto com seu negócio, sem necessidade de refazer tudo do zero.', icon: <TrendingUp className="w-6 h-6 text-primary" /> }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4 group">
                     <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center border border-gray-200 dark:border-white/10 group-hover:border-primary/50 transition-colors">
-                      <span className="material-icons-round text-primary">{['speed', 'security', 'trending_up'][i]}</span>
+                      {item.icon}
                     </div>
                     <div>
                       <h4 className="text-gray-900 dark:text-white font-bold text-lg group-hover:text-primary transition-colors">{item.title}</h4>

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { AlertCircle } from "lucide-react";
 
 export default function Error({
     error,
@@ -18,7 +19,7 @@ export default function Error({
         <div className="min-h-screen bg-gray-50 dark:bg-[#0b1120] flex items-center justify-center px-4">
             <div className="text-center max-w-md">
                 <div className="w-24 h-24 bg-red-100 dark:bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-8">
-                    <span className="material-icons-round text-5xl text-red-500">error</span>
+                    <AlertCircle className="w-12 h-12 text-red-500" />
                 </div>
                 <h1 className="font-display font-black text-3xl text-gray-900 dark:text-white mb-4">
                     Algo deu errado!
