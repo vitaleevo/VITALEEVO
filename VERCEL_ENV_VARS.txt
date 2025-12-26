@@ -1,15 +1,19 @@
-# --- CLERK (PROMPT: CERTIFIQUE-SE QUE ESTAS SÃO AS CHAVES DE PRODUÇÃO) ---
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_ZW1lcmdpbmctb3NwcmV5LTg3LmNsZXJrLmFjY291bnRzLmRldiQ
-CLERK_SECRET_KEY=sk_test_OBSFZEGwbbhXENaS5Xle4VOkVDeV41T6VWdcRMJJ5w
+# === GUIA DE DEPLOY MANUAL - VITALEEVO ===
 
-# CLERK SETTINGS
-NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
-NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/account
-NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/account
+# --- PASSO 1: VARIÁVEIS NA VERCEL ---
+# Adicione estas chaves EXATAMENTE assim no painel da Vercel (Settings -> Environment Variables):
 
-# --- CONVEX (PRODUÇÃO) ---
 NEXT_PUBLIC_CONVEX_URL=https://watchful-pony-120.convex.cloud
 CONVEX_DEPLOY_KEY=prod:watchful-pony-120|eyJ2MiI6IjM3YjJmMDA2ZDQyZTRjZTc4NzA4NTVjNTQ4YWQ0MjM5In0=
-# --- RESEND (E-MAIL) ---
 RESEND_API_KEY=re_STYWwjLe_2D9MieAyMSFxQcKNVwyjnE9V
+NEXT_PUBLIC_SITE_URL=https://vitaleevo.ao
+
+# --- PASSO 2: DEPLOY ---
+# Como vai fazer manualmente:
+# 1. Remova o projeto antigo na Vercel se necessário.
+# 2. Crie o novo projeto apontando para este repositório.
+# 3. Garanta que as variáveis de ambiente acima foram inseridas ANTES do primeiro build.
+
+# --- VERIFICAÇÃO FINAL ---
+# O projeto foi testado localmente com 'npm run build' e compilou sem ERROS.
+# Todo o nome do site foi padronizado como: Vitaleevo
