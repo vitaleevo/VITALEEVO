@@ -1,4 +1,7 @@
 {
+  "/.well-known/oauth-authorization-server/route": "app/.well-known/oauth-authorization-server/route.js",
+  "/.well-known/oauth-protected-resource/mcp/route": "app/.well-known/oauth-protected-resource/mcp/route.js",
+  "/[transport]/route": "app/[transport]/route.js",
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
   "/about/page": "app/about/page.js",
@@ -22,6 +25,8 @@
   "/portfolio/page": "app/portfolio/page.js",
   "/services/[slug]/page": "app/services/[slug]/page.js",
   "/services/page": "app/services/page.js",
+  "/sign-in/[[...sign-in]]/page": "app/sign-in/[[...sign-in]]/page.js",
+  "/sign-up/[[...sign-up]]/page": "app/sign-up/[[...sign-up]]/page.js",
   "/store/[id]/page": "app/store/[id]/page.js",
   "/store/page": "app/store/page.js"
 }

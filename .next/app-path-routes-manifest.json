@@ -1,4 +1,7 @@
 {
+  "/.well-known/oauth-authorization-server/route": "/.well-known/oauth-authorization-server",
+  "/.well-known/oauth-protected-resource/mcp/route": "/.well-known/oauth-protected-resource/mcp",
+  "/[transport]/route": "/[transport]",
   "/_global-error/page": "/_global-error",
   "/_not-found/page": "/_not-found",
   "/about/page": "/about",
@@ -22,6 +25,8 @@
   "/portfolio/page": "/portfolio",
   "/services/[slug]/page": "/services/[slug]",
   "/services/page": "/services",
+  "/sign-in/[[...sign-in]]/page": "/sign-in/[[...sign-in]]",
+  "/sign-up/[[...sign-up]]/page": "/sign-up/[[...sign-up]]",
   "/store/[id]/page": "/store/[id]",
   "/store/page": "/store"
 }

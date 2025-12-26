@@ -14,7 +14,34 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
     }
   ],
-  "headers": [],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ],
+      "regex": "^(?:/(.*))(?:/)?$"
+    }
+  ],
   "rewrites": {
     "beforeFiles": [],
     "afterFiles": [],
@@ -54,12 +81,36 @@
       "namedRegex": "^/services/(?<nxtPslug>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/sign-in/[[...sign-in]]",
+      "regex": "^/sign\\-in(?:/(.+?))?(?:/)?$",
+      "routeKeys": {
+        "nxtPsignin": "nxtPsign-in"
+      },
+      "namedRegex": "^/sign\\-in(?:/(?<nxtPsignin>.+?))?(?:/)?$"
+    },
+    {
+      "page": "/sign-up/[[...sign-up]]",
+      "regex": "^/sign\\-up(?:/(.+?))?(?:/)?$",
+      "routeKeys": {
+        "nxtPsignup": "nxtPsign-up"
+      },
+      "namedRegex": "^/sign\\-up(?:/(?<nxtPsignup>.+?))?(?:/)?$"
+    },
+    {
       "page": "/store/[id]",
       "regex": "^/store/([^/]+?)(?:/)?$",
       "routeKeys": {
         "nxtPid": "nxtPid"
       },
       "namedRegex": "^/store/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/[transport]",
+      "regex": "^/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPtransport": "nxtPtransport"
+      },
+      "namedRegex": "^/(?<nxtPtransport>[^/]+?)(?:/)?$"
     }
   ],
   "staticRoutes": [
@@ -80,6 +131,18 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/.well-known/oauth-authorization-server",
+      "regex": "^/\\.well\\-known/oauth\\-authorization\\-server(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/\\.well\\-known/oauth\\-authorization\\-server(?:/)?$"
+    },
+    {
+      "page": "/.well-known/oauth-protected-resource/mcp",
+      "regex": "^/\\.well\\-known/oauth\\-protected\\-resource/mcp(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/\\.well\\-known/oauth\\-protected\\-resource/mcp(?:/)?$"
     },
     {
       "page": "/about",
