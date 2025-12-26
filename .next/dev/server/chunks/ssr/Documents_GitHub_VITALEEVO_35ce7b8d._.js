@@ -80,7 +80,7 @@ function NotFound() {
                     columnNumber: 17
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Documents$2f$GitHub$2f$VITALEEVO$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"
+                    className: "absolute inset-0 bg-[url('/grid.svg')] bg-center"
                 }, void 0, false, {
                     fileName: "[project]/Documents/GitHub/VITALEEVO/src/app/not-found.tsx",
                     lineNumber: 14,
@@ -93,7 +93,7 @@ function NotFound() {
                             className: "mb-8 relative inline-block",
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$Documents$2f$GitHub$2f$VITALEEVO$2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
-                                    className: "font-display font-black text-[10rem] md:text-[14rem] leading-none text-transparent bg-clip-text bg-gradient-to-b from-white/10 to-transparent select-none",
+                                    className: "font-display font-black text-[10rem] md:text-[14rem] leading-none text-white/10 select-none",
                                     children: "404"
                                 }, void 0, false, {
                                     fileName: "[project]/Documents/GitHub/VITALEEVO/src/app/not-found.tsx",
