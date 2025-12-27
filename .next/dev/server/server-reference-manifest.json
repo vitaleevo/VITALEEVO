@@ -1,21 +1,5 @@
 {
-  "node": {
-    "40ebd417e9f8f371807af1d4bf0a1f4bd190f08a37": {
-      "workers": {
-        "app/checkout/page": {
-          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/checkout/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/src/app/actions/contact.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "sendOrderEmail",
-          "filename": "Documents/GitHub/VITALEEVO/src/app/actions/contact.ts"
-        }
-      },
-      "layer": {
-        "app/checkout/page": "action-browser"
-      },
-      "filename": "Documents/GitHub/VITALEEVO/src/app/actions/contact.ts",
-      "exportedName": "sendOrderEmail"
-    }
-  },
+  "node": {},
   "edge": {},
-  "encryptionKey": "HqMYmAtV0C8PPlfnB/IIxo7+11bsKsep5Nc+9ytqmYc="
+  "encryptionKey": "nvntUgC2mUBuRPLY54pT1r/jDyembqLuAMRNOg6cyeU="
 }

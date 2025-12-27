@@ -42,6 +42,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Sync with database updates
     useEffect(() => {
+        if (dbUser === null && user?._id && !isLoading) {
+            // User exists locally but not found in DB (or invalid ID) -> Logout
+            console.warn("User not found in DB or invalid ID. Logging out.");
+            logout();
+            return;
+        }
+
         if (dbUser) {
             setUser(prev => {
                 if (!prev) return dbUser as any;
@@ -52,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return prev;
             });
         }
-    }, [dbUser]);
+    }, [dbUser, user?._id, isLoading]);
 
     // Load user from localStorage on mount
     useEffect(() => {

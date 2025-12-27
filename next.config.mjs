@@ -27,7 +27,7 @@ const nextConfig = {
                     },
                     {
                         key: 'Content-Security-Policy',
-                        value: "img-src 'self' data: https: blob:;",
+                        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.convex.cloud; connect-src 'self' https://*.convex.cloud wss://*.convex.cloud; img-src 'self' data: https: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:;",
                     },
                 ],
             },

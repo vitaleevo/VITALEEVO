@@ -94,9 +94,12 @@ export const login = mutation({
 
 // Get user by ID
 export const getById = query({
-    args: { userId: v.id("users") },
+    args: { userId: v.string() },
     handler: async (ctx, args) => {
-        const user = await ctx.db.get(args.userId);
+        const normalizedId = ctx.db.normalizeId("users", args.userId);
+        if (!normalizedId) return null;
+
+        const user = await ctx.db.get(normalizedId);
         if (!user) return null;
 
         // Don't return password hash

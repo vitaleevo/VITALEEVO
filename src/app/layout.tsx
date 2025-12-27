@@ -37,9 +37,24 @@ export async function generateMetadata(
 ): Promise<Metadata> {
     let settings = null;
     try {
-        settings = await fetchQuery(api.settings.get);
-    } catch (error) {
-        console.error("Failed to fetch settings for metadata:", error);
+        // Log environment variable status (hidden in production)
+        if (process.env.NODE_ENV === 'development') {
+            if (!process.env.CONVEX_URL) {
+                console.warn("⚠️ CONVEX_URL is not set in Server Components context.");
+            }
+        }
+
+        if (api?.settings?.get) {
+            settings = await fetchQuery(api.settings.get);
+        } else {
+            console.error("❌ API settings.get is not defined. Check npx convex dev status.");
+        }
+    } catch (error: any) {
+        console.error("❌ Failed to fetch settings for metadata:", {
+            message: error.message,
+            stack: error.stack,
+            digest: error.digest // Catching Next.js internal digest if present
+        });
     }
 
     const previousImages = (await parent).openGraph?.images || [];

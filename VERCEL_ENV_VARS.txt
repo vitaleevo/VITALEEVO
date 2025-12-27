@@ -1,19 +1,26 @@
-# === GUIA DE DEPLOY MANUAL - VITALEEVO ===
+# === GUIA DEFINITIVO DE DEPLOY - VITALEEVO ===
 
-# --- PASSO 1: VARIÁVEIS NA VERCEL ---
+# --- 🎯 1. VARIÁVEIS DE AMBIENTE (OBRIGATÓRIO) ---
 # Adicione estas chaves EXATAMENTE assim no painel da Vercel (Settings -> Environment Variables):
 
-NEXT_PUBLIC_CONVEX_URL=https://watchful-pony-120.convex.cloud
-CONVEX_DEPLOY_KEY=prod:watchful-pony-120|eyJ2MiI6IjM3YjJmMDA2ZDQyZTRjZTc4NzA4NTVjNTQ4YWQ0MjM5In0=
+# Backend Convex (Obrigatório para o site funcionar)
+NEXT_PUBLIC_CONVEX_URL=https://merry-fennec-711.convex.cloud
+CONVEX_URL=https://merry-fennec-711.convex.cloud
+CONVEX_DEPLOY_KEY=prod:merry-fennec-711|eyJ2MiI6IjgxODJhMTMxNzU3YTRmMWQ4MWJmMDcwMDlhOWEzYWY3In0=
+
+# Serviços Externos
 RESEND_API_KEY=re_STYWwjLe_2D9MieAyMSFxQcKNVwyjnE9V
+
+# Configuração do Site
 NEXT_PUBLIC_SITE_URL=https://vitaleevo.ao
 
-# --- PASSO 2: DEPLOY ---
-# Como vai fazer manualmente:
-# 1. Remova o projeto antigo na Vercel se necessário.
-# 2. Crie o novo projeto apontando para este repositório.
-# 3. Garanta que as variáveis de ambiente acima foram inseridas ANTES do primeiro build.
+# --- 🛠️ 2. O QUE EU CORRIGI PARA O NOVO DEPLOY ---
+# 1. ERRO DE FETCH: Adicionei proteção 'try-catch' no servidor. Se o backend demorar a responder, o site não cai.
+# 2. CSP (SEGURANÇA): Actualizei as regras de segurança para permitir que a Vercel fale com o Convex via WebSocket.
+# 3. CONVEX PROVIDER: Adicionei uma proteção que avisa se a URL estiver em falta em vez de crashar o ecrã todo.
+# 4. BRANDING: Tudo unificado como 'Vitaleevo'.
 
-# --- VERIFICAÇÃO FINAL ---
-# O projeto foi testado localmente com 'npm run build' e compilou sem ERROS.
-# Todo o nome do site foi padronizado como: Vitaleevo
+# --- 🚀 3. COMO FAZER O DEPLOY AGORA ---
+# 1. Se o projeto na Vercel já existe, apague todas as variáveis antigas e coloque estas novas.
+# 2. Se for criar um novo, coloque estas variáveis ANTES de fazer o primeiro deploy.
+# 3. Se o erro "Application Error" persistir no navegador: limpe o cache do seu navegador ou abra em modo incógnito (pode ser o cache do antigo sistema Clerk).
