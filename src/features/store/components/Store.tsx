@@ -151,7 +151,7 @@ const Store: React.FC = () => {
                                 </span>
                             )}
                         </Link>
-                        <Link href="/account" className="flex items-center justify-center h-12 w-12 rounded-xl bg-white dark:bg-background-dark text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-white/10 hover:border-primary/50 hover:text-primary transition-all shadow-sm">
+                        <Link href="/conta" className="flex items-center justify-center h-12 w-12 rounded-xl bg-white dark:bg-background-dark text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-white/10 hover:border-primary/50 hover:text-primary transition-all shadow-sm">
                             <User className="w-5 h-5" />
                         </Link>
                     </div>
