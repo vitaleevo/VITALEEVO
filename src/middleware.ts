@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Simple middleware without Clerk - all routes are public
+// Simple middleware - all routes are public
 export function middleware(request: NextRequest) {
     // Allow all requests to pass through
     return NextResponse.next();
