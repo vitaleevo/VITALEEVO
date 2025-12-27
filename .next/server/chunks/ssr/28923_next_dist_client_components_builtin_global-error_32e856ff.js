@@ -1,3 +1,0 @@
-module.exports=[18654,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(85837);a.n(d("[project]/Documents/GitHub/VITALEEVO/node_modules/next/dist/client/components/builtin/global-error.js <module evaluation>"))},75822,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(85837);a.n(d("[project]/Documents/GitHub/VITALEEVO/node_modules/next/dist/client/components/builtin/global-error.js"))},94719,a=>{"use strict";a.i(18654);var b=a.i(75822);a.n(b)}];
-
-//# sourceMappingURL=28923_next_dist_client_components_builtin_global-error_32e856ff.js.map
