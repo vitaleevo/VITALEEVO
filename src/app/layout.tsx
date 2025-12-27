@@ -90,7 +90,7 @@ export async function generateMetadata(
             icon: "/icon.png",
             apple: "/apple-icon.png",
         },
-        manifest: "/manifest.json",
+        // manifest: "/manifest.json", // Disabled to prevent Vercel Preview 401 errors
     };
 }
 
