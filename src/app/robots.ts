@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: ['/admin/', '/conta/', '/checkout/'],
+            disallow: ['/admin/', '/conta/', '/checkout/', '/unsubscribe'],
         },
         sitemap: 'https://vitaleevo.ao/sitemap.xml',
     };

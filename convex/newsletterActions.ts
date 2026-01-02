@@ -33,30 +33,30 @@ export const sendWeeklyDigest = action({
             </div>
         `).join('');
 
-        const emailHtml = `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <h1 style="color: #8b5cf6; margin: 0;">VitalEvo Weekly Digest</h1>
-                    <p style="color: #64748b;">As novidades que você não pode perder.</p>
-                </div>
-                
-                ${articlesHtml}
-
-                <div style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-radius: 8px; text-align: center;">
-                    <p style="margin: 0 0 15px 0; font-size: 14px; color: #1e293b;">Quer ver mais novidades?</p>
-                    <a href="https://vitaleevo.ao/blog" style="background-color: #8b5cf6; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; display: inline-block;">Visitar o Blog</a>
-                </div>
-
-                <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
-                <p style="font-size: 10px; color: #94a3b8; text-align: center;">
-                    Você recebeu este e-mail porque se inscreveu na newsletter da VitalEvo.<br/>
-                    Se desejar sair, <a href="https://vitaleevo.ao/unsubscribe" style="color: #94a3b8;">clique aqui</a>.
-                </p>
-            </div>
-        `;
-
         // Send to all subscribers
         for (const sub of subscribers) {
+            const emailHtml = `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #8b5cf6; margin: 0;">VitalEvo Weekly Digest</h1>
+                        <p style="color: #64748b;">As novidades que você não pode perder.</p>
+                    </div>
+                    
+                    ${articlesHtml}
+
+                    <div style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-radius: 8px; text-align: center;">
+                        <p style="margin: 0 0 15px 0; font-size: 14px; color: #1e293b;">Quer ver mais novidades?</p>
+                        <a href="https://vitaleevo.ao/blog" style="background-color: #8b5cf6; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; display: inline-block;">Visitar o Blog</a>
+                    </div>
+
+                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
+                    <p style="font-size: 10px; color: #94a3b8; text-align: center;">
+                        Você recebeu este e-mail porque se inscreveu na newsletter da VitalEvo.<br/>
+                        Se desejar sair, <a href="https://vitaleevo.ao/unsubscribe?email=${sub.email}" style="color: #94a3b8;">clique aqui</a>.
+                    </p>
+                </div>
+            `;
+
             try {
                 await fetch('https://api.resend.com/emails', {
                     method: 'POST',

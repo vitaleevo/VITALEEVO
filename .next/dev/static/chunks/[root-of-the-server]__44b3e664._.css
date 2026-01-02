@@ -2240,6 +2240,10 @@ img, video {
   min-height: 100vh;
 }
 
+.min-h-\[60vh\] {
+  min-height: 60vh;
+}
+
 .\!w-6 {
   width: 1.5rem !important;
 }
