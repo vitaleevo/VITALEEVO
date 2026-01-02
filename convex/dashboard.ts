@@ -1,8 +1,14 @@
 import { query } from "./_generated/server";
+import { v } from "convex/values";
+import { checkAdmin } from "./utils";
 
-export const getStats = query({
-    args: {},
-    handler: async (ctx) => {
+// Admin Dashboard Stats Query
+// Trigger update
+export const getDashboardStats = query({
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
+
         const orders = await ctx.db.query("orders").collect();
         const products = await ctx.db.query("products").collect();
         const users = await ctx.db.query("users").collect();

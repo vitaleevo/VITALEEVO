@@ -138,3 +138,39 @@ export async function sendOrderEmail(data: {
         return { success: false, error: error.message };
     }
 }
+export async function sendPasswordResetEmail(email: string, name: string, token: string) {
+    if (!process.env.RESEND_API_KEY) {
+        console.error("RESEND_API_KEY is not defined");
+        return { success: false, error: "E-mail service not configured" };
+    }
+
+    const resetLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/recuperar-senha?token=${token}`;
+
+    try {
+        const { data, error } = await resend.emails.send({
+            from: 'VitalEvo <onboarding@resend.dev>',
+            to: [email],
+            subject: 'Recuperação de Senha - VitalEvo',
+            html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
+                    <h2 style="color: #3b82f6;">Recuperação de Senha</h2>
+                    <p>Olá, ${name}!</p>
+                    <p>Recebemos uma solicitação para redefinir a sua senha. Clique no botão abaixo para prosseguir:</p>
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="${resetLink}" style="background-color: #3b82f6; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Redefinir Minha Senha</a>
+                    </div>
+                    <p>Se você não solicitou isso, por favor ignore este e-mail. O link é válido por 1 hora.</p>
+                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
+                    <p style="font-size: 12px; color: #666;">
+                        Este email foi enviado automaticamente pelo sistema da VitalEvo.
+                    </p>
+                </div>
+            `,
+        });
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, data };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}

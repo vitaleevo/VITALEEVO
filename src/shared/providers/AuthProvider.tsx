@@ -4,18 +4,21 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Id } from "../../../convex/_generated/dataModel";
+import { getErrorMessage } from "../utils/error-handler";
 
 interface User {
     _id: Id<"users">;
     email: string;
     name: string;
     role: string;
+    token: string; // Session token
     avatarUrl?: string;
     phone?: string;
 }
 
 interface AuthContextType {
     user: User | null;
+    token: string | null;
     isLoading: boolean;
     isAuthenticated: boolean;
     isAdmin: boolean;
@@ -38,23 +41,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const loginMutation = useMutation(api.auth.login);
     const registerMutation = useMutation(api.auth.register);
 
-    const dbUser = useQuery(api.auth.getById, user?._id ? { userId: user._id } : "skip");
+    const dbUser = useQuery(api.auth.getById, user?._id ? { userId: user._id, token: user.token } : "skip");
 
     // Sync with database updates
     useEffect(() => {
         if (dbUser === null && user?._id && !isLoading) {
-            // User exists locally but not found in DB (or invalid ID) -> Logout
-            console.warn("User not found in DB or invalid ID. Logging out.");
+            console.warn("Sessão inválida ou utilizador não encontrado. Logging out.");
             logout();
             return;
         }
 
         if (dbUser) {
             setUser(prev => {
-                if (!prev) return dbUser as any;
-                // Only update if something changed to avoid potential loops/renders
-                if (JSON.stringify(prev) !== JSON.stringify(dbUser)) {
-                    return { ...prev, ...dbUser };
+                // If we don't have a local user yet, this is an unexpected state since dbUser is triggered by user?._id
+                if (!prev) return null;
+
+                // Compare fields to avoid unnecessary state updates
+                const hasChanges =
+                    prev.email !== dbUser.email ||
+                    prev.name !== dbUser.name ||
+                    prev.role !== dbUser.role ||
+                    prev.phone !== dbUser.phone ||
+                    prev.avatarUrl !== dbUser.avatarUrl;
+
+                if (hasChanges) {
+                    return {
+                        ...prev,
+                        email: dbUser.email,
+                        name: dbUser.name,
+                        role: dbUser.role,
+                        phone: dbUser.phone,
+                        avatarUrl: dbUser.avatarUrl
+                    };
                 }
                 return prev;
             });
@@ -89,16 +107,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(true);
         try {
             const result = await loginMutation({ email, password });
+
+            // If it returns (didn't throw), it's successful
             setUser({
                 _id: result.userId as Id<"users">,
-                email: result.email,
-                name: result.name,
-                role: result.role,
+                email: result.email!,
+                name: result.name!,
+                role: result.role!,
+                token: result.sessionToken!,
                 avatarUrl: result.avatarUrl,
                 phone: result.phone,
             });
         } catch (err: any) {
-            const message = err.message || "Erro ao fazer login";
+            const message = getErrorMessage(err);
             setError(message);
             throw new Error(message);
         } finally {
@@ -110,11 +131,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError(null);
         setIsLoading(true);
         try {
-            await registerMutation({ email, password, name, phone });
+            const result = await registerMutation({ email, password, name, phone });
+
             // Auto-login after registration
-            await login(email, password);
+            setUser({
+                _id: result.userId as Id<"users">,
+                email: email.toLowerCase(),
+                name: name,
+                role: "user",
+                token: result.sessionToken!,
+                phone: phone,
+            });
         } catch (err: any) {
-            const message = err.message || "Erro ao criar conta";
+            const message = getErrorMessage(err);
             setError(message);
             throw new Error(message);
         } finally {
@@ -133,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         <AuthContext.Provider
             value={{
                 user,
+                token: user?.token || null,
                 isLoading,
                 isAuthenticated: !!user,
                 isAdmin: user?.role === "admin",

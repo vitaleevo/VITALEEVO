@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { checkAdmin } from "./utils";
 
 // Submit a contact message
 export const submit = mutation({
@@ -23,8 +24,9 @@ export const submit = mutation({
 
 // Get all contact messages (admin only)
 export const getAll = query({
-    args: {},
-    handler: async (ctx) => {
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
         return await ctx.db
             .query("contacts")
             .order("desc")
@@ -34,16 +36,18 @@ export const getAll = query({
 
 // Mark message as read
 export const markAsRead = mutation({
-    args: { id: v.id("contacts"), isRead: v.boolean() },
+    args: { token: v.string(), id: v.id("contacts"), isRead: v.boolean() },
     handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
         await ctx.db.patch(args.id, { isRead: args.isRead });
     },
 });
 
 // Delete a contact message
 export const remove = mutation({
-    args: { id: v.id("contacts") },
+    args: { token: v.string(), id: v.id("contacts") },
     handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
         await ctx.db.delete(args.id);
     },
 });

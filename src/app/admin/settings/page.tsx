@@ -21,6 +21,7 @@ import {
     Twitter,
     Truck
 } from "lucide-react";
+import { useAuth } from "@/shared/providers/AuthProvider";
 
 export default function SettingsAdmin() {
     const settings = useQuery(api.settings.get);
@@ -36,6 +37,8 @@ export default function SettingsAdmin() {
         }
     }, [settings]);
 
+    const { token } = useAuth();
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
@@ -43,7 +46,7 @@ export default function SettingsAdmin() {
         try {
             // Remove metadata fields that are not in the mutation validator
             const { _id, _creationTime, key, updatedAt, ...updateData } = form;
-            await updateSettings(updateData);
+            await updateSettings({ ...updateData, token: token! });
             setMessage({ type: 'success', text: "Configurações salvas!" });
             setTimeout(() => setMessage(null), 3000);
         } catch (err: any) {

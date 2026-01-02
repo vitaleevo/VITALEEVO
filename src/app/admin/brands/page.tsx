@@ -1,5 +1,7 @@
 "use client";
 
+import { useAuth } from "@/shared/providers/AuthProvider";
+
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -40,7 +42,8 @@ const emptyForm: BrandForm = {
 };
 
 export default function AdminBrandsPage() {
-    const brands = useQuery(api.brands.getAllAdmin);
+    const { token } = useAuth();
+    const brands = useQuery(api.brands.getAllAdmin, token ? { token } : "skip");
     const createBrand = useMutation(api.brands.create);
     const updateBrand = useMutation(api.brands.update);
     const removeBrand = useMutation(api.brands.remove);
@@ -92,15 +95,18 @@ export default function AdminBrandsPage() {
     };
 
     const handleSave = async () => {
+        if (!token) return;
         setIsSaving(true);
         try {
             if (editingId) {
                 await updateBrand({
+                    token,
                     id: editingId,
                     ...form
                 });
             } else {
                 await createBrand({
+                    token,
                     ...form,
                     slug: form.slug || generateSlug(form.name)
                 });
@@ -116,13 +122,16 @@ export default function AdminBrandsPage() {
     };
 
     const handleDelete = async (id: Id<"brands">) => {
+        if (!token) return;
         if (confirm("Tem certeza que deseja apagar esta marca?")) {
-            await removeBrand({ id });
+            await removeBrand({ token, id });
         }
     };
 
     const toggleActive = async (brand: typeof brands[0]) => {
+        if (!token) return;
         await updateBrand({
+            token,
             id: brand._id,
             isActive: !brand.isActive
         });

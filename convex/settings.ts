@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { checkAdmin } from "./utils";
 
 const DEFAULT_SETTINGS = {
     key: "site_config",
@@ -36,6 +37,7 @@ export const get = query({
 
 export const update = mutation({
     args: {
+        token: v.string(),
         siteName: v.optional(v.string()),
         siteDescription: v.optional(v.string()),
         contactEmail: v.optional(v.string()),
@@ -54,15 +56,14 @@ export const update = mutation({
             maintenanceMode: v.boolean(),
             currency: v.string(),
         })),
-        // Allow metadata fields to prevent validation errors from cached clients
         key: v.optional(v.string()),
         _id: v.optional(v.string()),
         _creationTime: v.optional(v.number()),
         updatedAt: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
-        // Remove metadata from args before patching
-        const { key, _id, _creationTime, updatedAt, ...cleanArgs } = args;
+        await checkAdmin(ctx, args.token);
+        const { token, key, _id, _creationTime, updatedAt, ...cleanArgs } = args;
 
         const existing = await ctx.db
             .query("settings")
@@ -75,7 +76,6 @@ export const update = mutation({
                 updatedAt: Date.now(),
             });
         } else {
-            // Merge with defaults if first time
             await ctx.db.insert("settings", {
                 ...DEFAULT_SETTINGS,
                 ...cleanArgs,

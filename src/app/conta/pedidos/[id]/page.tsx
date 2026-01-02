@@ -35,14 +35,14 @@ import autoTable from "jspdf-autotable";
 export default function OrderDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+    const { user, isAuthenticated, isLoading: authLoading, token } = useAuth();
     const { addItem } = useCart();
 
     const [isRepeating, setIsRepeating] = useState(false);
     const [copiedField, setCopiedField] = useState<string | null>(null);
 
     const orderId = params.id as string;
-    const order = useQuery(api.orders.getById, { orderId: orderId as Id<"orders"> });
+    const order = useQuery(api.orders.getById, token ? { token, orderId: orderId as Id<"orders"> } : "skip");
 
     if (authLoading || (order === undefined)) {
         return (

@@ -5,7 +5,9 @@ import { useAuth } from "@/shared/providers/AuthProvider";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import FeatureLayout from "@/shared/components/FeatureLayout";
-import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 
 export default function LoginPage() {
     const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
@@ -35,9 +37,12 @@ export default function LoginPage() {
 
         try {
             await login(email, password);
+            toast.success("Login realizado com sucesso!");
             router.push("/");
         } catch (err: any) {
-            setLocalError(err.message || "Erro ao fazer login");
+            const message = err.message || "Erro ao fazer login";
+            setLocalError(message);
+            toast.error(message);
         }
     };
 
@@ -61,12 +66,29 @@ export default function LoginPage() {
                     </div>
 
                     {/* Form Card */}
-                    <div className="bg-white dark:bg-[#151e32] rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-white/5">
-                        {displayError && (
-                            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm font-medium border border-red-100 dark:border-red-900/30">
-                                {displayError}
-                            </div>
-                        )}
+                    <div className="bg-white dark:bg-[#151e32] rounded-3xl p-8 shadow-2xl border border-gray-100 dark:border-white/5 relative overflow-hidden">
+                        <AnimatePresence mode="wait">
+                            {displayError && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -20, height: 0 }}
+                                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                                    exit={{ opacity: 0, y: -20, height: 0 }}
+                                    className="mb-8 overflow-hidden"
+                                >
+                                    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-start gap-3">
+                                        <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-bold text-red-600 dark:text-red-400">
+                                                Dados incorretos
+                                            </p>
+                                            <p className="text-xs text-red-500/80 dark:text-red-400/80 leading-relaxed">
+                                                {displayError}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
@@ -107,6 +129,14 @@ export default function LoginPage() {
                                     >
                                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                     </button>
+                                </div>
+                                <div className="text-right mt-2">
+                                    <Link
+                                        href="/esqueci-senha"
+                                        className="text-xs font-bold text-primary hover:underline"
+                                    >
+                                        Esqueceu a senha?
+                                    </Link>
                                 </div>
                             </div>
 

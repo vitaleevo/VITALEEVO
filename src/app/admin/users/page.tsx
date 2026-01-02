@@ -21,9 +21,13 @@ import {
     Loader2
 } from "lucide-react";
 import { formatDate } from "@/shared/utils/format";
+import { useAuth } from "@/shared/providers/AuthProvider";
 
 export default function UsersAdmin() {
-    const users = useQuery(api.auth.getAllAdmin);
+    const { token } = useAuth();
+    // Pass token to query
+    const users = useQuery(api.auth.getAllAdmin, token ? { token } : "skip");
+
     const adminCreateUser = useMutation(api.auth.adminCreateUser);
     const adminUpdateUser = useMutation(api.auth.adminUpdateUser);
     const adminResetPassword = useMutation(api.auth.adminResetPassword);
@@ -48,7 +52,7 @@ export default function UsersAdmin() {
         newPassword: ""
     });
 
-    const filteredUsers = users?.filter(u =>
+    const filteredUsers = users?.filter((u: any) =>
         u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         u.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -78,11 +82,13 @@ export default function UsersAdmin() {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!token) return;
         setSaving(true);
         setMessage(null);
         try {
             if (editingUser) {
                 await adminUpdateUser({
+                    token,
                     userId: editingUser._id,
                     name: form.name,
                     email: form.email,
@@ -92,6 +98,7 @@ export default function UsersAdmin() {
                 setMessage({ type: 'success', text: "Usuário atualizado!" });
             } else {
                 await adminCreateUser({
+                    token,
                     name: form.name,
                     email: form.email,
                     password: form.password,
@@ -110,9 +117,11 @@ export default function UsersAdmin() {
 
     const handleResetPassword = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!token) return;
         setSaving(true);
         try {
             await adminResetPassword({
+                token,
                 userId: passwordForm.userId as any,
                 newPassword: passwordForm.newPassword
             });
@@ -126,8 +135,10 @@ export default function UsersAdmin() {
     };
 
     const handleToggleStatus = async (user: any) => {
+        if (!token) return;
         try {
             await adminUpdateUser({
+                token,
                 userId: user._id,
                 isActive: !user.isActive
             });

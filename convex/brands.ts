@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { checkAdmin } from "./utils";
 
 // Get all active brands
 export const getAll = query({
@@ -15,8 +16,9 @@ export const getAll = query({
 
 // Get all brands for admin
 export const getAllAdmin = query({
-    args: {},
-    handler: async (ctx) => {
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
         return await ctx.db.query("brands").collect();
     },
 });
@@ -24,6 +26,7 @@ export const getAllAdmin = query({
 // Create a new brand
 export const create = mutation({
     args: {
+        token: v.string(),
         name: v.string(),
         slug: v.string(),
         logo: v.optional(v.string()),
@@ -32,13 +35,16 @@ export const create = mutation({
         isActive: v.boolean(),
     },
     handler: async (ctx, args) => {
-        return await ctx.db.insert("brands", args);
+        await checkAdmin(ctx, args.token);
+        const { token, ...data } = args;
+        return await ctx.db.insert("brands", data);
     },
 });
 
 // Update a brand
 export const update = mutation({
     args: {
+        token: v.string(),
         id: v.id("brands"),
         name: v.optional(v.string()),
         slug: v.optional(v.string()),
@@ -48,15 +54,17 @@ export const update = mutation({
         isActive: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
-        const { id, ...updates } = args;
+        await checkAdmin(ctx, args.token);
+        const { id, token, ...updates } = args;
         await ctx.db.patch(id, updates);
     },
 });
 
 // Delete a brand
 export const remove = mutation({
-    args: { id: v.id("brands") },
+    args: { token: v.string(), id: v.id("brands") },
     handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
         await ctx.db.delete(args.id);
     },
 });

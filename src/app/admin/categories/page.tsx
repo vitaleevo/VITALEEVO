@@ -16,6 +16,7 @@ import {
     Search
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/shared/providers/AuthProvider";
 
 interface CategoryForm {
     name: string;
@@ -42,7 +43,8 @@ const types = [
 ];
 
 export default function AdminCategoriesPage() {
-    const categories = useQuery(api.categories.getAllAdmin, {});
+    const { token } = useAuth();
+    const categories = useQuery(api.categories.getAllAdmin, token ? { token } : "skip");
     const createCategory = useMutation(api.categories.create);
     const updateCategory = useMutation(api.categories.update);
     const removeCategory = useMutation(api.categories.remove);
@@ -101,11 +103,13 @@ export default function AdminCategoriesPage() {
         try {
             if (editingId) {
                 await updateCategory({
+                    token: token!,
                     id: editingId,
                     ...form
                 });
             } else {
                 await createCategory({
+                    token: token!,
                     ...form,
                     slug: form.slug || generateSlug(form.name)
                 });
@@ -122,12 +126,13 @@ export default function AdminCategoriesPage() {
 
     const handleDelete = async (id: Id<"categories">) => {
         if (confirm("Tem certeza que deseja apagar esta categoria?")) {
-            await removeCategory({ id });
+            await removeCategory({ token: token!, id });
         }
     };
 
     const toggleActive = async (cat: typeof categories[0]) => {
         await updateCategory({
+            token: token!,
             id: cat._id,
             isActive: !cat.isActive
         });

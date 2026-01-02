@@ -37,6 +37,8 @@ import {
     Bell,
     BellIcon,
 } from "lucide-react";
+import { toast } from "sonner";
+import { getErrorMessage } from "@/shared/utils/error-handler";
 import { formatDate, formatCurrency } from "@/shared/utils/format";
 
 export default function ContaPage() {
@@ -51,7 +53,7 @@ export default function ContaPage() {
     const setDefaultAddress = useMutation(api.addresses.setDefault);
     const toggleWishlist = useMutation(api.wishlist.toggle);
 
-    const orders = useQuery(api.orders.getByUser, user ? { userId: user._id } : "skip");
+    const orders = useQuery(api.orders.getByUser, user ? { userId: user._id, token: user.token } : "skip");
     const addresses = useQuery(api.addresses.getByUser, user ? { userId: user._id } : "skip");
     const wishlistItems = useQuery(api.wishlist.getByUser, user ? { userId: user._id } : "skip");
     const notifications = useQuery(api.notifications.getByUser, user ? { userId: user._id } : "skip");
@@ -110,14 +112,17 @@ export default function ContaPage() {
         setMessage(null);
         try {
             await updateProfile({
-                userId: user._id,
+                token: user.token,
                 name: editForm.name || undefined,
                 phone: editForm.phone || undefined,
             });
+            toast.success("Perfil atualizado com sucesso!");
             setMessage({ type: "success", text: "Perfil atualizado com sucesso!" });
             setIsEditing(false);
         } catch (err: any) {
-            setMessage({ type: "error", text: err.message || "Erro ao atualizar perfil" });
+            const errorMsg = getErrorMessage(err);
+            toast.error(errorMsg);
+            setMessage({ type: "error", text: errorMsg });
         } finally {
             setSaving(false);
         }
@@ -140,14 +145,17 @@ export default function ContaPage() {
         setMessage(null);
         try {
             await changePassword({
-                userId: user._id,
+                token: user.token,
                 currentPassword: passwordForm.current,
                 newPassword: passwordForm.new,
             });
+            toast.success("Senha alterada com sucesso!");
             setMessage({ type: "success", text: "Senha alterada com sucesso!" });
             setPasswordForm({ current: "", new: "", confirm: "" });
         } catch (err: any) {
-            setMessage({ type: "error", text: err.message || "Erro ao alterar senha" });
+            const errorMsg = getErrorMessage(err);
+            toast.error(errorMsg);
+            setMessage({ type: "error", text: errorMsg });
         } finally {
             setSaving(false);
         }
@@ -175,6 +183,7 @@ export default function ContaPage() {
                 userId: user._id,
                 ...addressForm
             });
+            toast.success("Endereço adicionado!");
             setMessage({ type: "success", text: "Endereço adicionado!" });
             setShowAddressModal(false);
             setAddressForm({
@@ -187,7 +196,9 @@ export default function ContaPage() {
                 isDefault: false
             });
         } catch (err: any) {
-            setMessage({ type: "error", text: "Erro ao adicionar endereço" });
+            const errorMsg = getErrorMessage(err);
+            toast.error(errorMsg);
+            setMessage({ type: "error", text: errorMsg });
         } finally {
             setSaving(false);
         }

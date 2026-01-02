@@ -11,6 +11,10 @@ export default defineSchema({
         avatarUrl: v.optional(v.string()),
         role: v.optional(v.string()), // 'admin' or 'user'
         isActive: v.optional(v.boolean()),
+        sessionToken: v.optional(v.string()), // For secure session validation
+        tokenExpiry: v.optional(v.number()),
+        resetToken: v.optional(v.string()), // For password recovery
+        resetTokenExpiry: v.optional(v.number()),
         createdAt: v.number(),
     })
         .index("by_email", ["email"]),

@@ -18,8 +18,12 @@ import {
 import Link from 'next/link';
 import { formatDate } from "@/shared/utils/format";
 
+import { useAuth } from "@/shared/providers/AuthProvider";
+
 export default function AdminDashboard() {
-    const stats = useQuery(api.dashboard.getStats);
+    const { token } = useAuth();
+    const stats = useQuery(api.dashboard.getDashboardStats, token ? { token } : "skip");
+    console.log("AdminDashboard stats:", stats);
 
     if (!stats) {
         return (

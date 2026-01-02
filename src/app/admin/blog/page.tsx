@@ -16,12 +16,15 @@ import {
     Loader2,
     User,
     Settings,
-    Star
+    Star,
+    FileSpreadsheet
 } from "lucide-react";
 import { useState } from "react";
 import { formatDate } from "@/shared/utils/format";
 import ImageUpload from "@/shared/components/ImageUpload";
 import RichTextEditor from "@/shared/components/RichTextEditor";
+import BulkImportModal from "@/shared/components/BulkImportModal";
+import { useAuth } from "@/shared/providers/AuthProvider";
 
 interface ArticleForm {
     title: string;
@@ -56,7 +59,8 @@ const emptyForm: ArticleForm = {
 // Hardcoded categories removed - now fetched from Convex
 
 export default function AdminBlogPage() {
-    const articles = useQuery(api.articles.getAllAdmin);
+    const { token } = useAuth();
+    const articles = useQuery(api.articles.getAllAdmin, token ? { token } : "skip");
     const dbCategories = useQuery(api.categories.getByType, { type: "blog" });
     const createArticle = useMutation(api.articles.create);
     const updateArticle = useMutation(api.articles.update);
@@ -67,6 +71,7 @@ export default function AdminBlogPage() {
     const [editingId, setEditingId] = useState<Id<"articles"> | null>(null);
     const [form, setForm] = useState<ArticleForm>(emptyForm);
     const [isSaving, setIsSaving] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     if (!articles || !dbCategories) {
         return (
@@ -123,11 +128,13 @@ export default function AdminBlogPage() {
         try {
             if (editingId) {
                 await updateArticle({
+                    token: token!,
                     id: editingId,
                     ...form
                 });
             } else {
                 await createArticle({
+                    token: token!,
                     ...form,
                     slug: form.slug || generateSlug(form.title)
                 });
@@ -144,12 +151,13 @@ export default function AdminBlogPage() {
 
     const handleDelete = async (id: Id<"articles">) => {
         if (confirm("Tem certeza que deseja apagar este artigo?")) {
-            await removeArticle({ id });
+            await removeArticle({ token: token!, id });
         }
     };
 
     const togglePublish = async (article: typeof articles[0]) => {
         await updateArticle({
+            token: token!,
             id: article._id,
             isPublished: !article.isPublished
         });
@@ -167,6 +175,13 @@ export default function AdminBlogPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setIsImportModalOpen(true)}
+                        className="flex items-center gap-2 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 px-5 py-3 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-white/10 transition-all"
+                    >
+                        <FileSpreadsheet className="w-5 h-5 text-green-500" />
+                        Importar Artigos
+                    </button>
                     <a
                         href="/admin/categories"
                         className="flex items-center gap-2 bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 text-gray-700 dark:text-white px-5 py-3 rounded-xl font-bold transition-all border border-gray-200 dark:border-white/10"
@@ -503,6 +518,12 @@ export default function AdminBlogPage() {
                     </div>
                 </div>
             )}
+            {/* Bulk Import Modal */}
+            <BulkImportModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                type="blog"
+            />
         </div>
     );
 }

@@ -1,29 +1,18 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { checkAdmin } from "./utils";
 
-// Get all active projects (Public)
+// Public queries
 export const getVisibleProjects = query({
-    args: {
-        category: v.optional(v.string()),
-    },
+    args: { category: v.optional(v.string()) },
     handler: async (ctx, args) => {
         let projects;
-
         if (args.category && args.category !== "Todos") {
-            projects = await ctx.db
-                .query("projects")
-                .withIndex("by_category", (q) => q.eq("category", args.category!))
-                .collect();
+            projects = await ctx.db.query("projects").withIndex("by_category", (q) => q.eq("category", args.category!)).collect();
         } else {
-            projects = await ctx.db
-                .query("projects")
-                .collect();
+            projects = await ctx.db.query("projects").collect();
         }
-
-        // Filter only active ones in memory to avoid index mismatch temporarily
         const activeProjects = projects.filter(p => p.isActive === true);
-
-        // Manual sorting: Featured first, then by Order
         return activeProjects.sort((a, b) => {
             if (a.isFeatured && !b.isFeatured) return -1;
             if (!a.isFeatured && b.isFeatured) return 1;
@@ -32,27 +21,11 @@ export const getVisibleProjects = query({
     },
 });
 
-// Get featured projects (Public)
 export const getFeaturedProjects = query({
     args: {},
     handler: async (ctx) => {
-        const projects = await ctx.db
-            .query("projects")
-            .filter((q) => q.eq(q.field("isFeatured"), true))
-            .collect();
-
+        const projects = await ctx.db.query("projects").filter((q) => q.eq(q.field("isFeatured"), true)).collect();
         return projects.filter(p => p.isActive === true);
-    },
-});
-
-// Get all projects via Admin (includes inactive)
-export const getAllAdmin = query({
-    args: {},
-    handler: async (ctx) => {
-        return await ctx.db
-            .query("projects")
-            .order("desc") // default by creation
-            .collect();
     },
 });
 
@@ -63,9 +36,18 @@ export const getById = query({
     },
 });
 
-// Create project
+// Admin-only operations
+export const getAllAdmin = query({
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
+        return await ctx.db.query("projects").order("desc").collect();
+    },
+});
+
 export const create = mutation({
     args: {
+        token: v.string(),
         title: v.string(),
         slug: v.string(),
         category: v.string(),
@@ -83,17 +65,15 @@ export const create = mutation({
         order: v.number(),
     },
     handler: async (ctx, args) => {
-        const id = await ctx.db.insert("projects", {
-            ...args,
-            createdAt: Date.now(),
-        });
-        return id;
+        await checkAdmin(ctx, args.token);
+        const { token, ...data } = args;
+        return await ctx.db.insert("projects", { ...data, createdAt: Date.now() });
     },
 });
 
-// Update project
 export const update = mutation({
     args: {
+        token: v.string(),
         id: v.id("projects"),
         title: v.optional(v.string()),
         slug: v.optional(v.string()),
@@ -112,15 +92,16 @@ export const update = mutation({
         order: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
-        const { id, ...updates } = args;
+        await checkAdmin(ctx, args.token);
+        const { id, token, ...updates } = args;
         await ctx.db.patch(id, updates);
     },
 });
 
-// Delete project
 export const remove = mutation({
-    args: { id: v.id("projects") },
+    args: { token: v.string(), id: v.id("projects") },
     handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
         await ctx.db.delete(args.id);
     },
 });

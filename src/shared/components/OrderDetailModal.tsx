@@ -22,6 +22,8 @@ import { Id } from "../../../convex/_generated/dataModel";
 import { formatDate, formatCurrency } from "@/shared/utils/format";
 import Image from 'next/image';
 
+import { useAuth } from '@/shared/providers/AuthProvider';
+
 interface OrderDetailModalProps {
     order: any;
     isOpen: boolean;
@@ -29,6 +31,7 @@ interface OrderDetailModalProps {
 }
 
 const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onClose }) => {
+    const { token } = useAuth();
     const updateStatus = useMutation(api.orders.updateStatus);
     const [isUpdating, setIsUpdating] = useState(false);
     const [status, setStatus] = useState(order?.status || 'pending');
@@ -39,6 +42,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
         setIsUpdating(true);
         try {
             await updateStatus({
+                token: token!,
                 orderId: order._id as Id<"orders">,
                 status: status as any
             });

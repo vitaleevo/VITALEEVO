@@ -15,13 +15,16 @@ import {
     Save,
     Loader2,
     Settings,
-    Star
+    Star,
+    FileSpreadsheet
 } from "lucide-react";
 import { useState } from "react";
 // import { formatDate } from "@/shared/utils/format";
 import ImageUpload from "@/shared/components/ImageUpload";
 import RichTextEditor from "@/shared/components/RichTextEditor";
 import MultiImageUpload from "@/shared/components/MultiImageUpload";
+import BulkImportModal from "@/shared/components/BulkImportModal";
+import { useAuth } from "@/shared/providers/AuthProvider";
 
 interface ProjectForm {
     title: string;
@@ -60,7 +63,8 @@ const emptyForm: ProjectForm = {
 };
 
 export default function AdminPortfolioPage() {
-    const projects = useQuery(api.projects.getAllAdmin);
+    const { token } = useAuth();
+    const projects = useQuery(api.projects.getAllAdmin, token ? { token } : "skip");
     const dbCategories = useQuery(api.categories.getByType, { type: "portfolio" });
     const createProject = useMutation(api.projects.create);
     const updateProject = useMutation(api.projects.update);
@@ -71,6 +75,7 @@ export default function AdminPortfolioPage() {
     const [editingId, setEditingId] = useState<Id<"projects"> | null>(null);
     const [form, setForm] = useState<ProjectForm>(emptyForm);
     const [isSaving, setIsSaving] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     if (!projects || !dbCategories) {
         return (
@@ -140,11 +145,13 @@ export default function AdminPortfolioPage() {
 
             if (editingId) {
                 await updateProject({
+                    token: token!,
                     id: editingId,
                     ...projectData
                 });
             } else {
                 await createProject({
+                    token: token!,
                     ...projectData,
                     slug: form.slug || generateSlug(form.title)
                 });
@@ -161,12 +168,13 @@ export default function AdminPortfolioPage() {
 
     const handleDelete = async (id: Id<"projects">) => {
         if (confirm("Tem certeza que deseja apagar este projeto?")) {
-            await removeProject({ id });
+            await removeProject({ token: token!, id });
         }
     };
 
     const toggleActive = async (project: typeof projects[0]) => {
         await updateProject({
+            token: token!,
             id: project._id,
             isActive: !project.isActive
         });
@@ -184,6 +192,13 @@ export default function AdminPortfolioPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setIsImportModalOpen(true)}
+                        className="flex items-center gap-2 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 px-5 py-3 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-white/10 transition-all"
+                    >
+                        <FileSpreadsheet className="w-5 h-5 text-green-500" />
+                        Importar Projetos
+                    </button>
                     <a
                         href="/admin/categories"
                         className="flex items-center gap-2 bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 text-gray-700 dark:text-white px-5 py-3 rounded-xl font-bold transition-all border border-gray-200 dark:border-white/10"
@@ -550,6 +565,12 @@ export default function AdminPortfolioPage() {
                     </div>
                 </div>
             )}
+            {/* Bulk Import Modal */}
+            <BulkImportModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                type="projects"
+            />
         </div>
     );
 }

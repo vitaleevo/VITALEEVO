@@ -18,6 +18,7 @@ import type * as contacts from "../contacts.js";
 import type * as dashboard from "../dashboard.js";
 import type * as debug from "../debug.js";
 import type * as files from "../files.js";
+import type * as importData from "../importData.js";
 import type * as notifications from "../notifications.js";
 import type * as orders from "../orders.js";
 import type * as products from "../products.js";
@@ -26,6 +27,7 @@ import type * as seed from "../seed.js";
 import type * as settings from "../settings.js";
 import type * as setupAdmin from "../setupAdmin.js";
 import type * as users from "../users.js";
+import type * as utils from "../utils.js";
 import type * as wishlist from "../wishlist.js";
 
 import type {
@@ -45,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   dashboard: typeof dashboard;
   debug: typeof debug;
   files: typeof files;
+  importData: typeof importData;
   notifications: typeof notifications;
   orders: typeof orders;
   products: typeof products;
@@ -53,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   settings: typeof settings;
   setupAdmin: typeof setupAdmin;
   users: typeof users;
+  utils: typeof utils;
   wishlist: typeof wishlist;
 }>;
 

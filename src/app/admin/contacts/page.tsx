@@ -19,8 +19,11 @@ import {
 import { useState } from "react";
 import { formatDate } from "@/shared/utils/format";
 
+import { useAuth } from "@/shared/providers/AuthProvider";
+
 export default function AdminContactsPage() {
-    const messages = useQuery(api.contacts.getAll);
+    const { token } = useAuth();
+    const messages = useQuery(api.contacts.getAll, token ? { token } : "skip");
     const markAsRead = useMutation(api.contacts.markAsRead);
     const removeMessage = useMutation(api.contacts.remove);
 
@@ -43,14 +46,14 @@ export default function AdminContactsPage() {
 
     const handleViewMessage = async (msg: any) => {
         setSelectedMessage(msg);
-        if (!msg.isRead) {
-            await markAsRead({ id: msg._id, isRead: true });
+        if (!msg.isRead && token) {
+            await markAsRead({ id: msg._id, isRead: true, token });
         }
     };
 
     const handleDelete = async (id: Id<"contacts">) => {
-        if (confirm("Tem certeza que deseja apagar esta mensagem?")) {
-            await removeMessage({ id });
+        if (confirm("Tem certeza que deseja apagar esta mensagem?") && token) {
+            await removeMessage({ id, token });
             if (selectedMessage?._id === id) {
                 setSelectedMessage(null);
             }

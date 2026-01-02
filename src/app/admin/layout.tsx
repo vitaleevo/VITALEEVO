@@ -15,15 +15,25 @@ import {
     Home,
     ShieldAlert,
     Users,
-    Briefcase
+    Briefcase,
+    FileSpreadsheet
 } from "lucide-react";
 import Logo from "@/shared/components/Logo";
 import { useAuth } from "@/shared/providers/AuthProvider";
 
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
-    const { user, isAuthenticated, isAdmin, isLoading, logout } = useAuth();
+    const { user, isAuthenticated, isAdmin: authIsAdmin, isLoading: authLoading, token, logout } = useAuth();
+
+    // Verify admin status with the server using the token for maximum security
+    const serverIsAdmin = useQuery(api.auth.isAdmin, token ? { token } : "skip");
+
+    const isLoading = authLoading || serverIsAdmin === undefined;
+    const isAdmin = authIsAdmin && serverIsAdmin === true;
 
     // Redirect to login if not authenticated
     useEffect(() => {
@@ -88,6 +98,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { label: "Mensagens", href: "/admin/contacts", icon: MessageSquare },
         { label: "Portfólio", href: "/admin/portfolio", icon: Briefcase },
         { label: "Blog", href: "/admin/blog", icon: FileText },
+        { label: "Importação", href: "/admin/import", icon: FileSpreadsheet },
         { label: "Definições", href: "/admin/settings", icon: Settings },
     ];
 

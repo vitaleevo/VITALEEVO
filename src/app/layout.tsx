@@ -1,6 +1,7 @@
 import type { Metadata, Viewport, ResolvingMetadata } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import { Suspense } from "react";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { ThemeProvider } from "@/shared/components/ThemeProvider";
 import { ConvexClientProvider } from "@/shared/providers/ConvexClientProvider";
@@ -28,33 +29,30 @@ export const viewport: Viewport = {
     userScalable: false,
 };
 
-import { fetchQuery } from "convex/nextjs";
+import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../convex/_generated/api";
 
 export async function generateMetadata(
     _props: any,
     parent: ResolvingMetadata
 ): Promise<Metadata> {
-    let settings = null;
+    let settings: any = null;
     try {
-        // Log environment variable status (hidden in production)
-        if (process.env.NODE_ENV === 'development') {
-            if (!process.env.CONVEX_URL) {
-                console.warn("⚠️ CONVEX_URL is not set in Server Components context.");
+        const url = process.env.CONVEX_URL || process.env.NEXT_PUBLIC_CONVEX_URL;
+
+        if (url && api?.settings?.get) {
+            const client = new ConvexHttpClient(url);
+            settings = await client.query(api.settings.get);
+        } else {
+            if (!url && process.env.NODE_ENV === 'development') {
+                console.warn("⚠️ CONVEX_URL is not set for metadata generation.");
             }
         }
-
-        if (api?.settings?.get) {
-            settings = await fetchQuery(api.settings.get);
-        } else {
-            console.error("❌ API settings.get is not defined. Check npx convex dev status.");
-        }
     } catch (error: any) {
-        console.error("❌ Failed to fetch settings for metadata:", {
-            message: error.message,
-            stack: error.stack,
-            digest: error.digest // Catching Next.js internal digest if present
-        });
+        if (process.env.NODE_ENV === 'development') {
+            console.error("❌ Failed to fetch settings for metadata:", error?.message || error);
+        }
+        // Fallback to default values is handled below
     }
 
     const previousImages = (await parent).openGraph?.images || [];
@@ -111,6 +109,7 @@ export default function RootLayout({
                     <AuthProvider>
                         <CartProvider>
                             <ThemeProvider>
+                                <Toaster richColors position="top-right" />
                                 <div className="flex flex-col min-h-screen">
                                     <div className="flex-grow pb-16 lg:pb-0">
                                         <Suspense>

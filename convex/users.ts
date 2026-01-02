@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { checkAdmin } from "./utils";
 
 // Get user by email
 export const getByEmail = query({
@@ -59,8 +60,9 @@ export const updateProfile = mutation({
 
 // Get all users (admin only)
 export const getAllAdmin = query({
-    args: {},
-    handler: async (ctx) => {
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
         const users = await ctx.db
             .query("users")
             .order("desc")
@@ -83,10 +85,12 @@ export const getAllAdmin = query({
 // Update user role (admin only)
 export const updateRole = mutation({
     args: {
+        token: v.string(),
         userId: v.id("users"),
         role: v.string(),
     },
     handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
         await ctx.db.patch(args.userId, { role: args.role });
         return { success: true };
     },
@@ -95,10 +99,12 @@ export const updateRole = mutation({
 // Toggle user active status (admin only)
 export const toggleActive = mutation({
     args: {
+        token: v.string(),
         userId: v.id("users"),
         isActive: v.boolean(),
     },
     handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
         await ctx.db.patch(args.userId, { isActive: args.isActive });
         return { success: true };
     },

@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { checkAdmin } from "./utils";
 
 // Get all active products
 export const getAll = query({
@@ -17,7 +18,6 @@ export const getAll = query({
                 .filter((q) => q.eq(q.field("isActive"), true))
                 .collect();
 
-            // Sort in memory since we can't easily sort by creation time with category index in this setup
             products.sort((a, b) => b._creationTime - a._creationTime);
         } else {
             products = await ctx.db
@@ -51,8 +51,9 @@ export const getFeatured = query({
 
 // Get all products (for admin - includes inactive)
 export const getAllAdmin = query({
-    args: {},
-    handler: async (ctx) => {
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
         const products = await ctx.db
             .query("products")
             .order("desc")
@@ -84,6 +85,7 @@ export const getById = query({
 // Create a new product (admin only)
 export const create = mutation({
     args: {
+        token: v.string(),
         name: v.string(),
         slug: v.string(),
         description: v.string(),
@@ -103,8 +105,11 @@ export const create = mutation({
         isFeatured: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
+        const { token, ...productData } = args;
+
         const productId = await ctx.db.insert("products", {
-            ...args,
+            ...productData,
             isActive: true,
             rating: 0,
             reviewCount: 0,
@@ -117,6 +122,7 @@ export const create = mutation({
 // Update a product
 export const update = mutation({
     args: {
+        token: v.string(),
         id: v.id("products"),
         name: v.optional(v.string()),
         description: v.optional(v.string()),
@@ -136,15 +142,17 @@ export const update = mutation({
         isFeatured: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
-        const { id, ...updates } = args;
+        await checkAdmin(ctx, args.token);
+        const { id, token, ...updates } = args;
         await ctx.db.patch(id, updates);
     },
 });
 
 // Delete a product (soft delete)
 export const remove = mutation({
-    args: { id: v.id("products") },
+    args: { token: v.string(), id: v.id("products") },
     handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
         await ctx.db.patch(args.id, { isActive: false });
     },
 });

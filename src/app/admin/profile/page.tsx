@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 export default function AdminProfile() {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const updateProfile = useMutation(api.auth.updateProfile);
     const changePassword = useMutation(api.auth.changePassword);
 
@@ -41,7 +41,7 @@ export default function AdminProfile() {
         setMessage(null);
         try {
             await updateProfile({
-                userId: user!._id,
+                token: token!,
                 name: profileForm.name,
                 phone: profileForm.phone,
             });
@@ -63,7 +63,7 @@ export default function AdminProfile() {
         setMessage(null);
         try {
             await changePassword({
-                userId: user!._id,
+                token: token!,
                 currentPassword: passForm.current,
                 newPassword: passForm.new,
             });

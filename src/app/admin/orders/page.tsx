@@ -20,10 +20,13 @@ import { useState } from "react";
 import { formatDate, formatCurrency } from "@/shared/utils/format";
 import OrderDetailModal from "@/shared/components/OrderDetailModal";
 
+import { useAuth } from "@/shared/providers/AuthProvider";
+
 const ORDERS_PER_PAGE = 20;
 
 export default function AdminOrdersPage() {
-    const stats = useQuery(api.orders.getStats);
+    const { token } = useAuth();
+    const stats = useQuery(api.orders.getStats, token ? { token } : "skip");
 
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
@@ -32,7 +35,7 @@ export default function AdminOrdersPage() {
 
     const { results: orders, status: paginationStatus, loadMore } = usePaginatedQuery(
         api.orders.getPaginated,
-        { status: statusFilter },
+        token ? { status: statusFilter, token } : "skip",
         { initialNumItems: ORDERS_PER_PAGE }
     );
 

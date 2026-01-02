@@ -14,11 +14,13 @@ import {
     X,
     Save,
     Loader2,
-    Star
+    Star,
+    FileSpreadsheet
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import ImageUpload from "@/shared/components/ImageUpload";
+import BulkImportModal from "@/shared/components/BulkImportModal";
 
 interface ProductForm {
     name: string;
@@ -54,8 +56,11 @@ const emptyForm: ProductForm = {
 
 // Hardcoded categories removed - now fetched from Convex
 
+import { useAuth } from "@/shared/providers/AuthProvider";
+
 export default function AdminProductsPage() {
-    const products = useQuery(api.products.getAllAdmin);
+    const { token } = useAuth();
+    const products = useQuery(api.products.getAllAdmin, token ? { token } : "skip");
     const dbCategories = useQuery(api.categories.getByType, { type: "store" });
     const dbBrands = useQuery(api.brands.getAll);
     const createProduct = useMutation(api.products.create);
@@ -68,6 +73,7 @@ export default function AdminProductsPage() {
     const [editingId, setEditingId] = useState<Id<"products"> | null>(null);
     const [form, setForm] = useState<ProductForm>(emptyForm);
     const [isSaving, setIsSaving] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     if (!products || !dbCategories || !dbBrands) {
         return (
@@ -133,6 +139,7 @@ export default function AdminProductsPage() {
         try {
             if (editingId) {
                 await updateProduct({
+                    token: token!,
                     id: editingId,
                     name: form.name,
                     description: form.description,
@@ -149,6 +156,7 @@ export default function AdminProductsPage() {
                 });
             } else {
                 await createProduct({
+                    token: token!,
                     name: form.name,
                     slug: form.slug || generateSlug(form.name),
                     description: form.description,
@@ -176,6 +184,7 @@ export default function AdminProductsPage() {
 
     const handleToggleActive = async (product: typeof products[0]) => {
         await updateProduct({
+            token: token!,
             id: product._id,
             isActive: !product.isActive,
         });
@@ -183,7 +192,7 @@ export default function AdminProductsPage() {
 
     const handleDelete = async (id: Id<"products">) => {
         if (confirm("Tem certeza que deseja remover este produto?")) {
-            await removeProduct({ id });
+            await removeProduct({ token: token!, id });
         }
     };
 
@@ -198,13 +207,22 @@ export default function AdminProductsPage() {
                         Gerencie o catálogo de produtos da loja.
                     </p>
                 </div>
-                <button
-                    onClick={handleOpenCreate}
-                    className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-3 rounded-xl font-bold transition-all shadow-lg shadow-primary/25"
-                >
-                    <Plus className="w-5 h-5" />
-                    Novo Produto
-                </button>
+                <div className="flex flex-wrap gap-3">
+                    <button
+                        onClick={() => setIsImportModalOpen(true)}
+                        className="flex items-center gap-2 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 px-5 py-3 rounded-xl font-bold hover:bg-gray-50 dark:hover:bg-white/10 transition-all"
+                    >
+                        <FileSpreadsheet className="w-5 h-5 text-green-500" />
+                        Importar em Massa
+                    </button>
+                    <button
+                        onClick={handleOpenCreate}
+                        className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-3 rounded-xl font-bold transition-all shadow-lg shadow-primary/25"
+                    >
+                        <Plus className="w-5 h-5" />
+                        Novo Produto
+                    </button>
+                </div>
             </div>
 
             {/* Stats */}
@@ -642,6 +660,12 @@ export default function AdminProductsPage() {
                     </div>
                 </div>
             )}
+            {/* Bulk Import Modal */}
+            <BulkImportModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                type="products"
+            />
         </div>
     );
 }

@@ -1,3 +1,14 @@
 {
-  "/store/page": "app/store/page.js"
+  "/admin/blog/page": "app/admin/blog/page.js",
+  "/admin/categories/page": "app/admin/categories/page.js",
+  "/admin/contacts/page": "app/admin/contacts/page.js",
+  "/admin/orders/page": "app/admin/orders/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/admin/portfolio/page": "app/admin/portfolio/page.js",
+  "/admin/settings/page": "app/admin/settings/page.js",
+  "/admin/users/page": "app/admin/users/page.js",
+  "/blog/[slug]/page": "app/blog/[slug]/page.js",
+  "/blog/page": "app/blog/page.js",
+  "/cart/page": "app/cart/page.js",
+  "/page": "app/page.js"
 }

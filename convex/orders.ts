@@ -1,6 +1,7 @@
-import { query, mutation, action } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
+import { checkAdmin, checkAuthenticated } from "./utils";
 
 // Generate unique order number
 function generateOrderNumber(): string {
@@ -9,10 +10,17 @@ function generateOrderNumber(): string {
     return `${prefix}-${random}`;
 }
 
-// Get all orders for a user
+// Get all orders for a user (Authenticated)
 export const getByUser = query({
-    args: { userId: v.id("users") },
+    args: { token: v.string(), userId: v.id("users") },
     handler: async (ctx, args) => {
+        const user = await checkAuthenticated(ctx, args.token);
+
+        // Ensure user is fetching their own orders or is admin
+        if (user._id !== args.userId && user.role !== "admin") {
+            throw new Error("Acesso não autorizado");
+        }
+
         const orders = await ctx.db
             .query("orders")
             .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -23,15 +31,25 @@ export const getByUser = query({
     },
 });
 
-// Get single order by ID
+// Get single order by ID (Authenticated)
 export const getById = query({
-    args: { orderId: v.id("orders") },
+    args: { token: v.string(), orderId: v.id("orders") },
     handler: async (ctx, args) => {
-        return await ctx.db.get(args.orderId);
+        const user = await checkAuthenticated(ctx, args.token);
+        const order = await ctx.db.get(args.orderId);
+
+        if (!order) return null;
+
+        // Check permissions
+        if (order.userId !== user._id && user.role !== "admin" && order.guestEmail !== user.email) {
+            throw new Error("Acesso não autorizado");
+        }
+
+        return order;
     },
 });
 
-// Get order by order number
+// Get order by Order Number (Public for success page)
 export const getByOrderNumber = query({
     args: { orderNumber: v.string() },
     handler: async (ctx, args) => {
@@ -39,11 +57,12 @@ export const getByOrderNumber = query({
             .query("orders")
             .withIndex("by_orderNumber", (q) => q.eq("orderNumber", args.orderNumber))
             .first();
+
         return order;
     },
 });
 
-// Create a new order
+// Create a new order (Public/Guest or Auth)
 export const create = mutation({
     args: {
         userId: v.optional(v.id("users")),
@@ -82,7 +101,6 @@ export const create = mutation({
             updatedAt: now,
         });
 
-        // Add notification if it's a registered user
         if (args.userId) {
             await ctx.db.insert("notifications", {
                 userId: args.userId,
@@ -99,9 +117,10 @@ export const create = mutation({
     },
 });
 
-// Update order status
+// Update order status (Admin only)
 export const updateStatus = mutation({
     args: {
+        token: v.string(),
         orderId: v.id("orders"),
         status: v.union(
             v.literal("pending"),
@@ -114,6 +133,8 @@ export const updateStatus = mutation({
         paymentReference: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
+
         const updates: Record<string, unknown> = {
             status: args.status,
             updatedAt: Date.now(),
@@ -125,7 +146,6 @@ export const updateStatus = mutation({
 
         await ctx.db.patch(args.orderId, updates);
 
-        // Add notification for status change
         const order = await ctx.db.get(args.orderId);
         if (order && order.userId) {
             let title = "";
@@ -169,86 +189,39 @@ export const updateStatus = mutation({
     },
 });
 
-// Get recent orders (for admin dashboard)
-export const getRecent = query({
-    args: { limit: v.optional(v.number()) },
-    handler: async (ctx, args) => {
-        const limit = args.limit || 10;
-        const orders = await ctx.db
-            .query("orders")
-            .order("desc")
-            .take(limit);
-
-        return orders;
-    },
-});
-
-// Get orders by status
-export const getByStatus = query({
-    args: {
-        status: v.union(
-            v.literal("pending"),
-            v.literal("paid"),
-            v.literal("processing"),
-            v.literal("shipped"),
-            v.literal("delivered"),
-            v.literal("cancelled")
-        )
-    },
-    handler: async (ctx, args) => {
-        const orders = await ctx.db
-            .query("orders")
-            .withIndex("by_status", (q) => q.eq("status", args.status))
-            .collect();
-
-        return orders;
-    },
-});
-
-// Get order statistics for admin dashboard
+// Admin Statistics (Admin only)
 export const getStats = query({
-    args: {},
-    handler: async (ctx) => {
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
         const orders = await ctx.db.query("orders").collect();
         const now = Date.now();
-        const twentyFourHoursAgo = now - (24 * 60 * 60 * 1000);
-
         const stats = {
             totalRevenue: 0,
             pendingOrders: 0,
             ordersToday: 0,
             totalOrders: orders.length,
-            recentOrders: 0,
         };
 
         orders.forEach(order => {
-            if (order.status !== 'cancelled') {
-                stats.totalRevenue += order.total;
-            }
-            if (order.status === 'pending') {
-                stats.pendingOrders += 1;
-            }
-            if (order.createdAt >= twentyFourHoursAgo) {
-                stats.ordersToday += 1;
-            }
+            if (order.status !== 'cancelled') stats.totalRevenue += order.total;
+            if (order.status === 'pending') stats.pendingOrders += 1;
+            if (order.createdAt >= now - 86400000) stats.ordersToday += 1;
         });
 
         return stats;
     },
 });
 
-// Paginated orders for admin
+// Paginated orders (Admin only)
 export const getPaginated = query({
-    args: { paginationOpts: paginationOptsValidator, status: v.optional(v.string()) },
+    args: { token: v.string(), paginationOpts: paginationOptsValidator, status: v.optional(v.string()) },
     handler: async (ctx, args) => {
-        let query;
+        await checkAdmin(ctx, args.token);
+        const q = args.status && args.status !== 'all'
+            ? ctx.db.query("orders").withIndex("by_status", (q) => q.eq("status", args.status as any))
+            : ctx.db.query("orders").order("desc");
 
-        if (args.status && args.status !== 'all') {
-            query = ctx.db.query("orders").withIndex("by_status", (q) => q.eq("status", args.status as any));
-        } else {
-            query = ctx.db.query("orders").order("desc");
-        }
-
-        return await query.paginate(args.paginationOpts);
+        return await q.paginate(args.paginationOpts);
     },
 });

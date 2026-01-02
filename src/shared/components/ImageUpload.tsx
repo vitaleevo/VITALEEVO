@@ -3,7 +3,7 @@
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useState, useRef } from "react";
-import { Upload, X, Loader2, Image as ImageIcon } from "lucide-react";
+import { Upload, X, Loader2, Image as ImageIcon, AlertCircle } from "lucide-react";
 
 interface ImageUploadProps {
     value: string;
@@ -13,6 +13,7 @@ interface ImageUploadProps {
 
 export default function ImageUpload({ value, onChange, label }: ImageUploadProps) {
     const [isUploading, setIsUploading] = useState(false);
+    const [hasError, setHasError] = useState(false);
     const generateUploadUrl = useMutation(api.files.generateUploadUrl);
     const getStorageUrl = useMutation(api.files.getUrl);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -22,6 +23,7 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
         if (!file) return;
 
         setIsUploading(true);
+        setHasError(false);
         try {
             // 1. Get a short-lived upload URL
             const postUrl = await generateUploadUrl();
@@ -62,6 +64,11 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
         }
     };
 
+    const handleImageChange = (url: string) => {
+        setHasError(false);
+        onChange(url);
+    };
+
     return (
         <div className="space-y-2">
             {label && (
@@ -73,19 +80,16 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
             <div className="flex items-center gap-4">
                 {/* Preview */}
                 <div className="relative w-32 h-32 rounded-xl border-2 border-dashed border-gray-200 dark:border-white/10 overflow-hidden bg-gray-50 dark:bg-white/5 flex items-center justify-center group">
-                    {value ? (
+                    {value && !hasError ? (
                         <>
                             <img
                                 src={value}
                                 alt="Preview"
                                 className="w-full h-full object-cover"
-                                onError={(e) => {
-                                    // If image fails to load, show specialized error state
-                                    console.error("Image load failed for URL:", value);
-                                }}
+                                onError={() => setHasError(true)}
                             />
                             <button
-                                onClick={() => onChange("")}
+                                onClick={() => handleImageChange("")}
                                 className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                                 type="button"
                             >
@@ -94,8 +98,14 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
                         </>
                     ) : (
                         <div className="text-center p-2">
-                            <ImageIcon className="w-8 h-8 text-gray-300 mx-auto mb-1" />
-                            <p className="text-[10px] text-gray-400 font-medium">Sem imagem</p>
+                            {hasError ? (
+                                <AlertCircle className="w-8 h-8 text-red-300 mx-auto mb-1" />
+                            ) : (
+                                <ImageIcon className="w-8 h-8 text-gray-300 mx-auto mb-1" />
+                            )}
+                            <p className="text-[10px] text-gray-400 font-medium">
+                                {hasError ? "Erro na imagem" : "Sem imagem"}
+                            </p>
                         </div>
                     )}
 

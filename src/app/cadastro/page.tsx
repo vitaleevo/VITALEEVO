@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight, UserPlus, User, Phone } from "lucide-react";
+import { toast } from "sonner";
 
 export default function CadastroPage() {
     const { register, isLoading, error, clearError, isAuthenticated } = useAuth();
@@ -54,9 +55,12 @@ export default function CadastroPage() {
 
         try {
             await register(formData.email, formData.password, formData.name, formData.phone || undefined);
+            toast.success("Conta criada com sucesso!");
             router.push("/");
         } catch (err: any) {
-            setLocalError(err.message || "Erro ao criar conta");
+            const message = err.message || "Erro ao criar conta";
+            setLocalError(message);
+            toast.error(message);
         }
     };
 
