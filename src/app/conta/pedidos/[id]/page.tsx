@@ -29,8 +29,6 @@ import {
 import { formatDate, formatCurrency } from "@/shared/utils/format";
 import Link from "next/link";
 import { useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 export default function OrderDetailPage() {
     const params = useParams();
@@ -101,7 +99,10 @@ export default function OrderDetailPage() {
         window.open(`https://wa.me/244923456789?text=${encodedMessage}`, '_blank');
     };
 
-    const generatePDF = () => {
+    const generatePDF = async () => {
+        const jsPDF = (await import("jspdf")).default;
+        const autoTable = (await import("jspdf-autotable")).default;
+
         const doc = new jsPDF();
 
         // Header

@@ -6,10 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import Link from 'next/link';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import { CheckCircle, Download, ShoppingBag, Home, ArrowRight, RefreshCw, AlertCircle, MessageSquare } from "lucide-react";
-import { formatCurrency } from "@/shared/utils/format";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import { formatDate } from "@/shared/utils/format";
+import { formatCurrency, formatDate } from "@/shared/utils/format";
 
 export default function OrderSuccessPage() {
     const searchParams = useSearchParams();
@@ -25,8 +22,11 @@ export default function OrderSuccessPage() {
         window.open(`https://wa.me/244923456789?text=${encodedMessage}`, '_blank');
     };
 
-    const generatePDF = () => {
+    const generatePDF = async () => {
         if (!order) return;
+        const jsPDF = (await import("jspdf")).default;
+        const autoTable = (await import("jspdf-autotable")).default;
+
         const doc = new jsPDF();
 
         // Header
