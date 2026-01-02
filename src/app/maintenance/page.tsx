@@ -3,14 +3,21 @@
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Hammer, Mail, Phone, Instagram, Facebook, Linkedin, Twitter } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Logo from "@/shared/components/Logo";
 
 export default function MaintenancePage() {
+    const router = useRouter();
     const settings = useQuery(api.settings.get);
 
+    useEffect(() => {
+        if (settings && !settings.businessConfig.maintenanceMode) {
+            router.push("/");
+        }
+    }, [settings, router]);
+
     if (settings && !settings.businessConfig.maintenanceMode) {
-        // If someone hits this page but maintenance is off, redirect or show message
-        window.location.href = "/";
         return null;
     }
 
