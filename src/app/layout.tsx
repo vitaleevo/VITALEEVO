@@ -8,6 +8,7 @@ import { ConvexClientProvider } from "@/shared/providers/ConvexClientProvider";
 import { CartProvider } from "@/shared/providers/CartProvider";
 import MobileNavigation from "@/shared/components/MobileNavigation";
 import MaintenanceGuard from "@/shared/components/MaintenanceGuard";
+import { AIChatWidget } from "@/shared/components/AIChatWidget";
 
 const inter = Inter({
     variable: "--font-inter",
@@ -120,6 +121,7 @@ export default function RootLayout({
                                     </div>
                                     <Suspense>
                                         <MobileNavigation />
+                                        <AIChatWidget />
                                     </Suspense>
                                 </div>
                             </ThemeProvider>
