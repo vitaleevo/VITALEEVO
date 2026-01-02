@@ -273,4 +273,13 @@ export default defineSchema({
         }),
         updatedAt: v.number(),
     }).index("by_key", ["key"]),
+
+    // Newsletter subscribers table
+    newsletters: defineTable({
+        email: v.string(),
+        isActive: v.boolean(),
+        subscribedAt: v.number(),
+    })
+        .index("by_email", ["email"])
+        .index("by_active", ["isActive"]),
 });

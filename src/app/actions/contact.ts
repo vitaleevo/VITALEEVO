@@ -1,6 +1,8 @@
 "use server";
 
 import { Resend } from 'resend';
+import { fetchMutation } from "convex/nextjs";
+import { api } from "../../../convex/_generated/api";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -183,7 +185,41 @@ export async function subscribeToNewsletter(email: string) {
     try {
         if (!resend) throw new Error("RESEND_API_KEY not configured");
 
-        // Send email to admin notifying about new subscriber
+        // 1. Save to Convex Database
+        await fetchMutation(api.newsletter.subscribe, { email });
+
+        // 2. Send Welcome Email to Subscriber
+        await resend.emails.send({
+            from: 'VitalEvo <onboarding@resend.dev>',
+            to: [email],
+            subject: 'Bem-vindo à VitalEvo! 🚀',
+            html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h1 style="color: #8b5cf6;">Bem-vindo à nossa comunidade!</h1>
+                    </div>
+                    <p>Olá,</p>
+                    <p>Ficamos muito felizes por se juntar à nossa newsletter. A partir de agora, você faz parte de um grupo exclusivo que recebe as novidades da <strong>VitalEvo</strong> primeiro.</p>
+                    <p><strong>O que esperar?</strong></p>
+                    <ul>
+                        <li>Insights sobre tecnologia e inovação em Angola.</li>
+                        <li>Dicas práticas de marketing digital e branding.</li>
+                        <li>Bastidores dos nossos maiores projetos.</li>
+                    </ul>
+                    <p>Fique atento, novidades chegam em breve!</p>
+                    <div style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-radius: 8px;">
+                        <p style="margin: 0; font-size: 14px;">Precisa de uma solução para o seu negócio agora?</p>
+                        <a href="${process.env.NEXT_PUBLIC_SITE_URL}/contact" style="color: #8b5cf6; font-weight: bold; text-decoration: none;">Fale com um consultor →</a>
+                    </div>
+                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
+                    <p style="font-size: 12px; color: #666; text-align: center;">
+                        VitalEvo - Transformando o Futuro Digital de Angola.
+                    </p>
+                </div>
+            `,
+        });
+
+        // 3. Send notification email to admin
         const { data, error } = await resend.emails.send({
             from: 'VitalEvo <onboarding@resend.dev>',
             to: ['negociosvitaleevo@gmail.com'],

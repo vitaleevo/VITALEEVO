@@ -1,6 +1,17 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { checkAdmin } from "./utils";
+
+// Internal queries for use in crons/actions
+export const getPublishedInternal = internalQuery({
+    args: { category: v.optional(v.string()), limit: v.optional(v.number()) },
+    handler: async (ctx, args) => {
+        let articles = await ctx.db.query("articles").withIndex("by_published", (q) => q.eq("isPublished", true)).order("desc").collect();
+        if (args.category && args.category !== "Todos") articles = articles.filter(a => a.category === args.category);
+        if (args.limit) articles = articles.slice(0, args.limit);
+        return articles;
+    },
+});
 
 // Public queries
 export const getPublished = query({
