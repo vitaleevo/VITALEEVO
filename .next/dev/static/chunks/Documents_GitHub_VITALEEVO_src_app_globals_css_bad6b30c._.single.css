@@ -5063,6 +5063,10 @@ body {
   opacity: .5;
 }
 
+.disabled\:opacity-70:disabled {
+  opacity: .7;
+}
+
 .disabled\:hover\:scale-100:hover:disabled {
   --tw-scale-x: 1;
   --tw-scale-y: 1;

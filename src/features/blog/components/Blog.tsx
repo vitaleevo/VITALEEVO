@@ -9,6 +9,8 @@ import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { formatDate } from "@/shared/utils/format";
 import { useSearchParams, useRouter } from "next/navigation";
+import { toast } from 'sonner';
+import { subscribeToNewsletter } from '@/app/actions/contact';
 
 const Blog: React.FC = () => {
   const searchParams = useSearchParams();
@@ -16,6 +18,8 @@ const Blog: React.FC = () => {
   const categoryParam = searchParams.get('category') || 'Todos';
 
   const [activeCategory, setActiveCategory] = React.useState(categoryParam);
+  const [email, setEmail] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
 
   React.useEffect(() => {
     setActiveCategory(categoryParam);
@@ -30,6 +34,26 @@ const Blog: React.FC = () => {
       params.set('category', cat);
     }
     router.push(`/blog?${params.toString()}`, { scroll: false });
+  };
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setLoading(true);
+    try {
+      const result = await subscribeToNewsletter(email);
+      if (result.success) {
+        toast.success("Inscrição confirmada! Você receberá nossas novidades em breve.");
+        setEmail('');
+      } else {
+        toast.error("Erro ao inscrever. Tente novamente.");
+      }
+    } catch (error) {
+      toast.error("Erro ao inscrever na newsletter.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const articles = useQuery(api.articles.getPublished, {
@@ -184,14 +208,21 @@ const Blog: React.FC = () => {
                 Junte-se a +5.000 profissionais que recebem nossos insights exclusivos sobre tecnologia e mercado diretamente no e-mail.
               </p>
 
-              <form className="flex flex-col sm:flex-row gap-4 p-2 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20">
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 p-2 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20">
                 <input
                   type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="flex-grow h-14 px-6 rounded-xl bg-transparent border-none text-white placeholder:text-white/60 outline-none focus:ring-0 text-lg transition-all"
                   placeholder="Seu melhor e-mail"
                 />
-                <button type="submit" className="bg-white text-primary px-8 h-14 rounded-xl font-bold text-lg shadow-lg hover:bg-gray-100 transition-colors whitespace-nowrap">
-                  Inscrever-se
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-white text-primary px-8 h-14 rounded-xl font-bold text-lg shadow-lg hover:bg-gray-100 transition-colors whitespace-nowrap disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Inscrevendo...' : 'Inscrever-se'}
                 </button>
               </form>
               <p className="mt-4 text-white/60 text-xs">Sem spam. Apenas conteúdo de valor.</p>

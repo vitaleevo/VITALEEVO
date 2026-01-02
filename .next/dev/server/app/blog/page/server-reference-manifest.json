@@ -1,4 +1,20 @@
 {
-  "node": {},
+  "node": {
+    "405f4f8814fc312335313b97db23cc834f750033ff": {
+      "workers": {
+        "app/blog/page": {
+          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/blog/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/src/app/actions/contact.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "subscribeToNewsletter",
+          "filename": "Documents/GitHub/VITALEEVO/src/app/actions/contact.ts"
+        }
+      },
+      "layer": {
+        "app/blog/page": "action-browser"
+      },
+      "exportedName": "subscribeToNewsletter",
+      "filename": "Documents/GitHub/VITALEEVO/src/app/actions/contact.ts"
+    }
+  },
   "edge": {}
 }

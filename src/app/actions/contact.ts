@@ -14,16 +14,13 @@ interface ContactFormData {
 
 export async function sendContactEmail(data: ContactFormData) {
     if (!process.env.RESEND_API_KEY) {
-        console.error("RESEND_API_KEY is not defined");
         return { success: false, error: "E-mail service not configured" };
     }
 
     try {
         const { name, phone, subject, message, email } = data;
 
-        if (!resend) {
-            throw new Error("RESEND_API_KEY not configured");
-        }
+        if (!resend) throw new Error("RESEND_API_KEY not configured");
 
         const { data: resendData, error } = await resend.emails.send({
             from: 'VitalEvo <onboarding@resend.dev>', // Usando remetente de teste até o domínio ser verificado
@@ -50,13 +47,11 @@ export async function sendContactEmail(data: ContactFormData) {
         });
 
         if (error) {
-            console.error("Resend error:", error);
             return { success: false, error: error.message };
         }
 
         return { success: true, data: resendData };
     } catch (error: any) {
-        console.error("Failed to send email via Resend:", error);
         return { success: false, error: error.message };
     }
 }
@@ -72,7 +67,6 @@ export async function sendOrderEmail(data: {
     paymentMethod: string;
 }) {
     if (!process.env.RESEND_API_KEY) {
-        console.error("RESEND_API_KEY is not defined");
         return { success: false, error: "E-mail service not configured" };
     }
 
@@ -86,9 +80,7 @@ export async function sendOrderEmail(data: {
             </tr>
         `).join('');
 
-        if (!resend) {
-            throw new Error("RESEND_API_KEY not configured");
-        }
+        if (!resend) throw new Error("RESEND_API_KEY not configured");
 
         const { data: resendData, error } = await resend.emails.send({
             from: 'VitalEvo <onboarding@resend.dev>',
@@ -136,28 +128,24 @@ export async function sendOrderEmail(data: {
         });
 
         if (error) {
-            console.error("Resend error:", error);
             return { success: false, error: error.message };
         }
 
         return { success: true, data: resendData };
     } catch (error: any) {
-        console.error("Failed to send order email via Resend:", error);
         return { success: false, error: error.message };
     }
 }
+
 export async function sendPasswordResetEmail(email: string, name: string, token: string) {
     if (!process.env.RESEND_API_KEY) {
-        console.error("RESEND_API_KEY is not defined");
         return { success: false, error: "E-mail service not configured" };
     }
 
     const resetLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/recuperar-senha?token=${token}`;
 
     try {
-        if (!resend) {
-            throw new Error("RESEND_API_KEY not configured");
-        }
+        if (!resend) throw new Error("RESEND_API_KEY not configured");
 
         const { data, error } = await resend.emails.send({
             from: 'VitalEvo <onboarding@resend.dev>',
@@ -172,6 +160,40 @@ export async function sendPasswordResetEmail(email: string, name: string, token:
                         <a href="${resetLink}" style="background-color: #3b82f6; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Redefinir Minha Senha</a>
                     </div>
                     <p>Se você não solicitou isso, por favor ignore este e-mail. O link é válido por 1 hora.</p>
+                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
+                    <p style="font-size: 12px; color: #666;">
+                        Este email foi enviado automaticamente pelo sistema da VitalEvo.
+                    </p>
+                </div>
+            `,
+        });
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, data };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
+
+export async function subscribeToNewsletter(email: string) {
+    if (!process.env.RESEND_API_KEY) {
+        return { success: false, error: "E-mail service not configured" };
+    }
+
+    try {
+        if (!resend) throw new Error("RESEND_API_KEY not configured");
+
+        // Send email to admin notifying about new subscriber
+        const { data, error } = await resend.emails.send({
+            from: 'VitalEvo <onboarding@resend.dev>',
+            to: ['negociosvitaleevo@gmail.com'],
+            subject: 'Nova Inscrição na Newsletter',
+            html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
+                    <h2 style="color: #8b5cf6;">Nova Inscrição na Newsletter! 🎉</h2>
+                    <p>Um novo usuário se inscreveu para receber novidades.</p>
+                    <p><strong>Email do Inscrito:</strong> ${email}</p>
+                    <p><strong>Data:</strong> ${new Date().toLocaleString('pt-AO')}</p>
                     <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
                     <p style="font-size: 12px; color: #666;">
                         Este email foi enviado automaticamente pelo sistema da VitalEvo.
