@@ -2,7 +2,7 @@
 
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 interface ContactFormData {
     name: string;
@@ -20,6 +20,10 @@ export async function sendContactEmail(data: ContactFormData) {
 
     try {
         const { name, phone, subject, message, email } = data;
+
+        if (!resend) {
+            throw new Error("RESEND_API_KEY not configured");
+        }
 
         const { data: resendData, error } = await resend.emails.send({
             from: 'VitalEvo <onboarding@resend.dev>', // Usando remetente de teste até o domínio ser verificado
@@ -81,6 +85,10 @@ export async function sendOrderEmail(data: {
                 <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">Kz ${item.price.toLocaleString()}</td>
             </tr>
         `).join('');
+
+        if (!resend) {
+            throw new Error("RESEND_API_KEY not configured");
+        }
 
         const { data: resendData, error } = await resend.emails.send({
             from: 'VitalEvo <onboarding@resend.dev>',
@@ -147,6 +155,10 @@ export async function sendPasswordResetEmail(email: string, name: string, token:
     const resetLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/recuperar-senha?token=${token}`;
 
     try {
+        if (!resend) {
+            throw new Error("RESEND_API_KEY not configured");
+        }
+
         const { data, error } = await resend.emails.send({
             from: 'VitalEvo <onboarding@resend.dev>',
             to: [email],
