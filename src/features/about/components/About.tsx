@@ -146,10 +146,10 @@ const About: React.FC = () => {
                 Compromisso Nacional
               </span>
               <h2 className="font-display font-black text-4xl lg:text-5xl text-white mb-6 leading-tight">
-                Objetivos para o Mercado <span className="text-secondary">Angolano</span>
+                Compromisso com o Mercado <span className="text-secondary">Angolano</span>
               </h2>
               <p className="text-lg text-gray-400 mb-8 leading-relaxed">
-                O mercado angolano é vibrante, cheio de potencial e único. Não trazemos apenas soluções prontas; adaptamos a tecnologia de ponta à realidade local para resolver problemas reais.
+                O mercado angolano é vibrante e único. Não trazemos apenas soluções prontas; adaptamos tecnologia de ponta à nossa realidade local para resolver problemas reais.
               </p>
 
               <div className="space-y-6">
@@ -252,7 +252,7 @@ const About: React.FC = () => {
       {/* CTA Section */}
       <section className="py-24 bg-gray-50 dark:bg-[#0f172a] border-t border-gray-200 dark:border-white/5">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="font-display font-black text-3xl md:text-5xl text-gray-900 dark:text-white mb-6">Pronto para transformar sua empresa?</h2>
+          <h2 className="font-display font-black text-3xl md:text-5xl text-gray-900 dark:text-white mb-6">Pronto para transformar a sua empresa?</h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-10 max-w-2xl mx-auto">
             Junte-se à VitalEvo e faça parte da revolução digital em Angola. Vamos construir o futuro juntos.
           </p>

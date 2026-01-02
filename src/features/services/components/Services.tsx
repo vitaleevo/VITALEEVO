@@ -38,14 +38,14 @@ const Services: React.FC = () => {
     },
     {
       icon: <Smartphone className="w-8 h-8 text-primary" />,
-      title: 'Apps Mobile',
-      desc: 'Aplicativos nativos e híbridos que colocam seu negócio na palma da mão do cliente.',
+      title: 'Aplicações Móveis',
+      desc: 'Apps nativas e híbridas que colocam o seu negócio na palma da mão do cliente.',
       items: ['iOS & Android', 'React Native / Flutter', 'Prototipagem', 'Hospedagem em Lojas']
     },
     {
       icon: <Rocket className="w-8 h-8 text-primary" />,
       title: 'Marketing Digital',
-      desc: 'Estratégias baseadas em dados para escalar suas vendas e presença online.',
+      desc: 'Estratégias baseadas em dados para escalar as suas vendas e presença online.',
       items: ['Gestão de Tráfego', 'SEO & Conteúdo', 'Social Media', 'E-mail Marketing']
     },
     {
@@ -58,11 +58,11 @@ const Services: React.FC = () => {
       icon: <BarChart3 className="w-8 h-8 text-primary" />,
       title: 'Data & Analytics',
       desc: 'Transforme dados brutos em insights acionáveis para tomadas de decisão inteligentes.',
-      items: ['Dashboards BI', 'Google Analytics 4', 'Rastreament de Dados', 'Relatórios Mensais']
+      items: ['Dashboards BI', 'Google Analytics 4', 'Rastreamento de Dados', 'Relatórios Mensais']
     },
     {
       icon: <Router className="w-8 h-8 text-primary" />,
-      title: 'Infra E Segurança',
+      title: 'Infraestrutura e Segurança',
       desc: 'Soluções robustas para proteção e conectividade do seu negócio.',
       items: ['Redes e Cabeamento', 'Câmeras de Segurança (CFTV)', 'Sistemas Biométricos', 'Controlo de Acesso']
     }

@@ -30,7 +30,7 @@ const Footer: React.FC = () => {
       linkedin: '',
       twitter: ''
     },
-    address: 'Bairro Benfica ao lado da dona xepa, Luanda, Angola',
+    address: 'Bairro Benfica, próximo à Dona Xepa, Luanda, Angola',
     contactEmail: 'info@vitaleevo.ao',
     contactPhone: '+244 935 348 327'
   };

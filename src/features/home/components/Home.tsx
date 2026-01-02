@@ -22,15 +22,15 @@ const Home: React.FC = () => {
 
   const stats = [
     { label: 'Projetos Entregues', value: '500+' },
-    { label: 'Clientes Satisfeitos', value: '250+' },
+    { label: 'Parceiros de Sucesso', value: '250+' },
     { label: 'Anos de Experiência', value: '10+' },
     { label: 'Especialistas', value: '45' },
   ];
 
   const faqs = [
-    { q: "Quais serviços a VitalEvo oferece?", a: "Oferecemos soluções completas em Design Gráfico, Desenvolvimento Web, Marketing Digital, Gestão de Redes Sociais, Infraestrutura de Redes, Sistemas Biométricos e Segurança Eletrônica." },
-    { q: "Como posso solicitar um orçamento?", a: "Você pode clicar no botão 'Falar com Consultor' ou preencher o formulário na nossa página de contato. Respondemos em até 24 horas úteis." },
-    { q: "A VitalEvo atende fora de Luanda?", a: "Sim! Embora nossa sede seja em Luanda, atendemos clientes em todo o território nacional e internacional de forma remota." },
+    { q: "Quais serviços a VitalEvo oferece?", a: "Oferecemos soluções 360º: Design Gráfico, Desenvolvimento Web & Mobile, Marketing Digital, Gestão de Redes Sociais, e Infraestrutura de TI Corporativa." },
+    { q: "Como posso solicitar uma proposta?", a: "Basta clicar em 'Solicitar Proposta' ou preencher o formulário na página de contacto. A nossa equipa comercial entrará em contacto em menos de 24h." },
+    { q: "A VitalEvo atende todas as províncias?", a: "Sim! Com sede em Luanda, operamos digitalmente em todas as 18 províncias de Angola e atendemos clientes internacionais remotamente." },
   ];
 
   return (
@@ -57,11 +57,11 @@ const Home: React.FC = () => {
               </div>
 
               <h1 className="font-display font-black text-5xl lg:text-7xl leading-[1.1] text-white tracking-tight">
-                Eleve sua marca para a <span className="text-primary">Nova Era Digital</span>
+                Eleve a sua marca para a <span className="text-primary">Nova Era Digital</span>
               </h1>
 
               <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-light">
-                Combinamos design futurista, tecnologia de ponta e estratégias de dados para criar experiências digitais que não apenas impressionam, mas convertem.
+                Combinamos design futurista, tecnologia de ponta e estratégias de dados para criar experiências digitais que impulsionam o mercado angolano.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
@@ -70,7 +70,7 @@ const Home: React.FC = () => {
                   className="group relative bg-[#8625d2] hover:bg-[#701db5] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-[0_0_40px_-10px_rgba(134,37,210,0.5)] transition-all hover:scale-105"
                 >
                   <span className="relative z-10 flex items-center justify-center gap-2">
-                    Solicitar Orçamento
+                    Solicitar Proposta
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </span>
                   <div className="absolute inset-0 rounded-xl ring-2 ring-white/20 group-hover:ring-white/40 transition-all"></div>
@@ -79,7 +79,7 @@ const Home: React.FC = () => {
                   href="/portfolio"
                   className="bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all hover:scale-105 flex items-center justify-center gap-2"
                 >
-                  <span>Nossos Cases</span>
+                  <span>Ver Portfólio</span>
                 </Link>
               </div>
             </div>
@@ -263,7 +263,7 @@ const Home: React.FC = () => {
               href="/contact"
               className="bg-secondary hover:bg-emerald-400 text-white px-10 py-5 rounded-2xl font-black text-xl shadow-[0_0_50px_-15px_rgba(16,185,129,0.5)] transition-all hover:-translate-y-2 text-center"
             >
-              Iniciar Projeto
+              Começar Agora
             </Link>
             <Link
               href="/portfolio"
