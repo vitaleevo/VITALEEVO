@@ -16,7 +16,8 @@ import {
     ShieldAlert,
     Users,
     Briefcase,
-    FileSpreadsheet
+    FileSpreadsheet,
+    Bot
 } from "lucide-react";
 import Logo from "@/shared/components/Logo";
 import { useAuth } from "@/shared/providers/AuthProvider";
@@ -99,6 +100,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { label: "Portfólio", href: "/admin/portfolio", icon: Briefcase },
         { label: "Blog", href: "/admin/blog", icon: FileText },
         { label: "Importação", href: "/admin/import", icon: FileSpreadsheet },
+        { label: "Integrações IA", href: "/admin/ai", icon: Bot },
         { label: "Definições", href: "/admin/settings", icon: Settings },
     ];
 

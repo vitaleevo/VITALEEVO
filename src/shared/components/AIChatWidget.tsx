@@ -20,7 +20,7 @@ export const AIChatWidget = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     // Convex Action
-    const sendMessageToOpenAI = useAction(api.openai.chat);
+    const sendMessageToOpenAI = useAction(api.ai.chat);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 

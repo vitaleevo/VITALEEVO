@@ -9,6 +9,8 @@
  */
 
 import type * as addresses from "../addresses.js";
+import type * as ai from "../ai.js";
+import type * as apiKeys from "../apiKeys.js";
 import type * as articles from "../articles.js";
 import type * as auth from "../auth.js";
 import type * as brands from "../brands.js";
@@ -23,7 +25,6 @@ import type * as importData from "../importData.js";
 import type * as newsletter from "../newsletter.js";
 import type * as newsletterActions from "../newsletterActions.js";
 import type * as notifications from "../notifications.js";
-import type * as openai from "../openai.js";
 import type * as orders from "../orders.js";
 import type * as products from "../products.js";
 import type * as projects from "../projects.js";
@@ -42,6 +43,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   addresses: typeof addresses;
+  ai: typeof ai;
+  apiKeys: typeof apiKeys;
   articles: typeof articles;
   auth: typeof auth;
   brands: typeof brands;
@@ -56,7 +59,6 @@ declare const fullApi: ApiFromModules<{
   newsletter: typeof newsletter;
   newsletterActions: typeof newsletterActions;
   notifications: typeof notifications;
-  openai: typeof openai;
   orders: typeof orders;
   products: typeof products;
   projects: typeof projects;

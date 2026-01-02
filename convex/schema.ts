@@ -282,4 +282,16 @@ export default defineSchema({
     })
         .index("by_email", ["email"])
         .index("by_active", ["isActive"]),
+
+    // API Keys for LLM integrations (Admin configurable)
+    apiKeys: defineTable({
+        provider: v.string(), // 'openai', 'gemini', 'anthropic', etc.
+        apiKey: v.string(),   // The actual API key (encrypted in production ideally)
+        isActive: v.boolean(), // Whether this key is currently in use
+        label: v.optional(v.string()), // Optional friendly name
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_provider", ["provider"])
+        .index("by_active", ["isActive"]),
 });
