@@ -57,7 +57,7 @@ const Home: React.FC = () => {
               </div>
 
               <h1 className="font-display font-black text-5xl lg:text-7xl leading-[1.1] text-white tracking-tight">
-                Eleve a sua marca para a <span className="text-primary">Nova Era Digital</span>
+                Maior Agência de <span className="text-primary">Marketing Digital & Automação</span> em Angola
               </h1>
 
               <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-light">
@@ -93,7 +93,7 @@ const Home: React.FC = () => {
                 <div className="relative z-10 w-full h-full drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] transform-gpu rotate-[-10deg] hover:rotate-[0deg] transition-all duration-700 ease-out">
                   <img
                     src="/hero-card.png"
-                    alt="VitalEvo Digital Interface"
+                    alt="Estratégias de Marketing Digital e Tecnologia em Luanda, Angola - VitalEvo"
                     className="w-full h-auto object-contain pointer-events-none"
                   />
                 </div>
@@ -147,9 +147,9 @@ const Home: React.FC = () => {
       <section className="py-24 bg-white dark:bg-[#0b1120] transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-20">
-            <span className="text-primary font-bold tracking-widest uppercase text-sm">Nossos Diferenciais</span>
-            <h2 className="font-display font-bold text-3xl md:text-4xl text-gray-900 dark:text-white mt-4 mb-6">Excelência em Cada Pixel</h2>
-            <p className="text-gray-500 dark:text-gray-400 text-lg">Entregamos mais do que software e design; entregamos resultados mensuráveis e experiências memoráveis.</p>
+            <span className="text-primary font-bold tracking-widest uppercase text-sm">Serviços de Tecnologia em Angola</span>
+            <h2 className="font-display font-bold text-3xl md:text-4xl text-gray-900 dark:text-white mt-4 mb-6">Líder em Marketing Digital e Automação</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-lg">Entregamos soluções de tecnologia de ponta para empresas em Luanda que buscam crescimento real através de dados e design.</p>
           </div>
 
           <div className="flex overflow-x-auto snap-x snap-mandatory pb-8 px-4 -mx-4 gap-4 no-scrollbar md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-visible md:pb-0 md:px-0 md:mx-0">

@@ -57,27 +57,50 @@ export async function generateMetadata(
     }
 
     const previousImages = (await parent).openGraph?.images || [];
-    const siteName = settings?.siteName || "Vitaleevo";
-    const description = settings?.siteDescription || "Inovação tecnológica e design de alto impacto em Angola.";
+    const siteName = settings?.siteName || "VitalEvo";
+    const title = settings?.siteName || "VitalEvo - Marketing Digital, Automação e Tecnologia em Angola";
+    const description = settings?.siteDescription || "Líder em Marketing Digital, Automações e Desenvolvimento de Software em Angola. Impulsionamos empresas em Luanda com tecnologia de ponta e design inovador.";
 
     return {
         metadataBase: new URL("https://vitaleevo.ao"),
         title: {
-            default: siteName,
+            default: title,
             template: `%s | ${siteName}`
         },
         description,
-        keywords: ["tecnologia", "design", "angola", "software", "segurança eletrônica", "marketing digital", "e-commerce"],
+        keywords: [
+            "marketing digital angola",
+            "automação de marketing luanda",
+            "desenvolvimento web angola",
+            "consultoria tecnológica luanda",
+            "criação de sites angola",
+            "gestão de redes sociais angola",
+            "tecnologia e inovação angola",
+            "vital evo angola",
+            "segurança eletrônica luanda",
+            "e-commerce angola"
+        ],
         authors: [{ name: siteName }],
         creator: siteName,
+        alternates: {
+            canonical: "https://vitaleevo.ao",
+        },
         openGraph: {
             type: "website",
             locale: "pt_AO",
             url: "https://vitaleevo.ao",
             siteName: siteName,
-            title: `${siteName} - Soluções Digitais e de Segurança`,
+            title: `${siteName} - Soluções Digitais e de Segurança em Angola`,
             description,
-            images: ["/og-image.png", ...previousImages],
+            images: [
+                {
+                    url: "/og-image.png",
+                    width: 1200,
+                    height: 630,
+                    alt: "VitalEvo - Tecnologia e Marketing em Angola"
+                },
+                ...previousImages
+            ],
         },
         twitter: {
             card: "summary_large_image",
@@ -101,7 +124,40 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="pt-BR" data-scroll-behavior="smooth" suppressHydrationWarning>
+        <html lang="pt-AO" data-scroll-behavior="smooth" suppressHydrationWarning>
+            <head>
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            "@context": "https://schema.org",
+                            "@type": "Organization",
+                            "name": "VitalEvo",
+                            "url": "https://vitaleevo.ao",
+                            "logo": "https://vitaleevo.ao/logo.png",
+                            "contactPoint": {
+                                "@type": "ContactPoint",
+                                "telephone": "+244923000000",
+                                "contactType": "customer service",
+                                "areaServed": "AO",
+                                "availableLanguage": "Portuguese"
+                            },
+                            "sameAs": [
+                                "https://www.facebook.com/vitaleevo",
+                                "https://www.instagram.com/vitaleevo",
+                                "https://www.linkedin.com/company/vitaleevo"
+                            ],
+                            "address": {
+                                "@type": "PostalAddress",
+                                "streetAddress": "Luanda, Angola",
+                                "addressLocality": "Luanda",
+                                "addressCountry": "AO"
+                            },
+                            "description": "Líder em Marketing Digital e Soluções Tecnológicas em Angola."
+                        })
+                    }}
+                />
+            </head>
             <body
                 className={`${inter.variable} ${montserrat.variable} antialiased bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-300`}
                 suppressHydrationWarning
