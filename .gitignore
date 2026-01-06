@@ -42,3 +42,11 @@ coverage/
 .cache
 .turbo
 
+
+# Large Media
+Projectos para postar/**/*.mp4
+Projectos para postar/**/*.mov
+Projectos para postar/**/*.avi
+!Projectos para postar/**/*.jpg
+!Projectos para postar/**/*.png
+!Projectos para postar/**/*.heic
