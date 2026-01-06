@@ -21,6 +21,7 @@ import type * as crons from "../crons.js";
 import type * as dashboard from "../dashboard.js";
 import type * as debug from "../debug.js";
 import type * as files from "../files.js";
+import type * as flatten_urls from "../flatten_urls.js";
 import type * as importData from "../importData.js";
 import type * as newsletter from "../newsletter.js";
 import type * as newsletterActions from "../newsletterActions.js";
@@ -55,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   dashboard: typeof dashboard;
   debug: typeof debug;
   files: typeof files;
+  flatten_urls: typeof flatten_urls;
   importData: typeof importData;
   newsletter: typeof newsletter;
   newsletterActions: typeof newsletterActions;
