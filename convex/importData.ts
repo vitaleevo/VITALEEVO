@@ -100,19 +100,43 @@ export const importProjects = mutation({
 
         for (const item of args.items) {
             try {
+                // Resolve storage IDs to URLs if they look like storage IDs
+                let resolvedImage = item.image;
+                if (!item.image.startsWith('http')) {
+                    const url = await ctx.storage.getUrl(item.image as any);
+                    if (url) resolvedImage = url;
+                }
+
+                let resolvedImages = item.images;
+                if (item.images) {
+                    resolvedImages = await Promise.all(
+                        item.images.map(async (img) => {
+                            if (!img.startsWith('http')) {
+                                const url = await ctx.storage.getUrl(img as any);
+                                return url || img;
+                            }
+                            return img;
+                        })
+                    );
+                }
+
+                const projectData = {
+                    ...item,
+                    image: resolvedImage,
+                    images: resolvedImages,
+                };
+
                 const existing = await ctx.db
                     .query("projects")
                     .withIndex("by_slug", (q) => q.eq("slug", item.slug))
                     .unique();
 
                 if (existing) {
-                    await ctx.db.patch(existing._id, {
-                        ...item,
-                    });
+                    await ctx.db.patch(existing._id, projectData);
                     results.updated++;
                 } else {
                     await ctx.db.insert("projects", {
-                        ...item,
+                        ...projectData,
                         createdAt: Date.now(),
                     });
                     results.created++;
@@ -129,6 +153,75 @@ export const importProjects = mutation({
 /**
  * Bulk import blog articles
  */
+export const importSingleProject = mutation({
+    args: {
+        token: v.string(),
+        item: v.object({
+            title: v.string(),
+            slug: v.string(),
+            category: v.string(),
+            tags: v.array(v.string()),
+            image: v.string(),
+            images: v.optional(v.array(v.string())),
+            client: v.optional(v.string()),
+            year: v.optional(v.string()),
+            fullDescription: v.string(),
+            challenge: v.string(),
+            solution: v.string(),
+            results: v.array(v.string()),
+            isActive: v.boolean(),
+            isFeatured: v.optional(v.boolean()),
+            order: v.number(),
+        }),
+    },
+    handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
+        const item = args.item;
+
+        // Resolve storage IDs to URLs
+        let resolvedImage = item.image;
+        if (!item.image.startsWith('http')) {
+            const url = await ctx.storage.getUrl(item.image as any);
+            if (url) resolvedImage = url;
+        }
+
+        let resolvedImages = item.images;
+        if (item.images) {
+            resolvedImages = await Promise.all(
+                item.images.map(async (img) => {
+                    if (!img.startsWith('http')) {
+                        const url = await ctx.storage.getUrl(img as any);
+                        return url || img;
+                    }
+                    return img;
+                })
+            );
+        }
+
+        const projectData = {
+            ...item,
+            image: resolvedImage,
+            images: resolvedImages,
+        };
+
+        const existing = await ctx.db
+            .query("projects")
+            .withIndex("by_slug", (q) => q.eq("slug", item.slug))
+            .unique();
+
+        if (existing) {
+            await ctx.db.patch(existing._id, projectData);
+            return { id: existing._id, status: "updated" };
+        } else {
+            const id = await ctx.db.insert("projects", {
+                ...projectData,
+                createdAt: Date.now(),
+            });
+            return { id, status: "created" };
+        }
+    },
+});
+
 export const importArticles = mutation({
     args: {
         token: v.string(),

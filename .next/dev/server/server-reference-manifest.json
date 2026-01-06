@@ -1,36 +1,5 @@
 {
-  "node": {
-    "405f4f8814fc312335313b97db23cc834f750033ff": {
-      "workers": {
-        "app/blog/page": {
-          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/blog/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/src/app/actions/contact.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "subscribeToNewsletter",
-          "filename": "Documents/GitHub/VITALEEVO/src/app/actions/contact.ts"
-        }
-      },
-      "layer": {
-        "app/blog/page": "action-browser"
-      },
-      "filename": "Documents/GitHub/VITALEEVO/src/app/actions/contact.ts",
-      "exportedName": "subscribeToNewsletter"
-    },
-    "40a151191f26f862f4c5a4230bbfe435d4352c9a6e": {
-      "workers": {
-        "app/checkout/page": {
-          "moduleId": "[project]/Documents/GitHub/VITALEEVO/.next-internal/server/app/checkout/page/actions.js { ACTIONS_MODULE0 => \"[project]/Documents/GitHub/VITALEEVO/src/app/actions/contact.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "sendOrderEmail",
-          "filename": "Documents/GitHub/VITALEEVO/src/app/actions/contact.ts"
-        }
-      },
-      "layer": {
-        "app/checkout/page": "action-browser"
-      },
-      "filename": "Documents/GitHub/VITALEEVO/src/app/actions/contact.ts",
-      "exportedName": "sendOrderEmail"
-    }
-  },
+  "node": {},
   "edge": {},
   "encryptionKey": "nvntUgC2mUBuRPLY54pT1r/jDyembqLuAMRNOg6cyeU="
 }

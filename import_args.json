@@ -1,0 +1,115 @@
+{
+  "token": "dummy",
+  "items": [
+    {
+      "title": "Workshop de Adoraçāo VitalEvo",
+      "slug": "workshop-adoracao-2023",
+      "category": "design",
+      "tags": [
+        "Design Gráfico",
+        "Evento",
+        "Formação"
+      ],
+      "image": "kg22znn2hc1c72dazdbdwq65s57yp7cr",
+      "images": [],
+      "client": "Vinsong",
+      "year": "2023",
+      "fullDescription": "Desenvolvimento de toda a identidade visual e materiais de apoio para o Workshop de Adoração realizado em Luanda. O projeto incluiu flyers, crachás e apresentações digitais.",
+      "challenge": "Criar uma identidade visual que transmitisse espiritualidade e profissionalismo técnico ao mesmo tempo.",
+      "solution": "Utilizamos cores vibrantes misturadas com elementos sóbrios de tipografia para destacar os tópicos técnicos como gerenciamento vocal e técnicas de palco.",
+      "results": [
+        "Mais de 200 participantes",
+        "Feedback positivo no design dos materiais",
+        "Aumento no engajamento das redes sociais do evento"
+      ],
+      "isActive": true,
+      "isFeatured": true,
+      "order": 1
+    },
+    {
+      "title": "Campanha Promocional Bajaj Boxer",
+      "slug": "campanha-bajaj-boxer",
+      "category": "branding",
+      "tags": [
+        "Automotivo",
+        "Branding",
+        "Uniformização"
+      ],
+      "image": "kg2dmxvmcmk3petp6kef590pe57yp8xb",
+      "images": [
+        "kg2ebq3a2zx1y32pmkfg2pbh4s7yp2xd"
+      ],
+      "client": "Bajaj Angola",
+      "year": "2024",
+      "fullDescription": "Produção de materiais promocionais e uniformização para a campanha da Nova Bajaj Boxer. O foco foi destacar a durabilidade incomparável do modelo no mercado angolano.",
+      "challenge": "Adaptar a comunicação global da Bajaj para o contexto local, mantendo a força da marca.",
+      "solution": "Criação de flyers em papel de alta gramatura e camisolas personalizadas com impressão de alta qualidade para as equipas de venda.",
+      "results": [
+        "Distribuição de 5000+ flyers",
+        "Padronização total da equipa de vendas",
+        "Aumento visível no reconhecimento da marca"
+      ],
+      "isActive": true,
+      "isFeatured": true,
+      "order": 2
+    },
+    {
+      "title": "Sinalética e Branding - Igreja da Cidade",
+      "slug": "sinaletica-igreja-cidade",
+      "category": "design",
+      "tags": [
+        "Sinalética",
+        "Grandes Formatos",
+        "Branding"
+      ],
+      "image": "kg26e60pzvfm3q137k5k1xnht57ypetv",
+      "images": [
+        "kg2bfpeag6k5jr86z8y0nent997yp69r",
+        "kg2aytqhnmkhqbxb9aedcdtjfh7yqvgz"
+      ],
+      "client": "Igreja da Cidade Luanda",
+      "year": "2024",
+      "fullDescription": "Projeto completo de sinalética e ambientação para a Igreja da Cidade em Luanda. Incluiu banners de boas-vindas em grandes formatos e identidade visual para conferências específicas.",
+      "challenge": "Criar um ambiente acolhedor e informativo em um espaço amplo, guiando o público de forma intuitiva.",
+      "solution": "Design de banners autoportantes e painéis retroiluminados com mensagens claras em Português e Inglês.",
+      "results": [
+        "Melhoria no fluxo de visitantes",
+        "Impacto visual imediato nas conferências",
+        "Consolidação da identidade visual da igreja"
+      ],
+      "isActive": true,
+      "isFeatured": true,
+      "order": 3
+    },
+    {
+      "title": "Identidade Visual de Eventos Religiosos",
+      "slug": "design-eventos-religiosos",
+      "category": "design",
+      "tags": [
+        "Design Gráfico",
+        "Impressão",
+        "Convites"
+      ],
+      "image": "kg27ry5xmqqhd94m726bh849zh7yp3h2",
+      "images": [
+        "kg21yshzvpxx015xfbmzzhnsg17ypa26",
+        "kg21s97kd1v2zx3qfta82yqshd7yq5q0",
+        "kg2escbhdkey5xnae4g04mxjj17yqpy1",
+        "kg29zfpswkmf9jhb5aentvkyr17yq59k"
+      ],
+      "client": "Vários",
+      "year": "2023-2024",
+      "fullDescription": "Série de trabalhos de design gráfico e impressão de convites premium para celebrações de fim de ano e cultos especiais. Foco em acabamentos de luxo e tipografia elegante.",
+      "challenge": "Produzir materiais impressos em curto espaço de tempo sem comprometer a qualidade dos acabamentos.",
+      "solution": "Fluxo de trabalho otimizado entre design e produção, utilizando processos de impressão digital de última geração.",
+      "results": [
+        "100% de satisfação dos clientes",
+        "Prazos cumpridos rigorosamente",
+        "Alta fidelidade de cor e brilho"
+      ],
+      "isActive": true,
+      "isFeatured": true,
+      "order": 4
+    }
+  ]
+}

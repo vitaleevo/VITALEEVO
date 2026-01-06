@@ -1,0 +1,33 @@
+{
+  "token": "dummy",
+  "item": {
+    "title": "Identidade Visual de Eventos Religiosos",
+    "slug": "design-eventos-religiosos",
+    "category": "design",
+    "tags": [
+      "Design Gráfico",
+      "Impressão",
+      "Convites"
+    ],
+    "image": "kg237y8g0j83dh31txr33y45rs7yqg7f",
+    "images": [
+      "kg2fw0ns0g3h6chz6hbd607rzn7ypx18",
+      "kg2f81maxd2dw2j6annbt0dr8s7ypdh1",
+      "kg207xr2fvrfamsjyks0g2v9ch7yq11c",
+      "kg2b4qej93g6h5vaq72x57t6q57ypem9"
+    ],
+    "client": "Vários",
+    "year": "2023-2024",
+    "fullDescription": "Série de trabalhos de design gráfico e impressão de convites premium para celebrações de fim de ano e cultos especiais. Foco em acabamentos de luxo e tipografia elegante.",
+    "challenge": "Produzir materiais impressos em curto espaço de tempo sem comprometer a qualidade dos acabamentos.",
+    "solution": "Fluxo de trabalho otimizado entre design e produção, utilizando processos de impressão digital de última geração.",
+    "results": [
+      "100% de satisfação dos clientes",
+      "Prazos cumpridos rigorosamente",
+      "Alta fidelidade de cor e brilho"
+    ],
+    "isActive": true,
+    "isFeatured": true,
+    "order": 4
+  }
+}

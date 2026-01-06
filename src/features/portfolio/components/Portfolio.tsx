@@ -29,7 +29,10 @@ const Portfolio: React.FC = () => {
 
   const categories = useMemo(() => {
     if (!dbCategories) return ['Todos'];
-    const cats = ['Todos', ...dbCategories.map(c => c.name)];
+    // Ensure unique names to avoid duplicate keys in the filter UI
+    const uniqueNames = Array.from(new Set(dbCategories.map(c => c.name)));
+    const cats = ['Todos', ...uniqueNames];
+
     if (cats.length === 1) return ['Todos', 'Branding', 'Tech', 'Marketing', 'Design'];
     return cats;
   }, [dbCategories]);

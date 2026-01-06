@@ -1,0 +1,31 @@
+{
+  "token": "dummy",
+  "item": {
+    "title": "Sinalética e Branding - Igreja da Cidade",
+    "slug": "sinaletica-igreja-cidade",
+    "category": "design",
+    "tags": [
+      "Sinalética",
+      "Grandes Formatos",
+      "Branding"
+    ],
+    "image": "kg2ab2wte7gbah7am7webajnp97yp1vp",
+    "images": [
+      "kg28ajmpy6wb3q35zqktkfpfc57ypnc0",
+      "kg2d9jf1cny1h7g6y4z17vwyj97ypnqt"
+    ],
+    "client": "Igreja da Cidade Luanda",
+    "year": "2024",
+    "fullDescription": "Projeto completo de sinalética e ambientação para a Igreja da Cidade em Luanda. Incluiu banners de boas-vindas em grandes formatos e identidade visual para conferências específicas.",
+    "challenge": "Criar um ambiente acolhedor e informativo em um espaço amplo, guiando o público de forma intuitiva.",
+    "solution": "Design de banners autoportantes e painéis retroiluminados com mensagens claras em Português e Inglês.",
+    "results": [
+      "Melhoria no fluxo de visitantes",
+      "Impacto visual imediato nas conferências",
+      "Consolidação da identidade visual da igreja"
+    ],
+    "isActive": true,
+    "isFeatured": true,
+    "order": 3
+  }
+}
