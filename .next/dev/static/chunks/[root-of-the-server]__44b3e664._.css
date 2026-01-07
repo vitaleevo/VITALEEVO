@@ -6375,6 +6375,10 @@ body {
     flex-direction: row;
   }
 
+  .md\:flex-wrap {
+    flex-wrap: wrap;
+  }
+
   .md\:items-end {
     align-items: flex-end;
   }

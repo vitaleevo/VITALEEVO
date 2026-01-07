@@ -139,14 +139,14 @@ const Blog: React.FC = () => {
           )}
 
           {/* Latest Articles Grid */}
-          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4 border-b border-gray-200 dark:border-white/10 pb-6">
+          <div className="flex flex-col gap-6 mb-12 border-b border-gray-200 dark:border-white/10 pb-6">
             <h2 className="font-display font-bold text-3xl text-gray-900 dark:text-white">Últimas Publicações</h2>
-            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+            <div className="flex gap-2 overflow-x-auto md:flex-wrap md:overflow-visible pb-2 md:pb-0 no-scrollbar w-full">
               {categories.map(cat => (
                 <button
                   key={cat}
                   onClick={() => handleCategoryChange(cat)}
-                  className={`px-4 py-2 border rounded-full text-sm font-medium transition-colors whitespace-nowrap ${activeCategory === cat
+                  className={`px-4 py-2 border rounded-full text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0 ${activeCategory === cat
                     ? 'bg-primary border-primary text-white'
                     : 'border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10'
                     }`}
