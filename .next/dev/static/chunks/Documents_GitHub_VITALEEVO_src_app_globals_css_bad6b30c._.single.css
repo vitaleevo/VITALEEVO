@@ -5009,6 +5009,16 @@ body {
   background-color: rgb(254 252 232 / var(--tw-bg-opacity, 1));
 }
 
+.hover\:bg-\[\#1877F2\]:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(24 119 242 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-\[\#E1306C\]:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(225 48 108 / var(--tw-bg-opacity, 1));
+}
+
 .hover\:\!text-red-500:hover {
   --tw-text-opacity: 1 !important;
   color: rgb(239 68 68 / var(--tw-text-opacity, 1)) !important;

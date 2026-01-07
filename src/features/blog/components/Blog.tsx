@@ -141,7 +141,7 @@ const Blog: React.FC = () => {
           {/* Latest Articles Grid */}
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4 border-b border-gray-200 dark:border-white/10 pb-6">
             <h2 className="font-display font-bold text-3xl text-gray-900 dark:text-white">Últimas Publicações</h2>
-            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
               {categories.map(cat => (
                 <button
                   key={cat}

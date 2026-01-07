@@ -6,6 +6,7 @@ import FeatureLayout from '@/shared/components/FeatureLayout';
 import Link from 'next/link';
 import { ArrowLeft, Clock, Calendar, User, Share2 } from "lucide-react";
 import { formatDate } from "@/shared/utils/format";
+import ShareButtons from '@/features/blog/components/ShareButtons';
 
 interface Props {
     params: { slug: string };
@@ -119,17 +120,7 @@ export default async function ArticlePage({ params }: Props) {
                             <Share2 className="w-5 h-5 text-primary" />
                             Compartilhe esse artigo:
                         </div>
-                        <div className="flex gap-3">
-                            <button className="px-6 py-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-white font-bold hover:bg-primary hover:text-white transition-all">
-                                LinkedIn
-                            </button>
-                            <button className="px-6 py-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-white font-bold hover:bg-[#1DA1F2] hover:text-white transition-all">
-                                Twitter
-                            </button>
-                            <button className="px-6 py-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-white font-bold hover:bg-[#25D366] hover:text-white transition-all">
-                                WhatsApp
-                            </button>
-                        </div>
+                        <ShareButtons slug={slug} title={article.title} />
                     </div>
                 </div>
             </div>
