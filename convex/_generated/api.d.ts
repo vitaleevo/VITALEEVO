@@ -30,6 +30,7 @@ import type * as orders from "../orders.js";
 import type * as products from "../products.js";
 import type * as projects from "../projects.js";
 import type * as seed from "../seed.js";
+import type * as seedBlogPosts from "../seedBlogPosts.js";
 import type * as settings from "../settings.js";
 import type * as setupAdmin from "../setupAdmin.js";
 import type * as users from "../users.js";
@@ -65,6 +66,7 @@ declare const fullApi: ApiFromModules<{
   products: typeof products;
   projects: typeof projects;
   seed: typeof seed;
+  seedBlogPosts: typeof seedBlogPosts;
   settings: typeof settings;
   setupAdmin: typeof setupAdmin;
   users: typeof users;

@@ -24,6 +24,7 @@ import { formatDate } from "@/shared/utils/format";
 import ImageUpload from "@/shared/components/ImageUpload";
 import RichTextEditor from "@/shared/components/RichTextEditor";
 import BulkImportModal from "@/shared/components/BulkImportModal";
+import DeleteDialog from "@/shared/components/DeleteDialog";
 import { useAuth } from "@/shared/providers/AuthProvider";
 
 interface ArticleForm {
@@ -72,6 +73,11 @@ export default function AdminBlogPage() {
     const [form, setForm] = useState<ArticleForm>(emptyForm);
     const [isSaving, setIsSaving] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+    // Delete Dialog State
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<Id<"articles"> | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     if (!articles || !dbCategories) {
         return (
@@ -149,9 +155,25 @@ export default function AdminBlogPage() {
         }
     };
 
-    const handleDelete = async (id: Id<"articles">) => {
-        if (confirm("Tem certeza que deseja apagar este artigo?")) {
-            await removeArticle({ token: token!, id });
+    // Open Delete Confirmation
+    const handleConfirmDelete = (id: Id<"articles">) => {
+        setItemToDelete(id);
+        setIsDeleteDialogOpen(true);
+    };
+
+    // Execute Delete
+    const handleDelete = async () => {
+        if (!itemToDelete) return;
+
+        setIsDeleting(true);
+        try {
+            await removeArticle({ token: token!, id: itemToDelete });
+            setIsDeleteDialogOpen(false);
+            setItemToDelete(null);
+        } catch (error) {
+            console.error("Error deleting article:", error);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -315,7 +337,7 @@ export default function AdminBlogPage() {
                                                     <Edit className="w-5 h-5" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(article._id)}
+                                                    onClick={() => handleConfirmDelete(article._id)}
                                                     className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-gray-500 hover:text-red-500 transition-colors"
                                                 >
                                                     <Trash2 className="w-5 h-5" />
@@ -523,6 +545,15 @@ export default function AdminBlogPage() {
                 isOpen={isImportModalOpen}
                 onClose={() => setIsImportModalOpen(false)}
                 type="blog"
+            />
+            {/* Delete Confirmation Modal */}
+            <DeleteDialog
+                isOpen={isDeleteDialogOpen}
+                onClose={() => setIsDeleteDialogOpen(false)}
+                onConfirm={handleDelete}
+                isDeleting={isDeleting}
+                title="Apagar Artigo"
+                description="Tem certeza que deseja apagar este artigo permanentemente? Ele será removido do blog e não poderá ser recuperado."
             />
         </div>
     );

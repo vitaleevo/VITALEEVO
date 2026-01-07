@@ -1,0 +1,28 @@
+{
+    "token": "SYSTEM_IMPORT",
+    "items": [
+        {
+            "name": "Test Product",
+            "slug": "test-product-123",
+            "description": "Test description",
+            "fullDescription": "Test full description",
+            "price": 1000,
+            "oldPrice": 1200,
+            "image": "https://example.com/image.jpg",
+            "category": "Test",
+            "brand": "TestBrand",
+            "specs": [
+                {
+                    "label": "RAM",
+                    "value": "8GB"
+                }
+            ],
+            "stock": 10,
+            "isNew": true,
+            "isActive": true,
+            "isFeatured": false,
+            "rating": 5,
+            "reviewCount": 1
+        }
+    ]
+}

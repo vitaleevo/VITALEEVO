@@ -1,8 +1,0 @@
-src/app/admin/layout.tsx(101,14): error TS17008: JSX element 'aside' has no corresponding closing tag.
-src/app/admin/layout.tsx(167,13): error TS1005: ')' expected.
-src/app/admin/layout.tsx(170,15): error TS1005: ';' expected.
-src/app/admin/layout.tsx(187,13): error TS1128: Declaration or statement expected.
-src/app/admin/layout.tsx(190,16): error TS1005: ';' expected.
-src/app/admin/layout.tsx(192,13): error TS1128: Declaration or statement expected.
-src/app/admin/layout.tsx(193,9): error TS1109: Expression expected.
-src/app/admin/layout.tsx(194,5): error TS1109: Expression expected.

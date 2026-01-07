@@ -19,6 +19,10 @@ export const importProducts = mutation({
             images: v.optional(v.array(v.string())),
             category: v.string(),
             brand: v.optional(v.string()),
+            specs: v.optional(v.array(v.object({
+                label: v.string(),
+                value: v.string(),
+            }))),
             stock: v.number(),
             isNew: v.boolean(),
             isActive: v.boolean(),
