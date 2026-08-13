@@ -1,0 +1,32 @@
+{
+    "name": "VitalEvo - Conectando Possibilidades",
+    "short_name": "VitalEvo",
+    "description": "Transformamos marcas através de tecnologia de ponta e design estratégico em Angola.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0b1120",
+    "theme_color": "#8625d2",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/icon.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "business",
+        "shopping",
+        "productivity"
+    ],
+    "lang": "pt-AO",
+    "screenshots": [],
+    "prefer_related_applications": false
+}

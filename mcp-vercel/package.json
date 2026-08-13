@@ -1,0 +1,22 @@
+{
+  "name": "mcp-vercel",
+  "version": "1.0.0",
+  "description": "Vercel MCP Server implementation",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mcp",
+    "vercel"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "node-fetch": "^3.3.2",
+    "zod": "^4.2.1"
+  }
+}
