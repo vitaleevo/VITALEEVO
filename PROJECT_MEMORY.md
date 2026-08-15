@@ -31,6 +31,13 @@ Código preparado para produção e validado localmente. A publicação permanec
 - O número principal de WhatsApp usado nos pedidos é +244 950 744 445.
 - Os dados estruturados do site usam a morada e telefone oficiais.
 
+## Publicação — 2026-08-16
+
+- GitHub: `main` publicada em `3425463`, preservando o histórico remoto.
+- Convex: funções publicadas em `https://merry-fennec-711.convex.cloud`.
+- Frontend: `vitaleevo.ao` está alojado na Vercel, mas o repositório não tem webhook, workflow ou credenciais Vercel disponíveis neste ambiente.
+- Pendente: configurar `RESEND_API_KEY` no Convex e as variáveis de produção no projeto Vercel antes da publicação web final.
+
 ## Próximo Passo
 
 Configurar os segredos no Convex e no host Next.js, migrar as chaves de IA pelo painel e executar o deploy autorizado.
