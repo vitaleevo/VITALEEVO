@@ -7,13 +7,27 @@ import ProductClient from "./ProductClient";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 
 interface Props {
-    params: Promise<{ id: string }>;
+    params: Promise<{ slug: string }>;
+}
+
+async function resolveProduct(slug: string) {
+    try {
+        const bySlug = await fetchQuery(api.products.getBySlug, { slug });
+        if (bySlug) return bySlug;
+    } catch {
+        // Slug not found; fall through to legacy ID lookup below.
+    }
+    try {
+        return await fetchQuery(api.products.getById, { id: slug as Id<"products"> });
+    } catch {
+        return null;
+    }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const { id } = await params;
+    const { slug } = await params;
     try {
-        const product = await fetchQuery(api.products.getById, { id: id as Id<"products"> });
+        const product = await resolveProduct(slug);
         if (!product) return { title: 'Produto Não Encontrado' };
 
         return {
@@ -32,13 +46,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
-    const { id } = await params;
-    let product = null;
-    try {
-        product = await fetchQuery(api.products.getById, { id: id as Id<"products"> });
-    } catch (e) {
-        console.error("Failed to fetch product:", e);
-    }
+    const { slug } = await params;
+    const product = await resolveProduct(slug);
 
     if (!product) {
         notFound();

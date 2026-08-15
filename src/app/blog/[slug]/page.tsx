@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ArrowLeft, Clock, Calendar, User, Share2 } from "lucide-react";
 import { formatDate } from "@/shared/utils/format";
 import ShareButtons from '@/features/blog/components/ShareButtons';
+import { sanitizeRichText } from "../../../../convex/content";
 
 interface Props {
     params: { slug: string };
@@ -94,7 +95,7 @@ export default async function ArticlePage({ params }: Props) {
                     </div>
 
                     {/* Featured Image */}
-                    <div className="rounded-[2.5rem] overflow-hidden mb-16 shadow-2xl relative aspect-video">
+                    <div className="relative mb-16 aspect-video overflow-hidden rounded-3xl shadow-card">
                         <img
                             src={article.image}
                             alt={article.title}
@@ -110,7 +111,7 @@ export default async function ArticlePage({ params }: Props) {
                         </p>
                         <div
                             className="article-content"
-                            dangerouslySetInnerHTML={{ __html: article.content || '' }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeRichText(article.content || '') }}
                         />
                     </div>
 

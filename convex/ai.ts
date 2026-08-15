@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { decryptSecret } from "./secrets";
 
 export const chat = action({
     args: {
@@ -11,6 +12,19 @@ export const chat = action({
         })))
     },
     handler: async (ctx, args) => {
+        const message = args.message.trim();
+        const history = (args.history ?? [])
+            .slice(-12)
+            .filter((item) => item.content.trim().length > 0)
+            .map((item) => ({
+                ...item,
+                content: item.content.slice(0, 2_000),
+            }));
+
+        if (!message || message.length > 2_000) {
+            throw new Error("A mensagem deve ter entre 1 e 2000 caracteres.");
+        }
+
         const activeKeys: any = await ctx.runQuery(internal.apiKeys.getAllActiveInternal);
 
         if (!activeKeys || activeKeys.length === 0) {
@@ -39,13 +53,14 @@ REGRAS CRÍTICAS:
         let lastError = "";
 
         // Try each active key until one works
-        for (const { provider, apiKey } of activeKeys) {
+        for (const { provider, encryptedApiKey, encryptionIv } of activeKeys) {
             try {
                 console.log(`Tentando provedor: ${provider}...`);
-                if (provider === "gemini") return await callGemini(apiKey, fullSystemInstruction, args.message, args.history || []);
-                if (provider === "openai") return await callOpenAI(apiKey, fullSystemInstruction, args.message, args.history || []);
-                if (provider === "anthropic") return await callAnthropic(apiKey, fullSystemInstruction, args.message, args.history || []);
-                if (provider === "huggingface") return await callHuggingFace(apiKey, fullSystemInstruction, args.message, args.history || []);
+                const apiKey = await decryptSecret(encryptedApiKey, encryptionIv);
+                if (provider === "gemini") return await callGemini(apiKey, fullSystemInstruction, message, history);
+                if (provider === "openai") return await callOpenAI(apiKey, fullSystemInstruction, message, history);
+                if (provider === "anthropic") return await callAnthropic(apiKey, fullSystemInstruction, message, history);
+                if (provider === "huggingface") return await callHuggingFace(apiKey, fullSystemInstruction, message, history);
             } catch (error: any) {
                 console.error(`Falha no provedor ${provider}:`, error.message);
                 lastError = error.message;
@@ -63,7 +78,7 @@ async function callGemini(apiKey: string, systemInstruction: string, message: st
 
     // Process history to ensure alternating roles (user -> model -> user -> model)
     // Gemini is very strict about this order.
-    let contents: any[] = [];
+    const contents: any[] = [];
 
     // Filter and map roles
     const filteredHistory = history.filter(msg => msg.role !== 'system');

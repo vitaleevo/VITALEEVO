@@ -5,11 +5,11 @@ import { checkAdmin } from "./utils";
 const DEFAULT_SETTINGS = {
     key: "site_config",
     siteName: "Vitaleevo",
-    siteDescription: "Plataforma de E-commerce e Serviços de Tecnologia",
+    siteDescription: "Tecnologia, criatividade e estratégia para negócios em Angola.",
     contactEmail: "info@vitaleevo.ao",
-    contactPhone: "+244 9XX XXX XXX",
-    whatsapp: "2449XXXXXXXX",
-    address: "Luanda, Angola",
+    contactPhone: "+244 950 744 445",
+    whatsapp: "244950744445",
+    address: "Benfica, Luanda, Angola",
     socialLinks: {
         instagram: "https://instagram.com/vitaleevo",
         facebook: "https://facebook.com/vitaleevo",
@@ -31,7 +31,14 @@ export const get = query({
             .withIndex("by_key", (q) => q.eq("key", "site_config"))
             .unique();
 
-        return settings || DEFAULT_SETTINGS;
+        return {
+            ...DEFAULT_SETTINGS,
+            ...settings,
+            contactEmail: DEFAULT_SETTINGS.contactEmail,
+            contactPhone: DEFAULT_SETTINGS.contactPhone,
+            whatsapp: DEFAULT_SETTINGS.whatsapp,
+            address: DEFAULT_SETTINGS.address,
+        };
     },
 });
 
@@ -73,6 +80,10 @@ export const update = mutation({
         if (existing) {
             await ctx.db.patch(existing._id, {
                 ...cleanArgs,
+                contactEmail: DEFAULT_SETTINGS.contactEmail,
+                contactPhone: DEFAULT_SETTINGS.contactPhone,
+                whatsapp: DEFAULT_SETTINGS.whatsapp,
+                address: DEFAULT_SETTINGS.address,
                 updatedAt: Date.now(),
             });
         } else {

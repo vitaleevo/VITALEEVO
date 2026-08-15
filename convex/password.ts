@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 
 const BCRYPT_ROUNDS = 10;
+export const PASSWORD_MIN_LENGTH = 12;
 
 // Legacy 32-bit hash used before the bcrypt migration.
 // Kept ONLY to verify and transparently upgrade existing accounts.
@@ -31,6 +32,18 @@ export async function verifyPassword(password: string, storedHash: string): Prom
         return legacyHash(password) === storedHash;
     }
     return bcrypt.compare(password, storedHash);
+}
+
+export function getPasswordValidationError(password: string): string | null {
+    if (password.length < PASSWORD_MIN_LENGTH) {
+        return `A senha deve ter pelo menos ${PASSWORD_MIN_LENGTH} caracteres`;
+    }
+
+    if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+        return "A senha deve incluir pelo menos uma letra e um número";
+    }
+
+    return null;
 }
 
 // Cryptographically secure random token (64 hex chars)

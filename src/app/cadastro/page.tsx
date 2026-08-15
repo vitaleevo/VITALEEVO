@@ -43,8 +43,8 @@ export default function CadastroPage() {
             return;
         }
 
-        if (formData.password.length < 6) {
-            setLocalError("A senha deve ter pelo menos 6 caracteres");
+        if (formData.password.length < 12 || !/[a-zA-Z]/.test(formData.password) || !/\d/.test(formData.password)) {
+            setLocalError("Use pelo menos 12 caracteres, incluindo uma letra e um número");
             return;
         }
 
@@ -156,7 +156,7 @@ export default function CadastroPage() {
                                         value={formData.password}
                                         onChange={handleChange}
                                         className="w-full h-14 pl-12 pr-12 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                                        placeholder="Mínimo 6 caracteres"
+                                        placeholder="Mínimo 12 caracteres, letras e números"
                                     />
                                     <button
                                         type="button"

@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "npx convex deploy && next build",
+    "build:app": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",

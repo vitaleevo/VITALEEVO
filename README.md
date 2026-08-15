@@ -1,20 +1,38 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# VitalEvo
 
-# Run and deploy your AI Studio app
+Plataforma institucional, loja e painel administrativo da VitalEvo, construída com Next.js, React e Convex.
 
-This contains everything you need to run your app locally.
+## Desenvolvimento
 
-View your app in AI Studio: https://ai.studio/apps/drive/1NdRRkEy0Waran87xVRfTpN5PDsEUYrD2
+1. Copie .env.local.example para .env.local e preencha as variáveis da aplicação.
+2. Configure o ambiente de desenvolvimento do Convex.
+3. Execute:
 
-## Run Locally
+    npm install
+    npx convex dev
+    npm run dev
 
-**Prerequisites:**  Node.js
+## Validação
 
+    npm run typecheck
+    npm run lint
+    npm run build:app
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+O comando npm run build também executa npx convex deploy. Use-o somente quando a implantação do Convex tiver sido deliberadamente autorizada.
+
+## Configuração de produção
+
+As variáveis usadas pelo Next.js ficam no provedor da aplicação. As variáveis usadas pelas actions do Convex devem ser configuradas no ambiente do Convex:
+
+- RESEND_API_KEY
+- EMAIL_FROM
+- SITE_URL
+- VITALEEVO_API_KEYS_ENCRYPTION_KEY
+
+Gere a chave de cifragem uma única vez e guarde-a num cofre de segredos:
+
+    openssl rand -hex 32
+
+Depois de configurar VITALEEVO_API_KEYS_ENCRYPTION_KEY, aceda ao painel /admin/ai e execute a migração das chaves antigas. Não rode essa migração antes de configurar a variável, pois as chaves não poderão ser usadas sem ela.
+
+Consulte PRODUCTION_CHECKLIST.md antes de publicar.

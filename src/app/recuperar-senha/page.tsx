@@ -34,8 +34,8 @@ function RecuperarSenhaContent() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (password.length < 6) {
-            toast.error("A senha deve ter pelo menos 6 caracteres");
+        if (password.length < 12 || !/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+            toast.error("Use pelo menos 12 caracteres, incluindo uma letra e um número");
             return;
         }
 

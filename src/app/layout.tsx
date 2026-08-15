@@ -3,6 +3,7 @@ import { Inter, Montserrat } from "next/font/google";
 import { Suspense } from "react";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { SITE_CONTACT } from "@/shared/utils/contact";
 import { ThemeProvider } from "@/shared/components/ThemeProvider";
 import { ConvexClientProvider } from "@/shared/providers/ConvexClientProvider";
 import { CartProvider } from "@/shared/providers/CartProvider";
@@ -26,8 +27,6 @@ export const viewport: Viewport = {
     themeColor: "#8625d2",
     width: "device-width",
     initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
 };
 
 import { ConvexHttpClient } from "convex/browser";
@@ -137,7 +136,7 @@ export default function RootLayout({
                             "logo": "https://vitaleevo.ao/logo.png",
                             "contactPoint": {
                                 "@type": "ContactPoint",
-                                "telephone": "+244923000000",
+                                "telephone": SITE_CONTACT.primaryPhone,
                                 "contactType": "customer service",
                                 "areaServed": "AO",
                                 "availableLanguage": "Portuguese"
@@ -149,7 +148,7 @@ export default function RootLayout({
                             ],
                             "address": {
                                 "@type": "PostalAddress",
-                                "streetAddress": "Luanda, Angola",
+                                "streetAddress": SITE_CONTACT.address,
                                 "addressLocality": "Luanda",
                                 "addressCountry": "AO"
                             },
@@ -167,14 +166,17 @@ export default function RootLayout({
                         <CartProvider>
                             <ThemeProvider>
                                 <Toaster richColors position="top-right" />
+                                <a href="#main-content" className="sr-only fixed left-4 top-4 z-[100] rounded-lg bg-primary px-4 py-2 font-semibold text-white focus:not-sr-only">
+                                    Saltar para o conteúdo principal
+                                </a>
                                 <div className="flex flex-col min-h-screen">
-                                    <div className="flex-grow pb-16 lg:pb-0">
+                                    <main id="main-content" className="flex-grow pb-16 lg:pb-0">
                                         <Suspense>
                                             <MaintenanceGuard>
                                                 {children}
                                             </MaintenanceGuard>
                                         </Suspense>
-                                    </div>
+                                    </main>
                                     <Suspense>
                                         <MobileNavigation />
                                         <AIChatWidget />

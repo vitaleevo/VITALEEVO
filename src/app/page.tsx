@@ -1,5 +1,6 @@
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import Home from "@/features/home/components/Home";
+import { SITE_CONTACT } from "@/shared/utils/contact";
 
 export default function HomePage() {
     const jsonLd = {
@@ -9,10 +10,10 @@ export default function HomePage() {
         image: 'https://vitaleevo.ao/icon.png',
         '@id': 'https://vitaleevo.ao',
         url: 'https://vitaleevo.ao',
-        telephone: '+244 923 456 789',
+        telephone: SITE_CONTACT.primaryPhone,
         address: {
             '@type': 'PostalAddress',
-            streetAddress: 'Luanda',
+            streetAddress: SITE_CONTACT.address,
             addressLocality: 'Luanda',
             addressCountry: 'AO'
         },

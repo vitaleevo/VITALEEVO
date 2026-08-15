@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useAuth } from "@/shared/providers/AuthProvider";
@@ -21,12 +21,14 @@ export default function AdminAIPage() {
     const upsertKey = useMutation(api.apiKeys.upsert);
     const deleteKey = useMutation(api.apiKeys.remove);
     const toggleActive = useMutation(api.apiKeys.toggleActive);
+    const migrateLegacyKeys = useMutation(api.apiKeys.migrateLegacyKeys);
 
     const [showForm, setShowForm] = useState(false);
     const [selectedProvider, setSelectedProvider] = useState("");
     const [apiKeyInput, setApiKeyInput] = useState("");
     const [labelInput, setLabelInput] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isMigrating, setIsMigrating] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,11 +77,25 @@ export default function AdminAIPage() {
         }
     };
 
+    const handleMigration = async () => {
+        if (!token) return;
+        setIsMigrating(true);
+        try {
+            const result = await migrateLegacyKeys({ token });
+            toast.success(`${result.migrated} chave(s) protegida(s).`);
+        } catch (error: any) {
+            toast.error(error.message || "Não foi possível proteger as chaves.");
+        } finally {
+            setIsMigrating(false);
+        }
+    };
+
     const getProviderInfo = (providerId: string) => {
         return PROVIDERS.find(p => p.id === providerId) || { name: providerId, icon: "🔑", description: "" };
     };
 
     const hasActiveKey = apiKeys?.some(k => k.isActive);
+    const hasLegacyKeys = apiKeys?.some((key) => key.needsMigration);
 
     return (
         <div className="space-y-8">
@@ -124,6 +140,22 @@ export default function AdminAIPage() {
                 </div>
             </div>
 
+            {hasLegacyKeys && (
+                <div className="p-5 rounded-2xl border border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+                    <p className="font-semibold">Chaves antigas precisam de proteção</p>
+                    <p className="mt-1 text-sm">Defina a chave de cifragem no Convex e migre as chaves existentes antes de ativar o chatbot.</p>
+                    <button
+                        type="button"
+                        onClick={handleMigration}
+                        disabled={isMigrating}
+                        className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-700 px-3 py-2 text-sm font-medium text-white hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        {isMigrating && <Loader2 className="h-4 w-4 animate-spin" />}
+                        Proteger chaves agora
+                    </button>
+                </div>
+            )}
+
             {/* API Keys List */}
             <div className="grid gap-4">
                 {apiKeys === undefined ? (
@@ -163,7 +195,7 @@ export default function AdminAIPage() {
                                             </p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded font-mono text-gray-600 dark:text-gray-300">
-                                                    {key.apiKey}
+                                                    key.keyLastFour ? `••••••••${key.keyLastFour}` : "Não disponível"
                                                 </code>
                                             </div>
                                         </div>

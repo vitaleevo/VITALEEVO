@@ -1,117 +1,149 @@
 "use client";
 
-import React from 'react';
-import Link from 'next/link';
-import Logo from './Logo';
+import React from "react";
+import Link from "next/link";
+import Logo from "./Logo";
 import {
   Instagram,
   Facebook,
-  Music2,
+  Linkedin,
+  Twitter,
   MapPin,
   Mail,
-  Phone,
-  Linkedin,
-  Twitter
+  PhoneCall,
+  ArrowUpRight,
 } from "lucide-react";
 
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { PHONE_CONTACTS, SITE_CONTACT } from "@/shared/utils/contact";
 
 const Footer: React.FC = () => {
   const settings = useQuery(api.settings.get);
 
-  // Default fallbacks while loading
   const config: any = settings || {
     siteName: "Vitaleevo",
-    siteDescription: "A agência parceira do seu crescimento digital em Angola. Criatividade, Tecnologia e Estratégia em um só lugar.",
+    siteDescription:
+      "A agência parceira do seu crescimento digital em Angola. Criatividade, Tecnologia e Estratégia em um só lugar.",
     socialLinks: {
-      instagram: 'https://www.instagram.com/vitaleevo/',
-      facebook: 'https://www.facebook.com/vitaleevo',
-      linkedin: '',
-      twitter: ''
+      instagram: "https://www.instagram.com/vitaleevo/",
+      facebook: "https://www.facebook.com/vitaleevo",
+      linkedin: "",
+      twitter: "",
     },
-    address: 'Bairro Benfica, próximo à Dona Xepa, Luanda, Angola',
-    contactEmail: 'info@vitaleevo.ao',
-    contactPhone: '+244 935 348 327'
+    address: SITE_CONTACT.address,
+    contactEmail: SITE_CONTACT.email,
+    contactPhone: SITE_CONTACT.primaryPhone,
   };
 
-  const socialIcons = [
-    { name: 'Instagram', icon: <Instagram className="w-5 h-5" />, url: config.socialLinks?.instagram },
-    { name: 'Facebook', icon: <Facebook className="w-5 h-5" />, url: config.socialLinks?.facebook },
-    { name: 'LinkedIn', icon: <Linkedin className="w-5 h-5" />, url: config.socialLinks?.linkedin },
-    { name: 'Twitter', icon: <Twitter className="w-5 h-5" />, url: config.socialLinks?.twitter },
-  ].filter(s => s.url); // Only show if url exists
+  const socials = [
+    { name: "Instagram", icon: Instagram, url: config.socialLinks?.instagram },
+    { name: "Facebook", icon: Facebook, url: config.socialLinks?.facebook },
+    { name: "LinkedIn", icon: Linkedin, url: config.socialLinks?.linkedin },
+    { name: "Twitter", icon: Twitter, url: config.socialLinks?.twitter },
+  ].filter((s) => s.url);
 
   return (
-    <footer className="bg-surface-light dark:bg-background-dark pt-16 pb-8 border-t border-gray-200 dark:border-gray-800 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-          <div className="col-span-1 md:col-span-2 lg:col-span-1">
-            <div className="mb-6">
+    <footer className="border-t border-slate-200 bg-white dark:border-white/5 dark:bg-[#0b1120]">
+      <div className="wrap py-14">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+          {/* Brand */}
+          <div className="lg:col-span-1">
+            <Link href="/" className="mb-5 inline-block">
               <Logo />
-            </div>
-            <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-6">
+            </Link>
+            <p className="mb-6 max-w-xs text-sm leading-relaxed text-slate-500 dark:text-slate-400">
               {config.siteDescription}
             </p>
-            <div className="flex gap-4">
-              {socialIcons.map((social, idx) => (
-                <a
-                  key={idx}
-                  href={social.url!}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-primary hover:text-white transition-all shadow-sm"
-                  aria-label={social.name}
-                >
-                  {social.icon}
-                </a>
-              ))}
+            <div className="flex gap-3">
+              {socials.map((s) => {
+                const Icon = s.icon;
+                return (
+                  <a
+                    key={s.name}
+                    href={s.url!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.name}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all hover:-translate-y-0.5 hover:border-primary hover:text-primary dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+                  >
+                    <Icon className="h-4 w-4" />
+                  </a>
+                );
+              })}
             </div>
           </div>
+
+          {/* Links */}
           <div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-6 uppercase tracking-widest text-xs">Acesso Rápido</h4>
-            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-              <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
-              <li><Link href="/about" className="hover:text-primary transition-colors">Sobre Nós</Link></li>
-              <li><Link href="/portfolio" className="hover:text-primary transition-colors">Portfólio</Link></li>
+            <h4 className="mb-5 text-xs font-bold uppercase tracking-[0.18em] text-slate-900 dark:text-white">
+              Navegação
+            </h4>
+            <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+              <li><Link href="/" className="transition-colors hover:text-primary">Home</Link></li>
+              <li><Link href="/about" className="transition-colors hover:text-primary">Sobre Nós</Link></li>
+              <li><Link href="/services" className="transition-colors hover:text-primary">Serviços</Link></li>
+              <li><Link href="/portfolio" className="transition-colors hover:text-primary">Portfólio</Link></li>
+              <li><Link href="/blog" className="transition-colors hover:text-primary">Blog</Link></li>
             </ul>
           </div>
+
+          {/* Store */}
           <div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-6 uppercase tracking-widest text-xs">Horário</h4>
-            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-              <li className="flex justify-between"><span>Seg - Sex:</span> <span>08h às 17h</span></li>
-              <li className="flex justify-between"><span>Sábado:</span> <span>08h às 12h</span></li>
-              <li className="flex justify-between text-red-500 font-bold"><span>Domingo:</span> <span>Fechado</span></li>
+            <h4 className="mb-5 text-xs font-bold uppercase tracking-[0.18em] text-slate-900 dark:text-white">
+              Loja
+            </h4>
+            <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+              <li><Link href="/store" className="transition-colors hover:text-primary">Todos os Produtos</Link></li>
+              <li><Link href="/cart" className="transition-colors hover:text-primary">Carrinho</Link></li>
+              <li><Link href="/legal/terms" className="transition-colors hover:text-primary">Termos de Uso</Link></li>
+              <li><Link href="/legal/privacy" className="transition-colors hover:text-primary">Política de Privacidade</Link></li>
             </ul>
           </div>
+
+          {/* Contact */}
           <div>
-            <h4 className="font-bold text-gray-900 dark:text-white mb-6 uppercase tracking-widest text-xs">Contacto Direto</h4>
-            <ul className="space-y-4 text-sm text-gray-600 dark:text-gray-400">
+            <h4 className="mb-5 text-xs font-bold uppercase tracking-[0.18em] text-slate-900 dark:text-white">
+              Contacto
+            </h4>
+            <ul className="space-y-4 text-sm text-slate-600 dark:text-slate-400">
               <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-secondary shrink-0" />
-                <span>{config.address}</span>
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <a
+                  href={SITE_CONTACT.mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition-colors hover:text-primary"
+                >
+                  {SITE_CONTACT.address}
+                </a>
               </li>
               <li className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-secondary" />
-                <a href={`mailto:${config.contactEmail}`} className="hover:text-primary">{config.contactEmail}</a>
+                <Mail className="h-4 w-4 shrink-0 text-primary" />
+                <a href={`mailto:${SITE_CONTACT.email}`} className="hover:text-primary">{SITE_CONTACT.email}</a>
               </li>
-              <li className="flex flex-col gap-2">
-                <div className="flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-secondary" />
-                  <a href={`tel:${config.contactPhone}`} className="hover:text-primary">{config.contactPhone}</a>
-                </div>
-              </li>
+              {PHONE_CONTACTS.map((phone) => (
+                <li key={phone.digits} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 transition-colors hover:border-primary/30 dark:border-white/10 dark:bg-white/5">
+                  <PhoneCall className="h-4 w-4 shrink-0 text-primary" />
+                  <a href={`tel:+${phone.digits}`} className="font-semibold hover:text-primary">{phone.display}</a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
-        <div className="border-t border-gray-200 dark:border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-gray-500">
+
+        {/* Bottom bar */}
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-8 md:flex-row dark:border-white/5">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             © {new Date().getFullYear()} {config.siteName || "Vitaleevo"}. Todos os direitos reservados.
           </p>
-          <div className="flex gap-6 text-sm text-gray-500">
-            <Link href="/legal/terms" className="hover:text-primary transition-colors">Termos</Link>
-            <Link href="/legal/privacy" className="hover:text-primary transition-colors">Privacidade</Link>
-          </div>
+          <Link
+            href="/contact"
+            className="group inline-flex items-center gap-1 text-sm font-semibold text-primary transition-colors hover:text-primary-dark"
+          >
+            Falar com um especialista
+            <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </Link>
         </div>
       </div>
     </footer>

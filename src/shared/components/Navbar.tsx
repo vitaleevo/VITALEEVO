@@ -1,234 +1,224 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import Logo from './Logo';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import Logo from "./Logo";
 import {
   ShoppingCart,
   User,
   Sun,
   Moon,
   ArrowRight,
-  Menu,
-  X,
-  Home as HomeIcon,
-  Info,
-  Palette,
-  Store,
-  Briefcase,
-  FileText,
   LogOut,
-  Settings
+  Settings,
+  LayoutDashboard,
+  Package,
 } from "lucide-react";
-import { View } from '@/shared/types';
-import { useTheme } from './ThemeProvider';
-import { useCart } from '@/shared/providers/CartProvider';
-import { useAuth } from '@/shared/providers/AuthProvider';
+import { useTheme } from "./ThemeProvider";
+import { useCart } from "@/shared/providers/CartProvider";
+import { useAuth } from "@/shared/providers/AuthProvider";
 
 const Navbar: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
-  const isDarkMode = theme === 'dark';
+  const isDarkMode = theme === "dark";
   const { totalItems } = useCart();
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 12);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close user menu when clicking outside
   useEffect(() => {
-    const handleClick = () => setShowUserMenu(false);
+    const close = () => setShowUserMenu(false);
     if (showUserMenu) {
-      document.addEventListener('click', handleClick);
-      return () => document.removeEventListener('click', handleClick);
+      document.addEventListener("click", close);
+      return () => document.removeEventListener("click", close);
     }
   }, [showUserMenu]);
 
   const menuItems = [
-    { label: 'Home', icon: <HomeIcon className="w-4 h-4" />, value: View.Home, href: '/' },
-    { label: 'Sobre', icon: <Info className="w-4 h-4" />, value: View.About, href: '/about' },
-    { label: 'Serviços', icon: <Palette className="w-4 h-4" />, value: View.Services, href: '/services' },
-    { label: 'Loja', icon: <Store className="w-4 h-4" />, value: View.Store, href: '/store' },
-    { label: 'Portfólio', icon: <Briefcase className="w-4 h-4" />, value: View.Portfolio, href: '/portfolio' },
-    { label: 'Blog', icon: <FileText className="w-4 h-4" />, value: View.Blog, href: '/blog' },
+    { label: "Home", href: "/" },
+    { label: "Sobre", href: "/about" },
+    { label: "Serviços", href: "/services" },
+    { label: "Loja", href: "/store" },
+    { label: "Portfólio", href: "/portfolio" },
+    { label: "Blog", href: "/blog" },
   ];
 
   const isActive = (href: string) => {
-    if (href === '/' && pathname === '/') return true;
-    if (href !== '/' && pathname.startsWith(href)) return true;
+    if (href === "/" && pathname === "/") return true;
+    if (href !== "/" && pathname.startsWith(href)) return true;
     return false;
   };
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-500 ${scrolled
-      ? 'py-2 bg-white/80 dark:bg-[#0b1120]/90 backdrop-blur-xl shadow-lg shadow-black/5 border-b border-gray-200/50 dark:border-white/5'
-      : 'py-4 bg-transparent'
-      }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center gap-4">
-
+    <header
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "border-b border-slate-200/70 bg-white/85 shadow-soft backdrop-blur-xl dark:border-white/10 dark:bg-[#0b1120]/90"
+          : "border-b border-transparent bg-transparent"
+      }`}
+    >
+      <div className="wrap">
+        <div className="flex h-16 items-center justify-between gap-4 md:h-[76px]">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0 flex items-center cursor-pointer group">
+          <Link href="/" className="flex shrink-0 items-center">
             <Logo />
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center flex-1 justify-center">
-            {/* Main Menu - Pill Style */}
-            <div className="flex items-center gap-1 bg-gray-100/80 dark:bg-white/5 backdrop-blur-md rounded-full p-1.5 border border-gray-200/50 dark:border-white/10 shadow-inner">
-              {menuItems.map((item) => (
+          <nav className="hidden items-center gap-1 lg:flex">
+            {menuItems.map((item) => {
+              const active = isActive(item.href);
+              return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`relative px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${isActive(item.href)
-                    ? 'bg-white dark:bg-primary text-primary dark:text-white shadow-md'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
-                    }`}
+                  className={`relative rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+                    active
+                      ? "text-primary"
+                      : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+                  }`}
                 >
                   {item.label}
+                  <span
+                    className={`absolute inset-x-4 -bottom-0.5 h-0.5 rounded-full bg-primary transition-all duration-300 ${
+                      active ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
                 </Link>
-              ))}
-            </div>
-          </div>
+              );
+            })}
+          </nav>
 
-          {/* Right Side Actions */}
-          <div className="hidden lg:flex items-center gap-2">
-
-            {/* Cart Button */}
+          {/* Right Actions */}
+          <div className="hidden items-center gap-2 lg:flex">
+            {/* Cart */}
             <Link
               href="/cart"
-              className="relative p-3 rounded-xl bg-gray-100/80 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all border border-gray-200/50 dark:border-white/10 group"
+              className="group relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:border-primary/40 hover:text-primary dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+              aria-label="Carrinho"
             >
-              <ShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <ShoppingCart className="h-5 w-5 transition-transform group-hover:scale-110" />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-4 w-4 bg-primary text-white text-[10px] font-bold items-center justify-center">{totalItems}</span>
+                <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white shadow">
+                  {totalItems}
                 </span>
               )}
             </Link>
 
-            {/* User Button */}
+            {/* User */}
             {isAuthenticated ? (
               <div className="relative">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowUserMenu(!showUserMenu);
+                    setShowUserMenu((s) => !s);
                   }}
-                  className="flex items-center gap-2 p-2 pl-3 rounded-xl bg-gray-100/80 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all border border-gray-200/50 dark:border-white/10"
+                  className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white py-1.5 pl-3 pr-1.5 transition-colors hover:border-primary/40 dark:border-white/10 dark:bg-white/5"
                 >
-                  <span className="text-sm font-bold truncate max-w-[100px]">{user?.name?.split(' ')[0]}</span>
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold">
+                  <span className="max-w-[110px] truncate text-sm font-bold text-slate-700 dark:text-slate-200">
+                    {user?.name?.split(" ")[0]}
+                  </span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-faint text-sm font-bold text-primary dark:bg-primary/20">
                     {user?.name?.charAt(0).toUpperCase()}
-                  </div>
+                  </span>
                 </button>
 
-                {/* Dropdown Menu */}
                 {showUserMenu && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-[#151e32] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/10 py-2 z-50">
-                    <div className="px-4 py-3 border-b border-gray-100 dark:border-white/5">
-                      <p className="font-bold text-gray-900 dark:text-white truncate">{user?.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                  <div className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card dark:border-white/10 dark:bg-[#151e32]">
+                    <div className="border-b border-slate-100 px-4 py-3 dark:border-white/5">
+                      <p className="truncate font-bold text-slate-900 dark:text-white">{user?.name}</p>
+                      <p className="truncate text-xs text-slate-500">{user?.email}</p>
                     </div>
-
-                    <Link
-                      href="/conta"
-                      className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
-                    >
-                      <User className="w-4 h-4" />
-                      Minha Conta
-                    </Link>
-
-                    {isAdmin && (
+                    <div className="p-1.5">
                       <Link
-                        href="/admin"
-                        className="flex items-center gap-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                        href="/conta"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/5"
                       >
-                        <Settings className="w-4 h-4" />
-                        Painel Admin
+                        <Package className="h-4 w-4" /> Minha Conta
                       </Link>
-                    )}
-
-                    <button
-                      onClick={logout}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sair
-                    </button>
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/5"
+                        >
+                          <LayoutDashboard className="h-4 w-4" /> Painel Admin
+                        </Link>
+                      )}
+                      <button
+                        onClick={logout}
+                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                      >
+                        <LogOut className="h-4 w-4" /> Sair
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             ) : (
               <Link
                 href="/login"
-                className="p-3 rounded-xl bg-gray-100/80 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all border border-gray-200/50 dark:border-white/10 group"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:border-primary/40 hover:text-primary dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+                aria-label="Entrar"
               >
-                <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <User className="h-5 w-5" />
               </Link>
             )}
 
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-3 rounded-xl bg-gray-100/80 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 transition-all border border-gray-200/50 dark:border-white/10 group"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:border-primary/40 hover:text-primary dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+              aria-label="Alternar tema"
             >
-              {isDarkMode ? (
-                <Sun className="w-5 h-5 group-hover:scale-110 transition-all duration-500" />
-              ) : (
-                <Moon className="w-5 h-5 group-hover:scale-110 transition-all duration-500" />
-              )}
+              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
 
-            {/* CTA Button */}
-            <Link
-              href="/contact"
-              className="ml-2 bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-primary/25 transition-all hover:shadow-primary/40 hover:-translate-y-0.5 flex items-center gap-2 group"
-            >
+            {/* CTA */}
+            <Link href="/contact" className="btn-primary ml-1 !py-3">
               <span>Fale Conosco</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
 
-          {/* Mobile Actions */}
-          <div className="lg:hidden flex items-center gap-2">
+          {/* Mobile: theme + account shortcuts (full menu via bottom nav) */}
+          <div className="flex items-center gap-1.5 lg:hidden">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-600 backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+              aria-label="Alternar tema"
             >
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
 
             {isAuthenticated ? (
               <button
                 onClick={logout}
-                className="p-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-600 backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+                aria-label="Sair"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="h-5 w-5" />
               </button>
             ) : (
               <Link
                 href="/login"
-                className="p-2 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-600 backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+                aria-label="Entrar"
               >
-                <User className="w-5 h-5" />
+                <User className="h-5 w-5" />
               </Link>
             )}
           </div>
         </div>
       </div>
-
-    </nav>
+    </header>
   );
 };
 

@@ -2,7 +2,7 @@
 
 Este documento serve como referência central para a arquitetura, estrutura e funcionalidades do sistema VitalEvo. Ele deve ser mantido atualizado a cada alteração significativa no sistema.
 
-**Última Atualização:** 07 de Janeiro de 2026
+**Última Atualização:** 16 de Agosto de 2026
 
 ## 1. Visão Geral
 O VitalEvo é uma plataforma web corporativa integrada com funcionalidades de E-commerce, Blog, Portfólio e Gestão Administrativa. O sistema é construído como uma aplicação moderna full-stack utilizando Next.js para o frontend e Convex para o backend.
@@ -82,3 +82,14 @@ O banco de dados é relacional e definido em `convex/schema.ts`. As principais t
 
 ---
 *Este arquivo é gerado e mantido pelo Agente de IA como fonte de verdade sobre o sistema.*
+
+
+## Atualização de Produção — 2026-08-15
+
+- Autenticação: redefinição de senha processada no backend Convex, política mínima de senha e limitação de pedidos.
+- Conteúdo: sanitização centralizada de HTML para artigos, projetos e importação.
+- Segredos: chaves de IA cifradas em repouso com AES-GCM; a tabela mantém campos de migração temporários para dados antigos.
+- E-mail: actions exigem remetente configurado e escapam dados de utilizador antes do HTML.
+- Frontend: rota dos produtos corrigida, acessibilidade de zoom e teclado reforçada e provas sociais não verificadas removidas.
+- Operação: README, .env.local.example, PRODUCTION_CHECKLIST.md e PROJECT_MEMORY.md descrevem configuração e validação.
+- Contactos públicos: src/shared/utils/contact.ts é a fonte canónica de telefones, e-mail, WhatsApp, morada e ligação do Google Maps; os dados estruturados e fluxos de pedidos usam estes valores.

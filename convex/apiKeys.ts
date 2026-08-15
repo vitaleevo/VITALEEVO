@@ -1,8 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, internalQuery } from "./_generated/server";
 import { checkAdmin } from "./utils";
-
-// ========== Admin Operations ==========
+import { encryptSecret } from "./secrets";
 
 export const getAllAdmin = query({
     args: { token: v.string() },
@@ -10,15 +9,15 @@ export const getAllAdmin = query({
         await checkAdmin(ctx, args.token);
         const keys = await ctx.db.query("apiKeys").order("desc").collect();
 
-        // Never expose full API keys to the client/browser
-        return keys.map(key => ({
+        return keys.map((key) => ({
             _id: key._id,
             provider: key.provider,
             label: key.label,
             isActive: key.isActive,
             createdAt: key.createdAt,
             updatedAt: key.updatedAt,
-            apiKey: `•••••••••${key.apiKey.slice(-4)}`,
+            keyLastFour: key.keyLastFour ?? key.apiKey?.slice(-4) ?? "",
+            needsMigration: Boolean(key.apiKey),
         }));
     },
 });
@@ -34,7 +33,6 @@ export const upsert = mutation({
     handler: async (ctx, args) => {
         await checkAdmin(ctx, args.token);
 
-        // Basic validation of API key formats to help the user
         if (args.provider === "gemini" && !args.apiKey.startsWith("AIza")) {
             throw new Error("Formato de chave Gemini inválido. Chaves Google começam com 'AIza'.");
         }
@@ -50,30 +48,31 @@ export const upsert = mutation({
 
         const existing = await ctx.db
             .query("apiKeys")
-            .withIndex("by_provider", (q) => q.eq("provider", args.provider))
+            .withIndex("by_provider", (query) => query.eq("provider", args.provider))
             .first();
-
         const now = Date.now();
+        const encrypted = await encryptSecret(args.apiKey);
+        const encryptedFields = {
+            encryptedApiKey: encrypted.ciphertext,
+            encryptionIv: encrypted.iv,
+            keyLastFour: args.apiKey.slice(-4),
+            apiKey: undefined,
+            label: args.label,
+            isActive: args.isActive,
+            updatedAt: now,
+        };
 
         if (existing) {
-            await ctx.db.patch(existing._id, {
-                apiKey: args.apiKey,
-                label: args.label,
-                isActive: args.isActive,
-                updatedAt: now,
-            });
+            await ctx.db.patch(existing._id, encryptedFields);
             return { success: true, action: "updated", id: existing._id };
-        } else {
-            const id = await ctx.db.insert("apiKeys", {
-                provider: args.provider,
-                apiKey: args.apiKey,
-                label: args.label,
-                isActive: args.isActive,
-                createdAt: now,
-                updatedAt: now,
-            });
-            return { success: true, action: "created", id };
         }
+
+        const id = await ctx.db.insert("apiKeys", {
+            provider: args.provider,
+            ...encryptedFields,
+            createdAt: now,
+        });
+        return { success: true, action: "created", id };
     },
 });
 
@@ -107,14 +106,43 @@ export const toggleActive = mutation({
     },
 });
 
-// ========== Internal Queries ==========
+export const migrateLegacyKeys = mutation({
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        await checkAdmin(ctx, args.token);
+        const legacyKeys = (await ctx.db.query("apiKeys").collect())
+            .filter((key) => Boolean(key.apiKey));
+
+        for (const key of legacyKeys) {
+            if (!key.apiKey) continue;
+            const encrypted = await encryptSecret(key.apiKey);
+            await ctx.db.patch(key._id, {
+                encryptedApiKey: encrypted.ciphertext,
+                encryptionIv: encrypted.iv,
+                keyLastFour: key.apiKey.slice(-4),
+                apiKey: undefined,
+                updatedAt: Date.now(),
+            });
+        }
+
+        return { success: true, migrated: legacyKeys.length };
+    },
+});
 
 export const getAllActiveInternal = internalQuery({
     handler: async (ctx) => {
         const keys = await ctx.db
             .query("apiKeys")
-            .filter((q) => q.eq(q.field("isActive"), true))
+            .filter((query) => query.eq(query.field("isActive"), true))
             .collect();
-        return keys.map(k => ({ provider: k.provider, apiKey: k.apiKey }));
+
+        return keys.flatMap((key) => {
+            if (!key.encryptedApiKey || !key.encryptionIv) return [];
+            return [{
+                provider: key.provider,
+                encryptedApiKey: key.encryptedApiKey,
+                encryptionIv: key.encryptionIv,
+            }];
+        });
     },
 });

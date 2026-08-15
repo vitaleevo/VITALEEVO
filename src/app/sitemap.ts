@@ -2,6 +2,8 @@ import { MetadataRoute } from 'next';
 import { fetchQuery } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
 
+export const dynamic = "force-dynamic";
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = 'https://vitaleevo.ao';
 
@@ -14,8 +16,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         '/services',
         '/contact',
         '/about',
-        '/login',
-        '/cadastro',
     ].map((route) => ({
         url: `${baseUrl}${route}`,
         lastModified: new Date(),
@@ -28,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     try {
         const products = await fetchQuery(api.products.getAll, {});
         productRoutes = products.map((product: any) => ({
-            url: `${baseUrl}/store/${product._id}`,
+            url: `${baseUrl}/store/${product.slug}`,
             lastModified: new Date(product._creationTime),
             changeFrequency: 'weekly' as const,
             priority: 0.9,
@@ -52,7 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     try {
         const projects = await fetchQuery(api.projects.getVisibleProjects, {});
         projectRoutes = projects.map((project: any) => ({
-            url: `${baseUrl}/portfolio/${project._id}`,
+            url: `${baseUrl}/portfolio/${project.slug}`,
             lastModified: new Date(project.createdAt || project._creationTime),
             changeFrequency: 'monthly' as const,
             priority: 0.7,

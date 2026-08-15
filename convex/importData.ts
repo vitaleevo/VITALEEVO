@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation } from "./_generated/server";
 import { checkAdmin } from "./utils";
+import { sanitizeRichText } from "./content";
 
 /**
  * Bulk import products
@@ -130,6 +131,7 @@ export const importProjects = mutation({
 
                 const projectData = {
                     ...item,
+                    fullDescription: sanitizeRichText(item.fullDescription),
                     image: resolvedImage,
                     images: resolvedImages,
                 };
@@ -210,6 +212,7 @@ export const importSingleProject = mutation({
 
         const projectData = {
             ...item,
+            fullDescription: sanitizeRichText(item.fullDescription),
             image: resolvedImage,
             images: resolvedImages,
         };
@@ -272,12 +275,14 @@ export const importArticles = mutation({
                 if (existing) {
                     await ctx.db.patch(existing._id, {
                         ...item,
+                        content: sanitizeRichText(item.content),
                         updatedAt: Date.now(),
                     });
                     results.updated++;
                 } else {
                     await ctx.db.insert("articles", {
                         ...item,
+                        content: sanitizeRichText(item.content),
                         createdAt: Date.now(),
                         updatedAt: Date.now(),
                         publishedAt: item.isPublished ? Date.now() : undefined,

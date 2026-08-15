@@ -1,6 +1,7 @@
 import { query, mutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import { checkAdmin } from "./utils";
+import { sanitizeRichText } from "./content";
 
 // Internal queries for use in crons/actions
 export const getPublishedInternal = internalQuery({
@@ -69,7 +70,13 @@ export const create = mutation({
         await checkAdmin(ctx, args.token);
         const { token, ...data } = args;
         const now = Date.now();
-        return await ctx.db.insert("articles", { ...data, publishedAt: args.isPublished ? now : undefined, createdAt: now, updatedAt: now });
+        return await ctx.db.insert("articles", {
+            ...data,
+            content: sanitizeRichText(data.content),
+            publishedAt: args.isPublished ? now : undefined,
+            createdAt: now,
+            updatedAt: now,
+        });
     },
 });
 
@@ -94,6 +101,7 @@ export const update = mutation({
         await checkAdmin(ctx, args.token);
         const { id, token, ...updates } = args;
         const now = Date.now();
+        if (updates.content !== undefined) updates.content = sanitizeRichText(updates.content);
         if (updates.isPublished === true) (updates as any).publishedAt = now;
         await ctx.db.patch(id, { ...updates, updatedAt: now });
     },

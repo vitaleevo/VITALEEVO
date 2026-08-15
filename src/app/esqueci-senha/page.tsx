@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { sendPasswordResetEmail } from "../actions/contact";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import { Mail, Loader2, ArrowRight, ShieldCheck, CheckCircle, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,7 +15,7 @@ export default function EsqueciSenhaPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [isSent, setIsSent] = useState(false);
 
-    const requestReset = useMutation(api.auth.requestPasswordReset);
+    const requestReset = useAction(api.auth.requestPasswordReset);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -29,12 +28,9 @@ export default function EsqueciSenhaPage() {
         try {
             const result = await requestReset({ email });
 
-            // Send email via Server Action
-            const emailResult = await sendPasswordResetEmail(email, result.name, result.resetToken);
-
-            if (emailResult.success) {
+            if (result.success) {
                 setIsSent(true);
-                toast.success("E-mail de recuperação enviado!");
+                toast.success("Se existir uma conta com este e-mail, receberá as instruções de recuperação.");
             } else {
                 toast.error("Erro ao enviar e-mail. Tente novamente mais tarde.");
             }

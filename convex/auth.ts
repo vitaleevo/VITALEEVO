@@ -1,10 +1,13 @@
-import { query, mutation } from "./_generated/server";
+import { action, internalMutation, mutation, query } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
 import { checkAdmin, checkAuthenticated } from "./utils";
-import { hashPassword, verifyPassword, isLegacyHash, randomToken } from "./password";
+import { getPasswordValidationError, hashPassword, verifyPassword, isLegacyHash, randomToken } from "./password";
+import { internal } from "./_generated/api";
 
 // Session duration: 7 days
 const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000;
+const RESET_REQUEST_WINDOW = 15 * 60 * 60 * 1000;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Register a new user
 export const register = mutation({
@@ -24,9 +27,8 @@ export const register = mutation({
             throw new ConvexError("Este e-mail já está cadastrado");
         }
 
-        if (args.password.length < 6) {
-            throw new ConvexError("A senha deve ter pelo menos 6 caracteres");
-        }
+        const passwordError = getPasswordValidationError(args.password);
+        if (passwordError) throw new ConvexError(passwordError);
 
         const sessionToken = randomToken();
         const tokenExpiry = Date.now() + SESSION_DURATION;
@@ -179,9 +181,8 @@ export const changePassword = mutation({
             throw new ConvexError("Senha atual incorreta");
         }
 
-        if (args.newPassword.length < 6) {
-            throw new ConvexError("A nova senha deve ter pelo menos 6 caracteres");
-        }
+        const passwordError = getPasswordValidationError(args.newPassword);
+        if (passwordError) throw new ConvexError(passwordError);
 
         await ctx.db.patch(user._id, {
             passwordHash: await hashPassword(args.newPassword),
@@ -264,7 +265,8 @@ export const adminResetPassword = mutation({
     },
     handler: async (ctx, args) => {
         await checkAdmin(ctx, args.token);
-        if (args.newPassword.length < 6) throw new ConvexError("Mínimo 6 caracteres");
+        const passwordError = getPasswordValidationError(args.newPassword);
+        if (passwordError) throw new ConvexError(passwordError);
 
         const passwordHash = await hashPassword(args.newPassword);
 
@@ -298,9 +300,8 @@ export const adminCreateUser = mutation({
             throw new ConvexError("Este e-mail já está cadastrado");
         }
 
-        if (args.password.length < 6) {
-            throw new ConvexError("A senha deve ter pelo menos 6 caracteres");
-        }
+        const passwordError = getPasswordValidationError(args.password);
+        if (passwordError) throw new ConvexError(passwordError);
 
         const sessionToken = randomToken();
         const tokenExpiry = Date.now() + SESSION_DURATION;
@@ -320,30 +321,100 @@ export const adminCreateUser = mutation({
         return { success: true };
     },
 });
-// Request password reset
-export const requestPasswordReset = mutation({
+export const createPasswordReset = internalMutation({
     args: { email: v.string() },
     handler: async (ctx, args) => {
+        const now = Date.now();
         const user = await ctx.db
             .query("users")
             .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase()))
             .first();
 
-        if (!user) {
-            // We don't want to leak if an email exists, but for UX in this specific project
-            // we will throw so the user knows.
-            throw new ConvexError("E-mail não encontrado");
+        if (!user) return null;
+
+        const latestRequest = await ctx.db
+            .query("passwordResetRequests")
+            .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase()))
+            .first();
+
+        if (latestRequest && latestRequest.requestedAt > now - RESET_REQUEST_WINDOW) {
+            return null;
+        }
+
+        if (latestRequest) {
+            await ctx.db.patch(latestRequest._id, { requestedAt: now });
+        } else {
+            await ctx.db.insert("passwordResetRequests", {
+                email: args.email.toLowerCase(),
+                requestedAt: now,
+            });
         }
 
         const resetToken = randomToken();
-        const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+        const resetTokenExpiry = now + 3600000;
 
         await ctx.db.patch(user._id, {
             resetToken,
             resetTokenExpiry
         } as any);
 
-        return { resetToken, name: user.name };
+        return { email: user.email, name: user.name, resetToken };
+    },
+});
+
+export const requestPasswordReset = action({
+    args: { email: v.string() },
+    handler: async (ctx, args) => {
+        const email = args.email.trim().toLowerCase();
+        if (!EMAIL_PATTERN.test(email) || email.length > 254) {
+            return { success: true };
+        }
+
+        const reset = await ctx.runMutation(internal.auth.createPasswordReset, { email });
+        if (!reset) return { success: true };
+
+        const apiKey = process.env.RESEND_API_KEY;
+        const from = process.env.EMAIL_FROM;
+        if (!apiKey || !from) {
+            console.error("Password reset email is not configured");
+            return { success: false };
+        }
+
+        const resetUrl = new URL("/recuperar-senha", process.env.SITE_URL || "https://vitaleevo.ao");
+        resetUrl.searchParams.set("token", reset.resetToken);
+        const safeName = reset.name.replace(/[&<>'\"]/g, (character) => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            "'": "&#39;",
+            "\"": "&quot;",
+        }[character] || character));
+
+        try {
+            const response = await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${apiKey}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    from,
+                    to: [reset.email],
+                    subject: "Recuperação de Senha - VitalEvo",
+                    html: `<p>Olá, ${safeName}!</p><p>Recebemos uma solicitação para redefinir a sua senha.</p><p><a href="${resetUrl.href}">Redefinir a minha senha</a></p><p>Este link expira em uma hora. Se não fez esta solicitação, ignore este e-mail.</p>`,
+                }),
+            });
+
+            if (!response.ok) {
+                console.error("Password reset email provider request failed", response.status);
+                return { success: false };
+            }
+        } catch (error) {
+            console.error("Password reset email provider request failed", error);
+            return { success: false };
+        }
+
+        return { success: true };
     },
 });
 
@@ -363,9 +434,8 @@ export const resetPassword = mutation({
             throw new ConvexError("Link de recuperação inválido ou expirado");
         }
 
-        if (args.newPassword.length < 6) {
-            throw new ConvexError("A senha deve ter pelo menos 6 caracteres");
-        }
+        const passwordError = getPasswordValidationError(args.newPassword);
+        if (passwordError) throw new ConvexError(passwordError);
 
         await ctx.db.patch(user._id, {
             passwordHash: await hashPassword(args.newPassword),

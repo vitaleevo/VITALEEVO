@@ -1,10 +1,14 @@
 "use server";
 
-import { Resend } from 'resend';
+import { Resend } from "resend";
 import { fetchMutation } from "convex/nextjs";
 import { api } from "../../../convex/_generated/api";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const emailFrom = process.env.EMAIL_FROM;
+const contactRecipient = process.env.CONTACT_EMAIL ?? "info@vitaleevo.ao";
+const newsletterRecipient = process.env.NEWSLETTER_EMAIL ?? "negociosvitaleevo@gmail.com";
+const siteUrl = process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "https://vitaleevo.ao";
 
 interface ContactFormData {
     name: string;
@@ -14,233 +18,179 @@ interface ContactFormData {
     email?: string;
 }
 
-export async function sendContactEmail(data: ContactFormData) {
-    if (!process.env.RESEND_API_KEY) {
-        return { success: false, error: "E-mail service not configured" };
-    }
-
-    try {
-        const { name, phone, subject, message, email } = data;
-
-        if (!resend) throw new Error("RESEND_API_KEY not configured");
-
-        const { data: resendData, error } = await resend.emails.send({
-            from: 'VitalEvo <onboarding@resend.dev>', // Usando remetente de teste até o domínio ser verificado
-            to: ['info@vitaleevo.ao'],
-            subject: `Novo Contacto: ${subject}`,
-            replyTo: email || undefined,
-            html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
-                    <h2 style="color: #3b82f6;">Novo Contacto Recebido</h2>
-                    <p><strong>Nome:</strong> ${name}</p>
-                    <p><strong>WhatsApp/Telefone:</strong> ${phone}</p>
-                    ${email ? `<p><strong>Email:</strong> ${email}</p>` : ''}
-                    <p><strong>Assunto:</strong> ${subject}</p>
-                    <div style="background-color: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                        <p><strong>Mensagem:</strong></p>
-                        <p style="white-space: pre-wrap;">${message}</p>
-                    </div>
-                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
-                    <p style="font-size: 12px; color: #666;">
-                        Este email foi enviado automaticamente pelo formulário de contacto do site VitalEvo via Resend.
-                    </p>
-                </div>
-            `,
-        });
-
-        if (error) {
-            return { success: false, error: error.message };
-        }
-
-        return { success: true, data: resendData };
-    } catch (error: any) {
-        return { success: false, error: error.message };
-    }
-}
-
-export async function sendOrderEmail(data: {
+interface OrderEmailData {
     orderNumber: string;
     customerName: string;
     customerEmail: string;
     customerPhone: string;
     total: number;
-    items: any[];
-    shippingAddress: any;
+    items: Array<{ name: string; price: number; quantity: number }>;
+    shippingAddress: { city?: string; address?: string; reference?: string };
     paymentMethod: string;
-}) {
-    if (!process.env.RESEND_API_KEY) {
-        return { success: false, error: "E-mail service not configured" };
-    }
-
-    try {
-        const { orderNumber, customerName, customerEmail, customerPhone, total, items, shippingAddress, paymentMethod } = data;
-
-        const itemsHtml = items.map(item => `
-            <tr>
-                <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name} x ${item.quantity}</td>
-                <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">Kz ${item.price.toLocaleString()}</td>
-            </tr>
-        `).join('');
-
-        if (!resend) throw new Error("RESEND_API_KEY not configured");
-
-        const { data: resendData, error } = await resend.emails.send({
-            from: 'VitalEvo <onboarding@resend.dev>',
-            to: ['info@vitaleevo.ao'],
-            subject: `Novo Pedido: #${orderNumber} - ${customerName}`,
-            replyTo: customerEmail,
-            html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
-                    <h2 style="color: #16a34a;">Novo Pedido Recebido!</h2>
-                    <p><strong>Número do Pedido:</strong> #${orderNumber}</p>
-                    <p><strong>Cliente:</strong> ${customerName}</p>
-                    <p><strong>Email:</strong> ${customerEmail}</p>
-                    <p><strong>Telefone:</strong> ${customerPhone}</p>
-                    
-                    <h3 style="margin-top: 30px;">Itens do Pedido</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="background-color: #f9fafb;">
-                                <th style="padding: 10px; text-align: left; border-bottom: 1px solid #eee;">Produto</th>
-                                <th style="padding: 10px; text-align: right; border-bottom: 1px solid #eee;">Preço</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${itemsHtml}
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td style="padding: 10px; font-weight: bold;">Total</td>
-                                <td style="padding: 10px; font-weight: bold; text-align: right;">Kz ${total.toLocaleString()}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-
-                    <h3 style="margin-top: 30px;">Endereço de Entrega</h3>
-                    <p>${shippingAddress.city}, ${shippingAddress.address}<br />Ref: ${shippingAddress.reference || 'N/A'}</p>
-
-                    <p><strong>Método de Pagamento:</strong> ${paymentMethod}</p>
-
-                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
-                    <p style="font-size: 12px; color: #666;">
-                        Este email foi enviado automaticamente pelo sistema da VitalEvo via Resend.
-                    </p>
-                </div>
-            `,
-        });
-
-        if (error) {
-            return { success: false, error: error.message };
-        }
-
-        return { success: true, data: resendData };
-    } catch (error: any) {
-        return { success: false, error: error.message };
-    }
 }
 
-export async function sendPasswordResetEmail(email: string, name: string, token: string) {
-    if (!process.env.RESEND_API_KEY) {
-        return { success: false, error: "E-mail service not configured" };
+function escapeHtml(value: unknown): string {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function sanitizeHeader(value: unknown): string {
+    return String(value ?? "").replace(/[\r\n]+/g, " ").trim();
+}
+
+function isValidEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function getEmailServiceError() {
+    if (!resend || !emailFrom) {
+        return { success: false, error: "Serviço de e-mail não configurado." };
+    }
+    return null;
+}
+
+function formatKwanza(value: number): string {
+    return Number.isFinite(value) ? value.toLocaleString("pt-AO") : "0";
+}
+
+export async function sendContactEmail(data: ContactFormData) {
+    const serviceError = getEmailServiceError();
+    if (serviceError) return serviceError;
+
+    const name = sanitizeHeader(data.name);
+    const phone = sanitizeHeader(data.phone);
+    const subject = sanitizeHeader(data.subject);
+    const message = String(data.message ?? "").trim().slice(0, 5_000);
+    const email = sanitizeHeader(data.email).toLowerCase();
+
+    if (!name || !phone || !subject || !message || (email && !isValidEmail(email))) {
+        return { success: false, error: "Dados de contacto inválidos." };
     }
 
-    const resetLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/recuperar-senha?token=${token}`;
-
     try {
-        if (!resend) throw new Error("RESEND_API_KEY not configured");
-
-        const { data, error } = await resend.emails.send({
-            from: 'VitalEvo <onboarding@resend.dev>',
-            to: [email],
-            subject: 'Recuperação de Senha - VitalEvo',
+        const { data: resendData, error } = await resend!.emails.send({
+            from: emailFrom!,
+            to: [contactRecipient],
+            subject: `Novo contacto: ${subject}`,
+            replyTo: email || undefined,
             html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
-                    <h2 style="color: #3b82f6;">Recuperação de Senha</h2>
-                    <p>Olá, ${name}!</p>
-                    <p>Recebemos uma solicitação para redefinir a sua senha. Clique no botão abaixo para prosseguir:</p>
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="${resetLink}" style="background-color: #3b82f6; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Redefinir Minha Senha</a>
+                <div style="font-family:sans-serif;max-width:600px;margin:0 auto;border:1px solid #eee;border-radius:10px;padding:20px">
+                    <h2 style="color:#3b82f6">Novo contacto recebido</h2>
+                    <p><strong>Nome:</strong> ${escapeHtml(name)}</p>
+                    <p><strong>WhatsApp/Telefone:</strong> ${escapeHtml(phone)}</p>
+                    ${email ? `<p><strong>E-mail:</strong> ${escapeHtml(email)}</p>` : ""}
+                    <p><strong>Assunto:</strong> ${escapeHtml(subject)}</p>
+                    <div style="background:#f9fafb;padding:15px;border-radius:8px;margin-top:20px">
+                        <p><strong>Mensagem:</strong></p>
+                        <p style="white-space:pre-wrap">${escapeHtml(message)}</p>
                     </div>
-                    <p>Se você não solicitou isso, por favor ignore este e-mail. O link é válido por 1 hora.</p>
-                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
-                    <p style="font-size: 12px; color: #666;">
-                        Este email foi enviado automaticamente pelo sistema da VitalEvo.
-                    </p>
                 </div>
             `,
         });
 
         if (error) return { success: false, error: error.message };
-        return { success: true, data };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+        return { success: true, data: resendData };
+    } catch {
+        return { success: false, error: "Não foi possível enviar o contacto." };
+    }
+}
+
+export async function sendOrderEmail(data: OrderEmailData) {
+    const serviceError = getEmailServiceError();
+    if (serviceError) return serviceError;
+
+    const customerEmail = sanitizeHeader(data.customerEmail).toLowerCase();
+    if (!isValidEmail(customerEmail) || !data.orderNumber || !Array.isArray(data.items)) {
+        return { success: false, error: "Dados do pedido inválidos." };
+    }
+
+    const itemsHtml = data.items.slice(0, 100).map((item) => `
+        <tr>
+            <td style="padding:10px;border-bottom:1px solid #eee">${escapeHtml(item.name)} × ${Number(item.quantity) || 0}</td>
+            <td style="padding:10px;border-bottom:1px solid #eee;text-align:right">Kz ${formatKwanza(Number(item.price))}</td>
+        </tr>
+    `).join("");
+
+    try {
+        const { data: resendData, error } = await resend!.emails.send({
+            from: emailFrom!,
+            to: [contactRecipient],
+            subject: `Novo pedido: #${sanitizeHeader(data.orderNumber)}`,
+            replyTo: customerEmail,
+            html: `
+                <div style="font-family:sans-serif;max-width:600px;margin:0 auto;border:1px solid #eee;border-radius:10px;padding:20px">
+                    <h2 style="color:#16a34a">Novo pedido recebido</h2>
+                    <p><strong>Número:</strong> #${escapeHtml(data.orderNumber)}</p>
+                    <p><strong>Cliente:</strong> ${escapeHtml(data.customerName)}</p>
+                    <p><strong>E-mail:</strong> ${escapeHtml(customerEmail)}</p>
+                    <p><strong>Telefone:</strong> ${escapeHtml(data.customerPhone)}</p>
+                    <h3 style="margin-top:30px">Itens do pedido</h3>
+                    <table style="width:100%;border-collapse:collapse">
+                        <thead><tr><th style="text-align:left">Produto</th><th style="text-align:right">Preço</th></tr></thead>
+                        <tbody>${itemsHtml}</tbody>
+                        <tfoot><tr><td style="padding:10px;font-weight:bold">Total</td><td style="padding:10px;font-weight:bold;text-align:right">Kz ${formatKwanza(Number(data.total))}</td></tr></tfoot>
+                    </table>
+                    <h3 style="margin-top:30px">Entrega</h3>
+                    <p>${escapeHtml(data.shippingAddress.city)}, ${escapeHtml(data.shippingAddress.address)}<br>Ref: ${escapeHtml(data.shippingAddress.reference || "N/A")}</p>
+                    <p><strong>Pagamento:</strong> ${escapeHtml(data.paymentMethod)}</p>
+                </div>
+            `,
+        });
+
+        if (error) return { success: false, error: error.message };
+        return { success: true, data: resendData };
+    } catch {
+        return { success: false, error: "Não foi possível enviar o pedido." };
     }
 }
 
 export async function subscribeToNewsletter(email: string) {
-    if (!process.env.RESEND_API_KEY) {
-        return { success: false, error: "E-mail service not configured" };
+    const serviceError = getEmailServiceError();
+    if (serviceError) return serviceError;
+
+    const normalizedEmail = sanitizeHeader(email).toLowerCase();
+    if (!isValidEmail(normalizedEmail)) {
+        return { success: false, error: "E-mail inválido." };
     }
 
     try {
-        if (!resend) throw new Error("RESEND_API_KEY not configured");
+        await fetchMutation(api.newsletter.subscribe, { email: normalizedEmail });
 
-        // 1. Save to Convex Database
-        await fetchMutation(api.newsletter.subscribe, { email });
-
-        // 2. Send Welcome Email to Subscriber
-        await resend.emails.send({
-            from: 'VitalEvo <onboarding@resend.dev>',
-            to: [email],
-            subject: 'Bem-vindo à VitalEvo! 🚀',
+        const welcome = await resend!.emails.send({
+            from: emailFrom!,
+            to: [normalizedEmail],
+            subject: "Bem-vindo à VitalEvo",
             html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h1 style="color: #8b5cf6;">Bem-vindo à nossa comunidade!</h1>
-                    </div>
+                <div style="font-family:sans-serif;max-width:600px;margin:0 auto;border:1px solid #eee;border-radius:10px;padding:20px">
+                    <h1 style="color:#8b5cf6">Bem-vindo à nossa comunidade</h1>
                     <p>Olá,</p>
-                    <p>Ficamos muito felizes por se juntar à nossa newsletter. A partir de agora, você faz parte de um grupo exclusivo que recebe as novidades da <strong>VitalEvo</strong> primeiro.</p>
-                    <p><strong>O que esperar?</strong></p>
-                    <ul>
-                        <li>Insights sobre tecnologia e inovação em Angola.</li>
-                        <li>Dicas práticas de marketing digital e branding.</li>
-                        <li>Bastidores dos nossos maiores projetos.</li>
-                    </ul>
-                    <p>Fique atento, novidades chegam em breve!</p>
-                    <div style="margin-top: 30px; padding: 20px; background-color: #f9fafb; border-radius: 8px;">
-                        <p style="margin: 0; font-size: 14px;">Precisa de uma solução para o seu negócio agora?</p>
-                        <a href="${process.env.NEXT_PUBLIC_SITE_URL}/contact" style="color: #8b5cf6; font-weight: bold; text-decoration: none;">Fale com um consultor →</a>
-                    </div>
-                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
-                    <p style="font-size: 12px; color: #666; text-align: center;">
-                        VitalEvo - Transformando o Futuro Digital de Angola.
-                    </p>
+                    <p>Obrigado por se inscrever na newsletter da VitalEvo.</p>
+                    <p><a href="${escapeHtml(siteUrl)}/contact" style="color:#8b5cf6;font-weight:bold">Fale com um consultor</a></p>
                 </div>
             `,
         });
+        if (welcome.error) return { success: false, error: welcome.error.message };
 
-        // 3. Send notification email to admin
-        const { data, error } = await resend.emails.send({
-            from: 'VitalEvo <onboarding@resend.dev>',
-            to: ['negociosvitaleevo@gmail.com'],
-            subject: 'Nova Inscrição na Newsletter',
+        const { data, error } = await resend!.emails.send({
+            from: emailFrom!,
+            to: [newsletterRecipient],
+            subject: "Nova inscrição na newsletter",
             html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
-                    <h2 style="color: #8b5cf6;">Nova Inscrição na Newsletter! 🎉</h2>
-                    <p>Um novo usuário se inscreveu para receber novidades.</p>
-                    <p><strong>Email do Inscrito:</strong> ${email}</p>
-                    <p><strong>Data:</strong> ${new Date().toLocaleString('pt-AO')}</p>
-                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;" />
-                    <p style="font-size: 12px; color: #666;">
-                        Este email foi enviado automaticamente pelo sistema da VitalEvo.
-                    </p>
+                <div style="font-family:sans-serif;max-width:600px;margin:0 auto;border:1px solid #eee;border-radius:10px;padding:20px">
+                    <h2 style="color:#8b5cf6">Nova inscrição</h2>
+                    <p><strong>E-mail:</strong> ${escapeHtml(normalizedEmail)}</p>
+                    <p><strong>Data:</strong> ${escapeHtml(new Date().toLocaleString("pt-AO"))}</p>
                 </div>
             `,
         });
 
         if (error) return { success: false, error: error.message };
         return { success: true, data };
-    } catch (error: any) {
-        return { success: false, error: error.message };
+    } catch {
+        return { success: false, error: "Não foi possível concluir a inscrição." };
     }
 }

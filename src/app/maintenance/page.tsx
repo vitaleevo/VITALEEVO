@@ -24,7 +24,7 @@ export default function MaintenancePage() {
     const config = settings || {
         siteName: "Vitaleevo",
         contactEmail: "info@vitaleevo.ao",
-        contactPhone: "+244 9XX XXX XXX",
+        contactPhone: "+244 950 744 445",
         socialLinks: { instagram: undefined, facebook: undefined, linkedin: undefined, twitter: undefined }
     };
 

@@ -79,26 +79,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, [dbUser, user?._id, isLoading]);
 
-    // Load user from localStorage on mount
+    // Keep the session scoped to the current browser tab.
     useEffect(() => {
-        const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+        const stored = sessionStorage.getItem(AUTH_STORAGE_KEY);
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
                 setUser(parsed);
             } catch (e) {
-                localStorage.removeItem(AUTH_STORAGE_KEY);
+                sessionStorage.removeItem(AUTH_STORAGE_KEY);
             }
         }
+        localStorage.removeItem(AUTH_STORAGE_KEY);
         setIsLoading(false);
     }, []);
 
-    // Save user to localStorage when it changes
+    // Do not persist authentication beyond the current browser session.
     useEffect(() => {
         if (user) {
-            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+            sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
         } else {
-            localStorage.removeItem(AUTH_STORAGE_KEY);
+            sessionStorage.removeItem(AUTH_STORAGE_KEY);
         }
     }, [user]);
 
@@ -153,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = () => {
         setUser(null);
-        localStorage.removeItem(AUTH_STORAGE_KEY);
+        sessionStorage.removeItem(AUTH_STORAGE_KEY);
     };
 
     const clearError = () => setError(null);

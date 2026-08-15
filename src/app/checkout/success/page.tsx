@@ -19,7 +19,7 @@ export default function OrderSuccessPage() {
         generatePDF();
         const message = `Olá VitalEvo! 👋\n\nAcabei de realizar o Pedido *#${order.orderNumber}* no site.\n\nBaixei o recibo e estou enviando em anexo para confirmar o pagamento de *${formatCurrency(order.total)}*.`;
         const encodedMessage = encodeURIComponent(message);
-        window.open(`https://wa.me/244923456789?text=${encodedMessage}`, '_blank');
+        window.open(`https://wa.me/244950744445?text=${encodedMessage}`, '_blank');
     };
 
     const generatePDF = async () => {

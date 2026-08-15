@@ -21,6 +21,11 @@ export default defineSchema({
         .index("by_session_token", ["sessionToken"])
         .index("by_reset_token", ["resetToken"]),
 
+    passwordResetRequests: defineTable({
+        email: v.string(),
+        requestedAt: v.number(),
+    }).index("by_email", ["email"]),
+
     // Products table
     products: defineTable({
         name: v.string(),
@@ -285,10 +290,14 @@ export default defineSchema({
         .index("by_email", ["email"])
         .index("by_active", ["isActive"]),
 
-    // API Keys for LLM integrations (Admin configurable)
+    // API keys are encrypted before persistence. apiKey remains optional only
+    // while legacy records are migrated.
     apiKeys: defineTable({
         provider: v.string(), // 'openai', 'gemini', 'anthropic', etc.
-        apiKey: v.string(),   // The actual API key (encrypted in production ideally)
+        encryptedApiKey: v.optional(v.string()),
+        encryptionIv: v.optional(v.string()),
+        keyLastFour: v.optional(v.string()),
+        apiKey: v.optional(v.string()),
         isActive: v.boolean(), // Whether this key is currently in use
         label: v.optional(v.string()), // Optional friendly name
         createdAt: v.number(),

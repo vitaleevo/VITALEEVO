@@ -143,7 +143,7 @@ export default function SettingsAdmin() {
                             <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Número WhatsApp (Link Direto)</label>
                             <input
                                 required
-                                placeholder="2449XXXXXXXX"
+                                placeholder="244950744445"
                                 value={form.whatsapp}
                                 onChange={e => setForm({ ...form, whatsapp: e.target.value })}
                                 className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-white/10 outline-none focus:border-primary font-bold text-sm"

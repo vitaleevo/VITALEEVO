@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { checkAdmin } from "./utils";
+import { sanitizeRichText } from "./content";
 
 // Public queries
 export const getVisibleProjects = query({
@@ -36,6 +37,16 @@ export const getById = query({
     },
 });
 
+export const getBySlug = query({
+    args: { slug: v.string() },
+    handler: async (ctx, args) => {
+        return await ctx.db
+            .query("projects")
+            .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+            .first();
+    },
+});
+
 // Admin-only operations
 export const getAllAdmin = query({
     args: { token: v.string() },
@@ -67,7 +78,11 @@ export const create = mutation({
     handler: async (ctx, args) => {
         await checkAdmin(ctx, args.token);
         const { token, ...data } = args;
-        return await ctx.db.insert("projects", { ...data, createdAt: Date.now() });
+        return await ctx.db.insert("projects", {
+            ...data,
+            fullDescription: sanitizeRichText(data.fullDescription),
+            createdAt: Date.now(),
+        });
     },
 });
 
@@ -94,6 +109,7 @@ export const update = mutation({
     handler: async (ctx, args) => {
         await checkAdmin(ctx, args.token);
         const { id, token, ...updates } = args;
+        if (updates.fullDescription !== undefined) updates.fullDescription = sanitizeRichText(updates.fullDescription);
         await ctx.db.patch(id, updates);
     },
 });
