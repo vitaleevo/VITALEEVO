@@ -173,3 +173,4 @@ Removidos da homepage: loja (produtos/equipamentos), "Soluções Tecnológicas R
 - `tsconfig.json`: `allowImportingTsExtensions` ativado (necessário para imports com extensão `.ts` nos testes).
 - CI no GitHub Actions (`.github/workflows/ci.yml`): em push/PR para `main` — lint, typecheck, testes e `build:app` (Node 22 com cache npm). O `_generated` do Convex está versionado, pelo que o build corre sem credenciais.
 - Nota de infraestrutura: `node_modules` e `tsconfig.json` tinham dono `root` (instalados com sudo) — corrigido com `chown` para `alexandre`.
+- Correção pós-CI: `convex/tsconfig.json` também precisou de `allowImportingTsExtensions` — o CLI convex (`npx convex deploy`) corre um typecheck próprio que falhava nos testes (TS5097). Deploy convex exige `npx convex deploy --yes` em ambiente não interativo.
