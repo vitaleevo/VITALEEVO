@@ -1,0 +1,16 @@
+.env
+.env.*
+.git
+.vercel
+.next
+node_modules
+coverage
+.cache
+.turbo
+.convex
+.convex-tmp
+.vscode
+.idea
+Projectos para postar
+investimento
+loja
