@@ -121,6 +121,8 @@ const Navbar: React.FC = () => {
                     e.stopPropagation();
                     setShowUserMenu((s) => !s);
                   }}
+                  aria-label="Abrir menu do utilizador"
+                  aria-expanded={showUserMenu}
                   className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white py-1.5 pl-3 pr-1.5 transition-colors hover:border-primary/40 dark:border-white/10 dark:bg-white/5"
                 >
                   <span className="max-w-[110px] truncate text-sm font-bold text-slate-700 dark:text-slate-200">

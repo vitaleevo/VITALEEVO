@@ -132,3 +132,30 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+/* ---------- Acessibilidade (a11y) ---------- */
+
+/* Foco visível consistente para navegação por teclado */
+:focus-visible {
+    outline: 2px solid #8625d2;
+    outline-offset: 2px;
+}
+
+/* Seleção de texto com a cor da marca */
+::selection {
+    background-color: rgba(134, 37, 210, 0.25);
+}
+
+/* Respeitar utilizadores que preferem movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

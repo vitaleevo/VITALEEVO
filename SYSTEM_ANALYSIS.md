@@ -163,3 +163,10 @@ Removidos da homepage: loja (produtos/equipamentos), "Soluções Tecnológicas R
 
 ### Funções Convex
 - Para as novas funções ficarem ativas: `npx convex deploy` (feito nesta sessão — enviadas para https://merry-fennec-711.convex.cloud). O deploy da Vercel (`vercel --prod --yes`) é separado do commit/push.
+## Fase 5 — Design System e Acessibilidade (2026-08-16)
+
+- `globals.css`: foco visível consistente (`:focus-visible` com a cor da marca), cor de seleção de texto, e bloco `prefers-reduced-motion` que desativa scroll suave, animações e transições para utilizadores que preferem movimento reduzido.
+- `ThemeProvider`: envolvido em `MotionConfig reducedMotion="user"` (framer-motion) — animações da home/contadores respeitam a preferência do sistema.
+- `MobileNavigation`: link flutuante do carrinho corrigido de `/cart` para `/cotacao` (a rota `/cart` foi redirecionada na Fase 2) com `aria-label` atualizado.
+- `Navbar`: botão do menu do utilizador com `aria-label` e `aria-expanded`.
+- Já existiam (verificado): `lang="pt-AO"`, skip-link "Saltar para o conteúdo principal" com target `#main-content`, `aria-label` nos botões de ícone (tema, carrinho, entrar/sair), hierarquia de headings correta (h1 no Hero, h2 nas secções, h3 nos cartões) e `<main>` semântico.
