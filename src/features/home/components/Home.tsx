@@ -25,7 +25,19 @@ const socialProof = [
   { value: 98, suffix: "%", label: "Taxa de Satisfação" },
 ];
 
-const clientLogos = ["IPS Visão", "Bajaj Angola", "Traders Agrícola", "Silvaparque", "RCCG"];
+const clientLogos = [
+  "IPS Visão",
+  "Bajaj Angola",
+  "Traders Agrícola",
+  "Silvaparque",
+  "RCCG",
+  "Motangol",
+  "RTS",
+  "Jondela",
+  "MantechPro",
+  "Eagle General Companies",
+  "Haojue Internacional",
+];
 
 const serviceGroups = [
   {
