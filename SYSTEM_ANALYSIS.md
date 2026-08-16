@@ -126,4 +126,5 @@ Removidos da homepage: loja (produtos/equipamentos), "Soluções Tecnológicas R
 
 - `public/logo-novo.png` recortado das margens transparentes (3200x3200 → 2668x542, ~84% de área morta removida) para o logo renderizar maior sem mudar a altura/largura do menu.
 - `Logo.tsx`: caixa padrão `w-40 h-10` → `w-48 h-12 sm:w-56` (menu mantém `h-16`/`h-[76px]`); sidebar do admin continua com `w-40 h-10`.
+- **2026-08-16 (2)**: `public/logo-novo.png` substituído por `Asset 3.png` (wordmark roxo horizontal 634x124, da pasta `01_Identidade_Visual\png 2\1x`) — usado no menu e footer via componente `Logo`; escolhido por ser visível em tema claro e escuro (o footer é `bg-white` em claro; os assets 4/7 brancos ficariam invisíveis). Assets 4/7 (brancos, idênticos entre si) e Asset 6 (símbolo verde) ficam disponíveis para contextos escuros se necessário.
 - Contactos públicos: src/shared/utils/contact.ts é a fonte canónica de telefones, e-mail, WhatsApp, morada e ligação do Google Maps; os dados estruturados e fluxos de pedidos usam estes valores.
