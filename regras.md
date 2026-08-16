@@ -512,3 +512,24 @@ Estes princípios não são regras absolutas, mas **diretrizes** que ajudam a cr
 - ✅ Robusto
 
 Use bom senso e adapte estes princípios ao contexto do seu projeto. Às vezes, quebrar uma regra é a decisão correta, mas você deve saber **por que** está quebrando e quais são as consequências.
+
+---
+
+## Controlo de Versão e Publicação
+
+### Regra: todo o deploy deve ter um nome profissional
+
+1. **Commits convencionais em português** — toda alteração é commitada com mensagem profissional no formato `tipo(escopo): resumo descritivo`:
+   - `feat(...)` — nova funcionalidade
+   - `fix(...)` — correção de bug
+   - `style(...)` — aparência/design (sem mudar lógica)
+   - `docs(...)` — documentação
+   - `ci(...)` — pipelines/testes
+   - `refactor(...)` — reestruturação sem mudar comportamento
+   - Exemplo: `feat(footer): wordmark branco no footer em tema escuro`
+
+2. **Ciclo obrigatório por alteração:** editar → validar (`npm run check` / `build:app`) → commit com nome descritivo → `git push` → deploy na Vercel (`vercel --prod --yes`) — o deploy fica sempre associado a um commit profissional.
+
+3. **Nunca commitar segredos:** `.env.local`, chaves de API ou tokens (ficam apenas nas variáveis de ambiente da Vercel/Convex).
+
+4. **Funções novas do Convex:** após commit/push, correr `npx convex deploy --yes` (e depois o deploy da Vercel).
