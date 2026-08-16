@@ -121,4 +121,9 @@ Reestruturação da homepage em pirâmide comercial (mensagem única → prova �
 7. **CTA Final**: "Receba uma Proposta Gratuita" com CTA único.
 
 Removidos da homepage: loja (produtos/equipamentos), "Soluções Tecnológicas Recomendadas", blog e FAQ — a loja permanece em `/store`. Os componentes `FeaturedProductsSlider`, `FeaturedArticlesSlider` e `FeaturedProjectsSlider` continuam disponíveis no código (`FeaturedProjectsSlider` ainda é usado na página de contacto).
+
+## Logo do menu — 2026-08-16
+
+- `public/logo-novo.png` recortado das margens transparentes (3200x3200 → 2668x542, ~84% de área morta removida) para o logo renderizar maior sem mudar a altura/largura do menu.
+- `Logo.tsx`: caixa padrão `w-40 h-10` → `w-48 h-12 sm:w-56` (menu mantém `h-16`/`h-[76px]`); sidebar do admin continua com `w-40 h-10`.
 - Contactos públicos: src/shared/utils/contact.ts é a fonte canónica de telefones, e-mail, WhatsApp, morada e ligação do Google Maps; os dados estruturados e fluxos de pedidos usam estes valores.

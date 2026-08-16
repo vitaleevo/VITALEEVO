@@ -119,7 +119,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <aside className="w-64 bg-white dark:bg-[#151e32] border-r border-gray-200 dark:border-white/5 hidden lg:flex flex-col fixed h-full z-50">
                 <div className="p-6 border-b border-gray-200 dark:border-white/5">
                     <Link href="/">
-                        <Logo />
+                        <Logo className="w-40 h-10" />
                     </Link>
                     <span className="text-xs font-bold text-primary tracking-widest uppercase mt-2 block">
                         Painel Administrativo
@@ -187,7 +187,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-[#151e32] border-b border-gray-200 dark:border-white/5 px-4 py-3">
                 <div className="flex items-center justify-between">
                     <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-                        <Logo />
+                        <Logo className="w-40 h-10" />
                     </Link>
                     <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-primary tracking-widest uppercase">
