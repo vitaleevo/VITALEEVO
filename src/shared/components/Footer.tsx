@@ -49,8 +49,11 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Link href="/" className="mb-5 inline-block">
+            <Link href="/" className="mb-5 inline-block dark:hidden">
               <Logo />
+            </Link>
+            <Link href="/" className="mb-5 hidden dark:inline-block">
+              <Logo src="/logo-footer.png" />
             </Link>
             <p className="mb-6 max-w-xs text-sm leading-relaxed text-slate-500 dark:text-slate-400">
               {config.siteDescription}
