@@ -2,7 +2,7 @@
 
 ## Estado Atual
 
-Código preparado para produção e validado localmente. A publicação permanece dependente apenas da configuração de segredos e da aprovação para deploy.
+Código publicado em produção no domínio oficial e validado externamente. A trilha de publicação está concluída; permanecem validações operacionais de e-mail e chaves de IA.
 
 ## Alterações Principais
 
@@ -31,13 +31,43 @@ Código preparado para produção e validado localmente. A publicação permanec
 - O número principal de WhatsApp usado nos pedidos é +244 950 744 445.
 - Os dados estruturados do site usam a morada e telefone oficiais.
 
-## Publicação — 2026-08-16
+## Última etapa concluída: Publicação web em produção — 2026-08-16
 
-- GitHub: `main` publicada em `3425463`, preservando o histórico remoto.
-- Convex: funções publicadas em `https://merry-fennec-711.convex.cloud`.
-- Frontend: `vitaleevo.ao` está alojado na Vercel, mas o repositório não tem webhook, workflow ou credenciais Vercel disponíveis neste ambiente.
-- Pendente: configurar `RESEND_API_KEY` no Convex e as variáveis de produção no projeto Vercel antes da publicação web final.
+Objetivo: concluir o deploy autorizado do frontend e do backend, evitando o envio de artefactos locais para a Vercel.
+
+Foi feito:
+
+- Convex publicado em `https://merry-fennec-711.convex.cloud`.
+- Variáveis de produção configuradas no projeto Vercel para domínio, contactos e endpoint Convex.
+- Criado `.vercelignore` para excluir dependências, builds, repositório Git e materiais internos do envio.
+- Publicado o commit `3701907` em `main`; a Vercel construiu e associou a versão ao domínio oficial.
+
+Arquivos principais:
+
+- `.vercelignore`
+- `.gitignore`
+- `PROJECT_MEMORY.md`
+
+Verificação executada:
+
+```bash
+vercel inspect https://vitaleevo-h82os0xa8-vitaleevos-projects.vercel.app --scope vitaleevos-projects
+curl -fsSIL https://vitaleevo.ao
+curl -fsS https://vitaleevo.ao/contact
+vercel logs https://vitaleevo-h82os0xa8-vitaleevos-projects.vercel.app --level error --since 1h --scope vitaleevos-projects
+```
+
+Resultado: deployment `Ready`, domínio `https://vitaleevo.ao` respondeu HTTP 200, contactos e layout novo presentes; sem erros nos logs Vercel.
+
+Estado do projeto:
+
+- Fase/trilha atual: publicação web concluída.
+- Sólido agora: GitHub, Convex, Vercel e domínio oficial estão alinhados com a versão publicada.
+- Falta imediato: confirmar a entrega de e-mails pelo Convex com `RESEND_API_KEY` e migrar as chaves de IA legadas no painel administrativo.
+- Distância do fim: esta trilha está concluída; a operação contínua ainda requer validação real dos fluxos externos.
 
 ## Próximo Passo
 
-Configurar os segredos no Convex e no host Next.js, migrar as chaves de IA pelo painel e executar o deploy autorizado.
+Validar a entrega de e-mails e migrar as chaves de IA pelo painel administrativo.
+
+AVISO: O proximo passo e criar/implementar a validacao operacional de e-mail e a migracao das chaves de IA. Antes de iniciar, leia `PROJECT_MEMORY.md` para continuar exatamente de onde o projeto parou, entender o que ja foi feito e integrar a solucao com o sistema atual sem reler todo o repositorio.
