@@ -34,4 +34,6 @@ jobs:
         run: npm test
 
       - name: Build de produção (Next.js)
+        env:
+          NEXT_PUBLIC_CONVEX_URL: https://merry-fennec-711.convex.cloud
         run: npm run build:app
