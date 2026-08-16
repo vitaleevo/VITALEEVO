@@ -50,10 +50,10 @@ const Footer: React.FC = () => {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="mb-5 inline-block dark:hidden">
-              <Logo />
+              <Logo sizeClassName="w-[134px] h-[34px] sm:w-[157px] sm:h-[39px]" />
             </Link>
             <Link href="/" className="mb-5 hidden dark:inline-block">
-              <Logo src="/logo-footer.png" />
+              <Logo src="/logo-footer.png" sizeClassName="w-[134px] h-[34px] sm:w-[157px] sm:h-[39px]" />
             </Link>
             <p className="mb-6 max-w-xs text-sm leading-relaxed text-slate-500 dark:text-slate-400">
               {config.siteDescription}
