@@ -13,6 +13,7 @@ import 'swiper/css/navigation';
 
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
+import ConceptBackdrop, { CONCEPT_IMAGES } from "@/shared/components/ConceptBackdrop";
 
 const Portfolio: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState('Todos');
@@ -49,6 +50,7 @@ const Portfolio: React.FC = () => {
     <div className="overflow-x-hidden">
       {/* ===== Hero ===== */}
       <section className="relative overflow-hidden bg-background-light pt-28 pb-16 md:pt-40 md:pb-24 dark:bg-background-dark">
+        <ConceptBackdrop image={CONCEPT_IMAGES.portfolio} />
         <div className="absolute -left-40 top-0 h-[460px] w-[460px] rounded-full bg-primary-glow/50 blur-[120px]" />
         <div className="absolute -bottom-32 -right-32 h-[420px] w-[420px] rounded-full bg-secondary-light/30 blur-[100px]" />
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.3]" />

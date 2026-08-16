@@ -16,6 +16,7 @@ import { useMutation, useQuery } from 'convex/react';
 import { api } from '../../../../convex/_generated/api';
 import FeaturedProjectsSlider from '@/shared/components/FeaturedProjectsSlider';
 import { PHONE_CONTACTS, SITE_CONTACT } from '@/shared/utils/contact';
+import ConceptBackdrop, { CONCEPT_IMAGES } from '@/shared/components/ConceptBackdrop';
 
 const Contact: React.FC = () => {
   const settings = useQuery(api.settings.get);
@@ -117,6 +118,7 @@ const Contact: React.FC = () => {
 
   return (
     <div className="relative overflow-hidden bg-gradient-to-b from-primary/[0.04] via-transparent to-transparent pt-28 pb-20 dark:from-primary/[0.08]">
+      <ConceptBackdrop subtle image={CONCEPT_IMAGES.office} />
       <div className="absolute -top-1/2 right-0 h-[600px] w-[600px] -translate-y-1/2 translate-x-1/2 rounded-full bg-primary-glow/30 blur-3xl"></div>
       <div className="absolute bottom-0 left-0 h-80 w-80 -translate-x-1/2 translate-y-1/2 rounded-full bg-secondary/10 blur-3xl"></div>
       <div className="wrap relative z-10">

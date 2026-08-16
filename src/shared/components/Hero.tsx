@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, TrendingUp, Bot, BarChart3, Check } from "lucide-react";
+import ConceptBackdrop, { CONCEPT_IMAGES } from "./ConceptBackdrop";
 
 const container = {
     hidden: {},
@@ -39,7 +40,8 @@ export default function Hero() {
 
     return (
         <section className="relative overflow-hidden bg-background-light pt-28 pb-16 dark:bg-background-dark md:pt-36 md:pb-24">
-            {/* Fundo: gradiente em movimento + partículas (sem blur pesado sobre texto) */}
+            {/* Fundo: conceito africano de negócio/vendas + gradiente em movimento + partículas */}
+            <ConceptBackdrop image={CONCEPT_IMAGES.home} />
             <div aria-hidden className="pointer-events-none absolute inset-0">
                 <motion.div
                     className="absolute -top-24 left-[15%] h-[400px] w-[400px] rounded-full bg-primary/15 blur-3xl"

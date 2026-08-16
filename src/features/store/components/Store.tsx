@@ -23,6 +23,7 @@ import {
     X
 } from "lucide-react";
 import WishlistButton from '@/shared/components/WishlistButton';
+import ConceptBackdrop, { CONCEPT_IMAGES } from '@/shared/components/ConceptBackdrop';
 
 const Store: React.FC = () => {
     const convexProducts = useQuery(api.products.getAll, {});
@@ -114,6 +115,21 @@ const Store: React.FC = () => {
                     <Link href="/" className="hover:text-primary transition-colors">Home</Link>
                     <ChevronRight className="w-3 h-3" />
                     <span className="text-gray-900 dark:text-white font-semibold">Loja</span>
+                </div>
+
+                {/* Hero band */}
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary via-primary-dark to-primary-darker px-6 py-10 mb-8 shadow-lift">
+                    <div aria-hidden className="pointer-events-none absolute inset-0">
+                        <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url('${CONCEPT_IMAGES.store}')` }} />
+                        <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
+                        <div className="absolute -bottom-20 -left-12 h-56 w-56 rounded-full bg-secondary/25 blur-3xl" />
+                    </div>
+                    <div className="relative z-10">
+                        <h1 className="font-display text-3xl font-extrabold text-white md:text-4xl">Loja</h1>
+                        <p className="mt-2 max-w-xl text-sm text-white/85 md:text-base">
+                            Catálogo de produtos para o seu negócio — solicite uma proposta comercial para cada item.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Store Header & Search */}

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Hero from "@/shared/components/Hero";
 import AnimatedCounter from "@/shared/components/AnimatedCounter";
+import ConceptBackdrop, { CONCEPT_IMAGES } from "@/shared/components/ConceptBackdrop";
 
 const socialProof = [
   { value: 150, suffix: "+", label: "Projetos Entregues" },
@@ -118,8 +119,11 @@ const Home: React.FC = () => {
       <Hero />
 
       {/* ===== 2. Prova Social (números antes dos serviços) ===== */}
-      <section className="border-y border-slate-100 bg-white py-12 dark:border-white/5 dark:bg-[#0b1120]">
-        <div className="wrap">
+      <section className="relative overflow-hidden bg-gradient-to-r from-primary via-primary-dark to-primary-darker py-12">
+        <ConceptBackdrop image={CONCEPT_IMAGES.analytics} overlay={false} />
+        <div className="absolute -left-20 -top-20 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -bottom-24 -right-16 h-64 w-64 rounded-full bg-secondary/25 blur-3xl" />
+        <div className="wrap relative">
           <div className="grid grid-cols-2 gap-10 lg:grid-cols-4">
             {socialProof.map((stat, idx) => (
               <motion.div
@@ -131,10 +135,10 @@ const Home: React.FC = () => {
                 variants={fadeUp}
                 className="text-center"
               >
-                <p className="font-display text-4xl font-black text-primary md:text-5xl dark:text-primary-light">
+                <p className="font-display text-4xl font-black text-white md:text-5xl">
                   <AnimatedCounter value={stat.value} suffix={stat.suffix} />
                 </p>
-                <p className="mt-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                <p className="mt-2 text-sm font-semibold text-white/80">
                   {stat.label}
                 </p>
               </motion.div>

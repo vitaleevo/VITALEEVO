@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import FeaturedProjectsSlider from "@/shared/components/FeaturedProjectsSlider";
 import FeaturedArticlesSlider from "@/shared/components/FeaturedArticlesSlider";
+import ConceptBackdrop, { CONCEPT_IMAGES } from "@/shared/components/ConceptBackdrop";
 
 const Services: React.FC = () => {
   const categories = [
@@ -85,6 +86,7 @@ const Services: React.FC = () => {
     <div className="overflow-x-hidden">
       {/* ===== Hero (light) ===== */}
       <section className="relative overflow-hidden bg-background-light pt-28 pb-16 md:pt-40 md:pb-24 dark:bg-background-dark">
+        <ConceptBackdrop image={CONCEPT_IMAGES.services} />
         <div className="absolute -left-40 top-0 h-[460px] w-[460px] rounded-full bg-primary-glow/50 blur-[120px]" />
         <div className="absolute -bottom-32 -right-32 h-[420px] w-[420px] rounded-full bg-secondary-light/30 blur-[100px]" />
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.3]" />
