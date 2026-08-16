@@ -9,7 +9,9 @@
     "build:app": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test convex/validation.test.ts convex/permissions.test.ts",
+    "check": "npm run lint && npm run typecheck && npm test"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",

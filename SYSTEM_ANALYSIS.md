@@ -163,11 +163,13 @@ Removidos da homepage: loja (produtos/equipamentos), "Soluções Tecnológicas R
 
 ### Funções Convex
 - Para as novas funções ficarem ativas: `npx convex deploy` (feito nesta sessão — enviadas para https://merry-fennec-711.convex.cloud). O deploy da Vercel (`vercel --prod --yes`) é separado do commit/push.
-## Fase 6 — Comunicação, SEO e Analytics (2026-08-16)
+## Fase 7 — Testes e CI (2026-08-16)
 
-- `sitemap.ts`: adicionadas rotas dinâmicas de `/services/[slug]` (da BD via `api.services.getAll`) e `/legal/[slug]` (documentos publicados) — somam-se às existentes (home, loja, blog, portfólio, produtos, artigos, projetos).
-- `robots.ts`: `/cotacao` adicionado ao disallow (página de formulário e sucesso não devem ser indexadas).
-- `layout.tsx`: Google Analytics 4 injetado via `next/script` quando `NEXT_PUBLIC_GA_ID` estiver definido (com `anonymize_ip`); JSON-LD `WebSite` adicionado ao `<head>` (o `Organization` já existia).
-- `/services`: JSON-LD `ItemList` de `Service` (com provider Organization e URL canónico) gerado a partir de `servicesData`.
-- Já existiam (verificado): `metadataBase`, canonical dinâmico por página, OpenGraph `pt_AO` com imagem 1200x630, Twitter Card `summary_large_image`, keywords, sitemap/robots dinâmicos e `manifest.ts`.
-- Nota: para ativar o GA4 basta definir `NEXT_PUBLIC_GA_ID` nas variáveis de ambiente da Vercel (e `.env.local` em dev) — o código já está preparado.
+- Testes unitários com o runner nativo do Node 22 (`node:test` + `node --experimental-strip-types`), sem novas dependências:
+  - `convex/validation.test.ts`: slug, email, telefone, quantidades e texto (19 testes).
+  - `convex/permissions.test.ts`: matriz de permissões por função (admin/commercial/content/operations/user).
+  - `npm test` → 19 testes a passar.
+- Scripts: `test` e `check` (`lint && typecheck && test`) adicionados ao `package.json`.
+- `tsconfig.json`: `allowImportingTsExtensions` ativado (necessário para imports com extensão `.ts` nos testes).
+- CI no GitHub Actions (`.github/workflows/ci.yml`): em push/PR para `main` — lint, typecheck, testes e `build:app` (Node 22 com cache npm). O `_generated` do Convex está versionado, pelo que o build corre sem credenciais.
+- Nota de infraestrutura: `node_modules` e `tsconfig.json` tinham dono `root` (instalados com sudo) — corrigido com `chown` para `alexandre`.
