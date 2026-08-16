@@ -163,10 +163,11 @@ Removidos da homepage: loja (produtos/equipamentos), "Soluções Tecnológicas R
 
 ### Funções Convex
 - Para as novas funções ficarem ativas: `npx convex deploy` (feito nesta sessão — enviadas para https://merry-fennec-711.convex.cloud). O deploy da Vercel (`vercel --prod --yes`) é separado do commit/push.
-## Fase 5 — Design System e Acessibilidade (2026-08-16)
+## Fase 6 — Comunicação, SEO e Analytics (2026-08-16)
 
-- `globals.css`: foco visível consistente (`:focus-visible` com a cor da marca), cor de seleção de texto, e bloco `prefers-reduced-motion` que desativa scroll suave, animações e transições para utilizadores que preferem movimento reduzido.
-- `ThemeProvider`: envolvido em `MotionConfig reducedMotion="user"` (framer-motion) — animações da home/contadores respeitam a preferência do sistema.
-- `MobileNavigation`: link flutuante do carrinho corrigido de `/cart` para `/cotacao` (a rota `/cart` foi redirecionada na Fase 2) com `aria-label` atualizado.
-- `Navbar`: botão do menu do utilizador com `aria-label` e `aria-expanded`.
-- Já existiam (verificado): `lang="pt-AO"`, skip-link "Saltar para o conteúdo principal" com target `#main-content`, `aria-label` nos botões de ícone (tema, carrinho, entrar/sair), hierarquia de headings correta (h1 no Hero, h2 nas secções, h3 nos cartões) e `<main>` semântico.
+- `sitemap.ts`: adicionadas rotas dinâmicas de `/services/[slug]` (da BD via `api.services.getAll`) e `/legal/[slug]` (documentos publicados) — somam-se às existentes (home, loja, blog, portfólio, produtos, artigos, projetos).
+- `robots.ts`: `/cotacao` adicionado ao disallow (página de formulário e sucesso não devem ser indexadas).
+- `layout.tsx`: Google Analytics 4 injetado via `next/script` quando `NEXT_PUBLIC_GA_ID` estiver definido (com `anonymize_ip`); JSON-LD `WebSite` adicionado ao `<head>` (o `Organization` já existia).
+- `/services`: JSON-LD `ItemList` de `Service` (com provider Organization e URL canónico) gerado a partir de `servicesData`.
+- Já existiam (verificado): `metadataBase`, canonical dinâmico por página, OpenGraph `pt_AO` com imagem 1200x630, Twitter Card `summary_large_image`, keywords, sitemap/robots dinâmicos e `manifest.ts`.
+- Nota: para ativar o GA4 basta definir `NEXT_PUBLIC_GA_ID` nas variáveis de ambiente da Vercel (e `.env.local` em dev) — o código já está preparado.

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport, ResolvingMetadata } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import { Suspense } from "react";
+import Script from "next/script";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { SITE_CONTACT } from "@/shared/utils/contact";
@@ -156,6 +157,18 @@ export default function RootLayout({
                         })
                     }}
                 />
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            "@context": "https://schema.org",
+                            "@type": "WebSite",
+                            "name": "VitalEvo",
+                            "url": "https://vitaleevo.ao",
+                            "inLanguage": "pt-AO"
+                        })
+                    }}
+                />
             </head>
             <body
                 className={`${inter.variable} ${montserrat.variable} antialiased bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-300`}
@@ -186,6 +199,22 @@ export default function RootLayout({
                         </CartProvider>
                     </AuthProvider>
                 </ConvexClientProvider>
+                {process.env.NEXT_PUBLIC_GA_ID && (
+                    <>
+                        <Script
+                            src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+                            strategy="afterInteractive"
+                        />
+                        <Script id="ga4-init" strategy="afterInteractive">
+                            {`
+                                window.dataLayer = window.dataLayer || [];
+                                function gtag(){dataLayer.push(arguments);}
+                                gtag('js', new Date());
+                                gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', { anonymize_ip: true });
+                            `}
+                        </Script>
+                    </>
+                )}
             </body>
         </html>
     );
