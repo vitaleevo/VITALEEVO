@@ -92,4 +92,33 @@ O banco de dados é relacional e definido em `convex/schema.ts`. As principais t
 - E-mail: actions exigem remetente configurado e escapam dados de utilizador antes do HTML.
 - Frontend: rota dos produtos corrigida, acessibilidade de zoom e teclado reforçada e provas sociais não verificadas removidas.
 - Operação: README, .env.local.example, PRODUCTION_CHECKLIST.md e PROJECT_MEMORY.md descrevem configuração e validação.
+
+## Atualização — 2026-08-16
+
+- Rotas de produto e portfólio migradas de IDs internos do Convex (`/store/[id]`, `/portfolio/[id]`) para slugs (`/store/[slug]`, `/portfolio/[slug]`), com fallback para IDs antigos; sitemap passou a usar slugs e deixou de listar `/login` e `/cadastro`.
+- Contactos unificados: os JSON-LD de `layout.tsx` e `page.tsx` passaram a usar as constantes canónicas de `src/shared/utils/contact.ts` (antes existiam três telefones diferentes).
+- Removido `src/proxy.ts` (middleware no-op); corrigido JSX partido em `Contact.tsx` e import de `Clock`.
+- `public/logo.png` atualizado para o novo logo da identidade visual (`novo logo-01.png`).
+
+## Redesign da Homepage — 2026-08-16
+
+- Hero substituído: o slideshow (`HeroSlider.tsx`) foi removido em favor de `Hero.tsx` — mensagem principal fixa, partículas, gradiente em movimento e mockups flutuantes (framer-motion), com suporte a `prefers-reduced-motion`.
+- Novo `AnimatedCounter.tsx` (contador animado com `useInView` + `animate`) usado nos contadores de prova social.
+- Secção Serviços: contadores animados (+250 Projetos, +120 Clientes, +15 Províncias) e animação de hover nos cartões.
+- Nova secção "Soluções Tecnológicas Recomendadas" (Impressoras, Computadores, CCTV, Biometria, Redes) antes da loja.
+- CTA final: contadores animados (+150 Projetos, +80 Clientes, +5 Anos de Experiência).
+
+## Homepage com foco comercial — 2026-08-16
+
+Reestruturação da homepage em pirâmide comercial (mensagem única → prova → conversão):
+
+1. **Hero**: "Transformamos Empresas com Tecnologia, Marketing e Automação" + checklist de 4 soluções (Websites, Marketing Digital, Sistemas Empresariais, Infraestrutura TI).
+2. **Prova Social** (imediatamente após o Hero): +150 Projetos, +80 Clientes, +14 Províncias, 98% Satisfação.
+3. **Empresas que confiam**: IPS Visão, Bajaj Angola, Traders Agrícola, Silvaparque, RCCG.
+4. **Serviços** concretos por prioridade: Desenvolvimento Web, Marketing Digital, Sistemas & Automação, Infraestrutura TI (com sub-serviços).
+5. **Casos de Sucesso** em destaque: 4 projetos com Problema/Solução/Resultado.
+6. **Porque escolher a VitalEvo**: 5 diferenciais com ✓.
+7. **CTA Final**: "Receba uma Proposta Gratuita" com CTA único.
+
+Removidos da homepage: loja (produtos/equipamentos), "Soluções Tecnológicas Recomendadas", blog e FAQ — a loja permanece em `/store`. Os componentes `FeaturedProductsSlider`, `FeaturedArticlesSlider` e `FeaturedProjectsSlider` continuam disponíveis no código (`FeaturedProjectsSlider` ainda é usado na página de contacto).
 - Contactos públicos: src/shared/utils/contact.ts é a fonte canónica de telefones, e-mail, WhatsApp, morada e ligação do Google Maps; os dados estruturados e fluxos de pedidos usam estes valores.
