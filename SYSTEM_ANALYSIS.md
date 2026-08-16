@@ -128,3 +128,38 @@ Removidos da homepage: loja (produtos/equipamentos), "Soluções Tecnológicas R
 - `Logo.tsx`: caixa padrão `w-40 h-10` → `w-48 h-12 sm:w-56` (menu mantém `h-16`/`h-[76px]`); sidebar do admin continua com `w-40 h-10`.
 - **2026-08-16 (2)**: `public/logo-novo.png` substituído por `Asset 3.png` (wordmark roxo horizontal 634x124, da pasta `01_Identidade_Visual\png 2\1x`) — usado no menu e footer via componente `Logo`; escolhido por ser visível em tema claro e escuro (o footer é `bg-white` em claro; os assets 4/7 brancos ficariam invisíveis). Assets 4/7 (brancos, idênticos entre si) e Asset 6 (símbolo verde) ficam disponíveis para contextos escuros se necessário.
 - Contactos públicos: src/shared/utils/contact.ts é a fonte canónica de telefones, e-mail, WhatsApp, morada e ligação do Google Maps; os dados estruturados e fluxos de pedidos usam estes valores.
+
+## Plano Profissional de Conclusão — Fases 1 a 4 (2026-08-16)
+
+### Fase 1 — Segurança e permissões por função
+- `convex/permissions.ts`: matriz de permissões (admin, commercial, content, operations) + `content:import`.
+- `convex/utils.ts`: `requirePermission` (token + permissão) e `requireStaff`; todos os módulos de staff migrados de `checkAdmin` para `requirePermission` (users:manage, ai:manage, contacts:manage, content:manage, catalog:manage, settings:manage, orders:read, stock:manage).
+- `convex/validation.ts`: normalização de email/telefone, slug, quantidades e texto.
+- `orders.getByOrderNumber` exige `accessToken` opaco (gerado no create e devolvido ao cliente); `orders.create` continua para utilizadores autenticados.
+- Produtos públicos (`getAll`, `getFeatured`, `getBySlug`, `getById`) só devolvem `isActive && status ∈ {undefined, "published"}` (rascunhos/arquivados ocultos).
+- `products.adjustStock` (stock:manage) regista movimentos auditados em `inventoryMovements`; SKU único (`by_sku`), slug e preço/stock validados.
+- `importData` usa `content:import` (content e admin) com validação de slug/preço/stock.
+- `audit.ts` regista ações sensíveis; dashboard exige apenas staff.
+
+### Fase 2 — Loja convertida em catálogo com cotação (sem preços públicos)
+- Preço/stock removidos da loja pública; botões "Cotação" com carrinho de cotações; `/cart` e `/checkout` redirecionam para `/cotacao`.
+- `convex/quotes.ts`: ciclo completo — `create` público (rate limit 3/h/email, publicId 16-char, auto-tarefa "Contactar o cliente", notifica staff), `getByPublicId`, `getMine`, `listPaginated`, `getById`, `getStats`, `assign`, `setFollowUp`, `setProposal`, `setStatus` (reserva/libertação/execução de stock idempotentes), `addTask`, `updateTask`, `remove`, `getQuoteInternal`.
+- `convex/quotesActions.ts`: `sendQuoteConfirmation` (Resend, remetente `VitalEvo <onboarding@resend.dev>`, CTA WhatsApp +244 950 744 445) disparada a partir do frontend.
+- Páginas públicas: `/cotacao` (formulário + itens) e `/cotacao/sucesso` (referência, estado, WhatsApp).
+
+### Fase 3 — Backoffice por função
+- `admin/layout.tsx`: acesso por `api.auth.isStaff` + papel; menu filtrado por permissões (admin: tudo; comercial: cotações/mensagens; conteúdo: portfólio/blog/serviços/site/legais; operações: produtos/categorias/marcas/pedidos).
+- `admin/quotes`: funil comercial (estatísticas, filtros, tabela paginada, modal com WhatsApp, atribuição, transições de estado, proposta, tarefas, movimentos de stock).
+- `admin/products`: SKU, estado (publicado/rascunho/arquivado), galeria de imagens, ajuste de stock auditado (modal com delta + motivo).
+- `users.getStaffList` lista a equipa ativa para atribuição (exige quotes:read).
+
+### Fase 4 — CMS institucional (mínimo)
+- `convex/services.ts`: `getAll`/`getBySlug` públicos; `getAllAdmin`/`create`/`update`/`remove` (content:manage); slug único validado.
+- `convex/legalDocuments.ts`: `getAll`/`getBySlug` públicos (só publicados); `upsert`/`remove` (content:manage).
+- `convex/siteContent.ts`: `getPage` (página + blocos), `getPages`, `getPagesAdmin`, `upsertPage`, `upsertBlock`.
+- Admin: `/admin/services` (CRUD serviços), `/admin/legal` (documentos legais), `/admin/site` (páginas + blocos).
+- Home: secção "Serviços que geram resultado" passa a ser alimentada por `api.services.getAll` com fallback para os dados estáticos (mantém o design); `seed:seedServices` semeou os 4 serviços atuais.
+- Página pública dinâmica `/legal/[slug]` renderiza documentos publicados.
+
+### Funções Convex
+- Para as novas funções ficarem ativas: `npx convex deploy` (feito nesta sessão — enviadas para https://merry-fennec-711.convex.cloud). O deploy da Vercel (`vercel --prod --yes`) é separado do commit/push.

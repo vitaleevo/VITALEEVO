@@ -4,22 +4,32 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useState, useRef } from "react";
 import { Upload, X, Loader2, Image as ImageIcon, Plus } from "lucide-react";
+import { useAuth } from "@/shared/providers/AuthProvider";
 
 interface MultiImageUploadProps {
     value: string[];
     onChange: (urls: string[]) => void;
     label?: string;
+    purpose?: "product" | "content" | "profile";
 }
 
-export default function MultiImageUpload({ value, onChange, label }: MultiImageUploadProps) {
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+export default function MultiImageUpload({ value, onChange, label, purpose = "content" }: MultiImageUploadProps) {
     const [isUploading, setIsUploading] = useState(false);
     const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-    const getStorageUrl = useMutation(api.files.getUrl);
+    const registerUpload = useMutation(api.files.registerUpload);
+    const { token } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
         if (!files || files.length === 0) return;
+        if (!token) {
+            alert("A sessão expirou. Entre novamente para enviar imagens.");
+            return;
+        }
 
         setIsUploading(true);
         try {
@@ -27,8 +37,16 @@ export default function MultiImageUpload({ value, onChange, label }: MultiImageU
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
+                if (!ACCEPTED_TYPES.includes(file.type) || file.size > MAX_IMAGE_SIZE) {
+                    throw new Error("Use apenas JPG, PNG, WebP ou AVIF com até 5 MB.");
+                }
                 // 1. Get a short-lived upload URL
-                const postUrl = await generateUploadUrl();
+                const postUrl = await generateUploadUrl({
+                    token,
+                    purpose,
+                    contentType: file.type,
+                    size: file.size,
+                });
 
                 // 2. POST the file to the URL
                 const result = await fetch(postUrl, {
@@ -41,20 +59,15 @@ export default function MultiImageUpload({ value, onChange, label }: MultiImageU
 
                 const { storageId } = await result.json();
 
-                // 3. Get the public URL
-                let publicUrl = null;
-                let attempts = 0;
-                while (!publicUrl && attempts < 5) {
-                    publicUrl = await getStorageUrl({ storageId });
-                    if (!publicUrl) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        attempts++;
-                    }
-                }
-
-                if (publicUrl) {
-                    newUrls.push(publicUrl);
-                }
+                const uploaded = await registerUpload({
+                    token,
+                    storageId,
+                    filename: file.name,
+                    contentType: file.type,
+                    size: file.size,
+                    purpose,
+                });
+                newUrls.push(uploaded.url);
             }
 
             onChange(newUrls);
@@ -123,7 +136,7 @@ export default function MultiImageUpload({ value, onChange, label }: MultiImageU
                 type="file"
                 ref={fileInputRef}
                 onChange={handleUpload}
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/avif"
                 multiple
                 className="hidden"
             />

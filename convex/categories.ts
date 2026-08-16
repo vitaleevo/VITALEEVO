@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkAdmin } from "./utils";
+import { requirePermission } from "./utils";
 
 // Public queries
 export const getByType = query({
@@ -19,7 +19,7 @@ export const getByType = query({
 export const getAllAdmin = query({
     args: { token: v.string() },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "catalog:manage");
         return await ctx.db.query("categories").order("asc").collect();
     },
 });
@@ -35,7 +35,7 @@ export const create = mutation({
         isActive: v.boolean(),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "catalog:manage");
         const { token, ...data } = args;
         return await ctx.db.insert("categories", data);
     },
@@ -53,7 +53,7 @@ export const update = mutation({
         isActive: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "catalog:manage");
         const { id, token, ...updates } = args;
         await ctx.db.patch(id, updates);
     },
@@ -62,7 +62,7 @@ export const update = mutation({
 export const remove = mutation({
     args: { token: v.string(), id: v.id("categories") },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "catalog:manage");
         await ctx.db.delete(args.id);
     },
 });

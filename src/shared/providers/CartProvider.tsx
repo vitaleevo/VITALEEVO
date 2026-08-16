@@ -6,14 +6,15 @@ interface CartItem {
     id: string | number;
     productId: string | number;
     name: string;
-    price: number;
+    price?: number;
+    sku?: string;
     quantity: number;
     image: string;
 }
 
 interface CartContextType {
     items: CartItem[];
-    addItem: (product: { id: string | number; name: string; price: number; image: string }, quantity?: number) => void;
+    addItem: (product: { id: string | number; name: string; image: string; price?: number; sku?: string }, quantity?: number) => void;
     removeItem: (productId: string | number) => void;
     updateQuantity: (productId: string | number, quantity: number) => void;
     clearCart: () => void;
@@ -43,7 +44,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("vitaleevo_cart", JSON.stringify(items));
     }, [items]);
 
-    const addItem = (product: { id: string | number; name: string; price: number; image: string }, quantity = 1) => {
+    const addItem = (product: { id: string | number; name: string; image: string; price?: number; sku?: string }, quantity = 1) => {
         setItems((prev) => {
             const existingItem = prev.find((item) => item.productId === product.id);
 
@@ -61,7 +62,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
                     id: typeof product.id === 'string' ? product.id : Date.now(),
                     productId: product.id,
                     name: product.name,
-                    price: product.price,
+                    price: product.price ?? 0,
+                    sku: product.sku,
                     quantity,
                     image: product.image,
                 },
@@ -91,7 +93,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const subtotal = items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
 
     return (
         <CartContext.Provider

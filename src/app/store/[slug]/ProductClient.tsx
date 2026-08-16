@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, Star, Minus, Plus, Check, ShoppingCart, Heart } from "lucide-react";
+import { ChevronRight, Star, Minus, Plus, Check, ShoppingCart, Heart, FileText } from "lucide-react";
 import WishlistButton from "@/shared/components/WishlistButton";
 import { useCart } from "@/shared/providers/CartProvider";
-import { Doc, Id } from "../../../../convex/_generated/dataModel";
 
 interface ProductClientProps {
     product: any; // Using any for now to avoid complexity with Doc<"products"> type imports if not available easily
@@ -21,13 +20,13 @@ export default function ProductClient({ product }: ProductClientProps) {
             {
                 id: product._id,
                 name: product.name,
-                price: product.price,
+                sku: product.sku,
                 image: product.image,
             },
             quantity
         );
         setAdded(true);
-        setTimeout(() => setAdded(false), 2000);
+        setTimeout(() => setAdded(false), 2500);
     };
 
     return (
@@ -111,58 +110,69 @@ export default function ProductClient({ product }: ProductClientProps) {
                         <div className="mt-auto pt-8 border-t border-gray-200 dark:border-white/10">
                             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Preço Total</p>
+                                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                        Preço sob consulta
+                                    </p>
                                     <div className="flex items-baseline gap-4">
-                                        <span className="text-4xl font-black text-gray-900 dark:text-white">
-                                            Kz {product.price.toLocaleString("pt-AO", { minimumFractionDigits: 2 })}
+                                        <span className="text-3xl font-black bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+                                            Proposta comercial
                                         </span>
-                                        {product.oldPrice && (
-                                            <span className="text-xl text-gray-400 line-through">
-                                                Kz {product.oldPrice.toLocaleString("pt-AO", { minimumFractionDigits: 2 })}
-                                            </span>
-                                        )}
                                     </div>
+                                    <p className="text-sm text-gray-500 mt-2">
+                                        Envie-nos o seu pedido e a nossa equipa apresenta a melhor proposta.
+                                    </p>
                                 </div>
                             </div>
 
-                            <div className="flex gap-4">
-                                <div className="flex items-center bg-gray-100 dark:bg-[#151e32] rounded-xl border border-gray-200 dark:border-white/10">
+                            <div className="flex flex-col gap-3">
+                                <div className="flex gap-4">
+                                    <div className="flex items-center bg-gray-100 dark:bg-[#151e32] rounded-xl border border-gray-200 dark:border-white/10">
+                                        <button
+                                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                            className="w-12 h-14 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 rounded-l-xl transition-colors"
+                                            aria-label="Diminuir quantidade"
+                                        >
+                                            <Minus className="w-5 h-5" />
+                                        </button>
+                                        <span className="w-12 text-center font-bold text-gray-900 dark:text-white text-lg">
+                                            {quantity}
+                                        </span>
+                                        <button
+                                            onClick={() => setQuantity(quantity + 1)}
+                                            className="w-12 h-14 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 rounded-r-xl transition-colors"
+                                            aria-label="Aumentar quantidade"
+                                        >
+                                            <Plus className="w-5 h-5" />
+                                        </button>
+                                    </div>
                                     <button
-                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                        className="w-12 h-14 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 rounded-l-xl transition-colors"
+                                        onClick={handleAddToCart}
+                                        disabled={added}
+                                        className={`flex-1 h-14 rounded-xl font-bold text-lg shadow-xl transition-all flex items-center justify-center gap-2 ${added
+                                            ? "bg-green-500 text-white shadow-green-500/20"
+                                            : "bg-primary hover:bg-primary-dark text-white shadow-primary/20 hover:-translate-y-1"
+                                            }`}
                                     >
-                                        <Minus className="w-5 h-5" />
-                                    </button>
-                                    <span className="w-12 text-center font-bold text-gray-900 dark:text-white text-lg">
-                                        {quantity}
-                                    </span>
-                                    <button
-                                        onClick={() => setQuantity(quantity + 1)}
-                                        className="w-12 h-14 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/10 rounded-r-xl transition-colors"
-                                    >
-                                        <Plus className="w-5 h-5" />
+                                        {added ? (
+                                            <>
+                                                <Check className="w-5 h-5" />
+                                                Adicionado à cotação!
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ShoppingCart className="w-5 h-5" />
+                                                Adicionar à Cotação
+                                            </>
+                                        )}
                                     </button>
                                 </div>
-                                <button
-                                    onClick={handleAddToCart}
-                                    disabled={added}
-                                    className={`flex-1 h-14 rounded-xl font-bold text-lg shadow-xl transition-all flex items-center justify-center gap-2 ${added
-                                        ? "bg-green-500 text-white shadow-green-500/20"
-                                        : "bg-primary hover:bg-primary-dark text-white shadow-primary/20 hover:-translate-y-1"
-                                        }`}
+                                <Link
+                                    href="/cotacao"
+                                    className="flex items-center justify-center gap-2 w-full h-14 rounded-xl border-2 border-primary/30 text-primary hover:bg-primary/5 font-bold transition-all"
                                 >
-                                    {added ? (
-                                        <>
-                                            <Check className="w-5 h-5" />
-                                            Adicionado!
-                                        </>
-                                    ) : (
-                                        <>
-                                            <ShoppingCart className="w-5 h-5" />
-                                            Adicionar ao Carrinho
-                                        </>
-                                    )}
-                                </button>
+                                    <FileText className="w-5 h-5" />
+                                    Ver o meu pedido de cotação
+                                </Link>
                             </div>
                         </div>
                     </div>

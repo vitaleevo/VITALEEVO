@@ -1,13 +1,20 @@
 import { query, mutation } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
-import { checkAdmin, checkAuthenticated } from "./utils";
+import { requirePermission, checkAuthenticated } from "./utils";
 
 // Generate unique order number
 function generateOrderNumber(): string {
     const prefix = "VE";
     const random = Math.floor(Math.random() * 90000) + 10000;
     return `${prefix}-${random}`;
+}
+
+// Generate opaque access token for order confirmation links
+function generateAccessToken(): string {
+    const bytes = new Uint8Array(24);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 // Get all orders for a user (Authenticated)
@@ -49,14 +56,32 @@ export const getById = query({
     },
 });
 
-// Get order by Order Number (Public for success page)
+// Get order by Order Number (requires opaque access token or ownership)
 export const getByOrderNumber = query({
-    args: { orderNumber: v.string() },
+    args: {
+        orderNumber: v.string(),
+        accessToken: v.optional(v.string()),
+        token: v.optional(v.string()),
+    },
     handler: async (ctx, args) => {
         const order = await ctx.db
             .query("orders")
             .withIndex("by_orderNumber", (q) => q.eq("orderNumber", args.orderNumber))
             .first();
+
+        if (!order) return null;
+
+        // Opaque access token (from the confirmation page) grants access
+        if (args.accessToken && order.accessToken && args.accessToken === order.accessToken) {
+            return order;
+        }
+
+        // Otherwise require authenticated ownership or staff access
+        const user = await checkAuthenticated(ctx, args.token);
+        const isOwner = order.userId === user._id || order.guestEmail === user.email;
+        if (!isOwner && user.role !== "admin") {
+            throw new Error("Acesso não autorizado");
+        }
 
         return order;
     },
@@ -91,11 +116,13 @@ export const create = mutation({
     },
     handler: async (ctx, args) => {
         const orderNumber = generateOrderNumber();
+        const accessToken = generateAccessToken();
         const now = Date.now();
 
         const orderId = await ctx.db.insert("orders", {
             ...args,
             orderNumber,
+            accessToken,
             status: "pending",
             createdAt: now,
             updatedAt: now,
@@ -113,7 +140,7 @@ export const create = mutation({
             });
         }
 
-        return { orderId, orderNumber };
+        return { orderId, orderNumber, accessToken };
     },
 });
 
@@ -133,7 +160,7 @@ export const updateStatus = mutation({
         paymentReference: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "orders:read");
 
         const updates: Record<string, unknown> = {
             status: args.status,
@@ -193,7 +220,7 @@ export const updateStatus = mutation({
 export const getStats = query({
     args: { token: v.string() },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "orders:read");
         const orders = await ctx.db.query("orders").collect();
         const now = Date.now();
         const stats = {
@@ -217,7 +244,7 @@ export const getStats = query({
 export const getPaginated = query({
     args: { token: v.string(), paginationOpts: paginationOptsValidator, status: v.optional(v.string()) },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "orders:read");
         const q = args.status && args.status !== 'all'
             ? ctx.db.query("orders").withIndex("by_status", (q) => q.eq("status", args.status as any))
             : ctx.db.query("orders").order("desc");

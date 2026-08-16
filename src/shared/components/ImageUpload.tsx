@@ -4,29 +4,48 @@ import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { useState, useRef } from "react";
 import { Upload, X, Loader2, Image as ImageIcon, AlertCircle } from "lucide-react";
+import { useAuth } from "@/shared/providers/AuthProvider";
 
 interface ImageUploadProps {
     value: string;
     onChange: (url: string) => void;
     label?: string;
+    purpose?: "product" | "content" | "profile";
 }
 
-export default function ImageUpload({ value, onChange, label }: ImageUploadProps) {
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+export default function ImageUpload({ value, onChange, label, purpose = "content" }: ImageUploadProps) {
     const [isUploading, setIsUploading] = useState(false);
     const [hasError, setHasError] = useState(false);
     const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-    const getStorageUrl = useMutation(api.files.getUrl);
+    const registerUpload = useMutation(api.files.registerUpload);
+    const { token } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
+        if (!token) {
+            alert("A sessão expirou. Entre novamente para enviar imagens.");
+            return;
+        }
+        if (!ACCEPTED_TYPES.includes(file.type) || file.size > MAX_IMAGE_SIZE) {
+            alert("Use JPG, PNG, WebP ou AVIF com até 5 MB.");
+            return;
+        }
 
         setIsUploading(true);
         setHasError(false);
         try {
             // 1. Get a short-lived upload URL
-            const postUrl = await generateUploadUrl();
+            const postUrl = await generateUploadUrl({
+                token,
+                purpose,
+                contentType: file.type,
+                size: file.size,
+            });
 
             // 2. POST the file to the URL
             const result = await fetch(postUrl, {
@@ -39,22 +58,15 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
 
             const { storageId } = await result.json();
 
-            // 3. Get the public URL. Sometimes it takes a moment to propagate.
-            let publicUrl = null;
-            let attempts = 0;
-            while (!publicUrl && attempts < 5) {
-                publicUrl = await getStorageUrl({ storageId });
-                if (!publicUrl) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    attempts++;
-                }
-            }
-
-            if (publicUrl) {
-                onChange(publicUrl);
-            } else {
-                throw new Error("Não foi possível obter o link da imagem.");
-            }
+            const uploaded = await registerUpload({
+                token,
+                storageId,
+                filename: file.name,
+                contentType: file.type,
+                size: file.size,
+                purpose,
+            });
+            onChange(uploaded.url);
         } catch (error) {
             console.error("Error uploading image:", error);
             alert("Erro no upload. Tente novamente.");
@@ -142,7 +154,7 @@ export default function ImageUpload({ value, onChange, label }: ImageUploadProps
                 type="file"
                 ref={fileInputRef}
                 onChange={handleUpload}
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/avif"
                 className="hidden"
             />
         </div>

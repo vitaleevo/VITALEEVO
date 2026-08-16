@@ -1,12 +1,12 @@
 import { v } from "convex/values";
 import { mutation, query, internalQuery } from "./_generated/server";
-import { checkAdmin } from "./utils";
+import { requirePermission } from "./utils";
 import { encryptSecret } from "./secrets";
 
 export const getAllAdmin = query({
     args: { token: v.string() },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "ai:manage");
         const keys = await ctx.db.query("apiKeys").order("desc").collect();
 
         return keys.map((key) => ({
@@ -31,7 +31,7 @@ export const upsert = mutation({
         isActive: v.boolean(),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "ai:manage");
 
         if (args.provider === "gemini" && !args.apiKey.startsWith("AIza")) {
             throw new Error("Formato de chave Gemini inválido. Chaves Google começam com 'AIza'.");
@@ -82,7 +82,7 @@ export const remove = mutation({
         id: v.id("apiKeys"),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "ai:manage");
         await ctx.db.delete(args.id);
         return { success: true };
     },
@@ -94,7 +94,7 @@ export const toggleActive = mutation({
         id: v.id("apiKeys"),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "ai:manage");
         const key = await ctx.db.get(args.id);
         if (!key) throw new Error("Chave não encontrada");
 
@@ -109,7 +109,7 @@ export const toggleActive = mutation({
 export const migrateLegacyKeys = mutation({
     args: { token: v.string() },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "ai:manage");
         const legacyKeys = (await ctx.db.query("apiKeys").collect())
             .filter((key) => Boolean(key.apiKey));
 

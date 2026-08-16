@@ -11,8 +11,9 @@ import { formatCurrency, formatDate } from "@/shared/utils/format";
 export default function OrderSuccessPage() {
     const searchParams = useSearchParams();
     const orderNumber = searchParams.get('order');
+    const accessToken = searchParams.get('token') || undefined;
 
-    const order = useQuery(api.orders.getByOrderNumber, orderNumber ? { orderNumber } : "skip");
+    const order = useQuery(api.orders.getByOrderNumber, orderNumber ? { orderNumber, accessToken } : "skip");
 
     const shareToWhatsApp = () => {
         if (!order) return;

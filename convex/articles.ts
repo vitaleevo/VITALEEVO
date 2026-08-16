@@ -1,6 +1,6 @@
 import { query, mutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
-import { checkAdmin } from "./utils";
+import { requirePermission } from "./utils";
 import { sanitizeRichText } from "./content";
 
 // Internal queries for use in crons/actions
@@ -45,7 +45,7 @@ export const getBySlug = query({
 export const getAllAdmin = query({
     args: { token: v.string() },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "content:manage");
         return await ctx.db.query("articles").order("desc").collect();
     },
 });
@@ -67,7 +67,7 @@ export const create = mutation({
         isFeatured: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "content:manage");
         const { token, ...data } = args;
         const now = Date.now();
         return await ctx.db.insert("articles", {
@@ -98,7 +98,7 @@ export const update = mutation({
         isFeatured: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "content:manage");
         const { id, token, ...updates } = args;
         const now = Date.now();
         if (updates.content !== undefined) updates.content = sanitizeRichText(updates.content);
@@ -110,7 +110,7 @@ export const update = mutation({
 export const remove = mutation({
     args: { token: v.string(), id: v.id("articles") },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "content:manage");
         await ctx.db.delete(args.id);
     },
 });

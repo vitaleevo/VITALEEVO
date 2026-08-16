@@ -26,7 +26,6 @@ import WishlistButton from '@/shared/components/WishlistButton';
 
 const Store: React.FC = () => {
     const convexProducts = useQuery(api.products.getAll, {});
-    const settings = useQuery(api.settings.get);
     const dbCategories = useQuery(api.categories.getByType, { type: "store" });
     const dbBrands = useQuery(api.brands.getAll);
     const { addItem, totalItems } = useCart();
@@ -36,7 +35,6 @@ const Store: React.FC = () => {
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [activeCategory, setActiveCategory] = useState('Todos');
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-    const [priceRange, setPriceRange] = useState({ min: 0, max: 10000000 }); // Default max 10M Kz
     const [sortBy, setSortBy] = useState('Relevantes');
 
     const handleAddToCart = (e: React.MouseEvent, product: any) => {
@@ -45,7 +43,7 @@ const Store: React.FC = () => {
         addItem({
             id: product._id,
             name: product.name,
-            price: product.price,
+            sku: product.sku,
             image: product.image,
         });
     };
@@ -59,7 +57,6 @@ const Store: React.FC = () => {
     const clearFilters = () => {
         setActiveCategory('Todos');
         setSelectedBrands([]);
-        setPriceRange({ min: 0, max: 10000000 });
         setSearchQuery('');
     };
 
@@ -87,21 +84,18 @@ const Store: React.FC = () => {
 
             const matchesCategory = activeCategory === 'Todos' || product.category === activeCategory;
             const matchesBrand = selectedBrands.length === 0 || (product.brand && selectedBrands.includes(product.brand));
-            const matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
 
-            return matchesSearch && matchesCategory && matchesBrand && matchesPrice;
+            return matchesSearch && matchesCategory && matchesBrand;
         });
 
-        // Sorting Logic
-        const sorted = [...result];
-        if (sortBy === 'Menor Preço') {
-            sorted.sort((a, b) => a.price - b.price);
-        } else if (sortBy === 'Maior Preço') {
-            sorted.sort((a, b) => b.price - a.price);
+        if (sortBy === 'A-Z') {
+            result = [...result].sort((a, b) => a.name.localeCompare(b.name, 'pt'));
+        } else if (sortBy === 'Mais Recentes') {
+            result = [...result].sort((a, b) => b._creationTime - a._creationTime);
         }
 
-        return sorted;
-    }, [convexProducts, searchQuery, activeCategory, selectedBrands, priceRange, sortBy]);
+        return result;
+    }, [convexProducts, searchQuery, activeCategory, selectedBrands, sortBy]);
 
     if (!convexProducts || !dbCategories || !dbBrands) {
         return (
@@ -143,7 +137,7 @@ const Store: React.FC = () => {
                         )}
                     </div>
                     <div className="flex gap-3">
-                        <Link href="/cart" className="relative flex items-center justify-center h-12 w-12 rounded-xl bg-white dark:bg-background-dark text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-white/10 hover:border-primary/50 hover:text-primary transition-all shadow-sm">
+                        <Link href="/cotacao" className="relative flex items-center justify-center h-12 w-12 rounded-xl bg-white dark:bg-background-dark text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-white/10 hover:border-primary/50 hover:text-primary transition-all shadow-sm">
                             <ShoppingCart className="w-5 h-5" />
                             {totalItems > 0 && (
                                 <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white text-[11px] font-bold shadow-lg shadow-primary/40 animate-pulse">
@@ -222,31 +216,7 @@ const Store: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Preço */}
-                            <div className="space-y-4">
-                                <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Faixa de Preço</h4>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-1 bg-gray-100 dark:bg-background-dark p-2 rounded-lg border border-transparent focus-within:border-primary/30 transition-all">
-                                        <span className="text-[10px] text-gray-400 uppercase block">Min (Kz)</span>
-                                        <input
-                                            type="number"
-                                            value={priceRange.min}
-                                            onChange={(e) => setPriceRange(prev => ({ ...prev, min: Number(e.target.value) }))}
-                                            className="bg-transparent border-none text-sm w-full outline-none font-bold"
-                                        />
-                                    </div>
-                                    <span className="text-gray-300">/</span>
-                                    <div className="flex-1 bg-gray-100 dark:bg-background-dark p-2 rounded-lg border border-transparent focus-within:border-primary/30 transition-all">
-                                        <span className="text-[10px] text-gray-400 uppercase block">Max (Kz)</span>
-                                        <input
-                                            type="number"
-                                            value={priceRange.max}
-                                            onChange={(e) => setPriceRange(prev => ({ ...prev, max: Number(e.target.value) }))}
-                                            className="bg-transparent border-none text-sm w-full outline-none font-bold"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
+                            {/* Faixa de Preço removida — catálogo sem preço público; cotação por proposta */}
 
                         </div>
                     </aside>
@@ -278,8 +248,8 @@ const Store: React.FC = () => {
                                         className="appearance-none bg-white dark:bg-surface-dark border-none shadow-sm text-gray-900 dark:text-white text-sm rounded-xl pl-4 pr-10 py-2.5 focus:ring-2 focus:ring-primary/20 cursor-pointer min-w-[160px]"
                                     >
                                         <option>Relevantes</option>
-                                        <option>Menor Preço</option>
-                                        <option>Maior Preço</option>
+                                        <option>A-Z</option>
+                                        <option>Mais Recentes</option>
                                     </select>
                                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                                 </div>
@@ -337,18 +307,17 @@ const Store: React.FC = () => {
                                                     {product.description}
                                                 </p>
 
-                                                <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-100 dark:border-white/5">
+                                                <div className="mt-auto flex items-center justify-between gap-3 pt-4 border-t border-gray-100 dark:border-white/5">
                                                     <div>
-                                                        <p className="text-2xl font-black text-gray-900 dark:text-white">
-                                                            <span className="text-sm font-bold mr-1">{settings?.businessConfig?.currency || "Kz"}</span>
-                                                            {product.price.toLocaleString('pt-AO', { minimumFractionDigits: 2 })}
-                                                        </p>
+                                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Preço sob consulta</p>
+                                                        <p className="text-sm font-bold text-primary">Proposta comercial</p>
                                                     </div>
                                                     <button
                                                         onClick={(e) => handleAddToCart(e, product)}
-                                                        className="flex items-center justify-center h-12 w-12 rounded-2xl bg-primary hover:bg-primary-dark text-white transition-all shadow-lg shadow-primary/20 hover:scale-110 active:scale-95 group/btn"
+                                                        className="flex items-center justify-center gap-2 h-12 px-5 rounded-2xl bg-primary hover:bg-primary-dark text-white text-sm font-bold transition-all shadow-lg shadow-primary/20 hover:scale-105 active:scale-95"
                                                     >
-                                                        <ShoppingCart className="w-5 h-5 group-hover/btn:rotate-12 transition-transform" />
+                                                        <ShoppingCart className="w-5 h-5" />
+                                                        Cotação
                                                     </button>
                                                 </div>
                                             </div>

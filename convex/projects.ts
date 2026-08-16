@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkAdmin } from "./utils";
+import { requirePermission } from "./utils";
 import { sanitizeRichText } from "./content";
 
 // Public queries
@@ -51,7 +51,7 @@ export const getBySlug = query({
 export const getAllAdmin = query({
     args: { token: v.string() },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "content:manage");
         return await ctx.db.query("projects").order("desc").collect();
     },
 });
@@ -76,7 +76,7 @@ export const create = mutation({
         order: v.number(),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "content:manage");
         const { token, ...data } = args;
         return await ctx.db.insert("projects", {
             ...data,
@@ -107,7 +107,7 @@ export const update = mutation({
         order: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "content:manage");
         const { id, token, ...updates } = args;
         if (updates.fullDescription !== undefined) updates.fullDescription = sanitizeRichText(updates.fullDescription);
         await ctx.db.patch(id, updates);
@@ -117,7 +117,7 @@ export const update = mutation({
 export const remove = mutation({
     args: { token: v.string(), id: v.id("projects") },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "content:manage");
         await ctx.db.delete(args.id);
     },
 });

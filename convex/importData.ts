@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation } from "./_generated/server";
-import { checkAdmin } from "./utils";
+import { requirePermission } from "./utils";
+import { validateSlug } from "./validation";
 import { sanitizeRichText } from "./content";
 
 /**
@@ -33,9 +34,8 @@ export const importProducts = mutation({
         })),
     },
     handler: async (ctx, args) => {
-        if (args.token !== "SYSTEM_IMPORT") {
-            await checkAdmin(ctx, args.token);
-        }
+        await requirePermission(ctx, args.token, "catalog:import");
+        if (args.items.length > 200) throw new Error("Importação limitada a 200 produtos por operação");
 
         const results = {
             created: 0,
@@ -45,6 +45,10 @@ export const importProducts = mutation({
 
         for (const item of args.items) {
             try {
+                validateSlug(item.slug);
+                if (item.price < 0 || item.stock < 0) {
+                    throw new Error("Preço ou stock negativo");
+                }
                 const existing = await ctx.db
                     .query("products")
                     .withIndex("by_slug", (q) => q.eq("slug", item.slug))
@@ -97,9 +101,8 @@ export const importProjects = mutation({
         })),
     },
     handler: async (ctx, args) => {
-        if (args.token !== "SYSTEM_IMPORT") {
-            await checkAdmin(ctx, args.token);
-        }
+        await requirePermission(ctx, args.token, "content:import");
+        if (args.items.length > 100) throw new Error("Importação limitada a 100 projetos por operação");
 
         const results = {
             created: 0,
@@ -185,9 +188,7 @@ export const importSingleProject = mutation({
         }),
     },
     handler: async (ctx, args) => {
-        if (args.token !== "SYSTEM_IMPORT") {
-            await checkAdmin(ctx, args.token);
-        }
+        await requirePermission(ctx, args.token, "content:import");
         const item = args.item;
 
         // Resolve storage IDs to URLs
@@ -255,9 +256,8 @@ export const importArticles = mutation({
         })),
     },
     handler: async (ctx, args) => {
-        if (args.token !== "SYSTEM_IMPORT") {
-            await checkAdmin(ctx, args.token);
-        }
+        await requirePermission(ctx, args.token, "content:import");
+        if (args.items.length > 100) throw new Error("Importação limitada a 100 artigos por operação");
 
         const results = {
             created: 0,

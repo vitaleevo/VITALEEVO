@@ -15,12 +15,14 @@ import {
     Save,
     Loader2,
     Star,
-    FileSpreadsheet
+    FileSpreadsheet,
+    SlidersHorizontal
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import ImageUpload from "@/shared/components/ImageUpload";
+import MultiImageUpload from "@/shared/components/MultiImageUpload";
 import BulkImportModal from "@/shared/components/BulkImportModal";
 import { formatCurrency } from "@/shared/utils/format";
 
@@ -32,8 +34,11 @@ interface ProductForm {
     price: number;
     oldPrice: number;
     image: string;
+    images: string[];
     category: string;
     brand: string;
+    sku: string;
+    status: "published" | "draft" | "archived";
     stock: number;
     isNew: boolean;
     isFeatured: boolean;
@@ -48,8 +53,11 @@ const emptyForm: ProductForm = {
     price: 0,
     oldPrice: 0,
     image: "",
+    images: [],
     category: "Câmeras de Segurança",
     brand: "",
+    sku: "",
+    status: "published",
     stock: 0,
     isNew: false,
     isFeatured: false,
@@ -68,6 +76,7 @@ export default function AdminProductsPage() {
     const createProduct = useMutation(api.products.create);
     const updateProduct = useMutation(api.products.update);
     const removeProduct = useMutation(api.products.remove);
+    const adjustStock = useMutation(api.products.adjustStock);
 
     const [searchTerm, setSearchTerm] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
@@ -76,6 +85,10 @@ export default function AdminProductsPage() {
     const [form, setForm] = useState<ProductForm>(emptyForm);
     const [isSaving, setIsSaving] = useState(false);
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [adjustProduct, setAdjustProduct] = useState<NonNullable<typeof products>[number] | null>(null);
+    const [adjustDelta, setAdjustDelta] = useState(0);
+    const [adjustNote, setAdjustNote] = useState("");
+    const [isAdjusting, setIsAdjusting] = useState(false);
 
     if (!products || !dbCategories || !dbBrands) {
         return (
@@ -126,8 +139,11 @@ export default function AdminProductsPage() {
             price: product.price,
             oldPrice: product.oldPrice || 0,
             image: product.image,
+            images: (product.images as string[]) || [],
             category: product.category,
             brand: product.brand || "",
+            sku: product.sku || "",
+            status: product.status || "published",
             stock: product.stock,
             isNew: product.isNew,
             isFeatured: product.isFeatured || false,
@@ -149,8 +165,11 @@ export default function AdminProductsPage() {
                     price: form.price,
                     oldPrice: form.oldPrice > 0 ? form.oldPrice : undefined,
                     image: form.image,
+                    images: form.images,
                     category: form.category,
                     brand: form.brand,
+                    sku: form.sku || undefined,
+                    status: form.status,
                     stock: form.stock,
                     isNew: form.isNew,
                     isFeatured: form.isFeatured,
@@ -166,8 +185,11 @@ export default function AdminProductsPage() {
                     price: form.price,
                     oldPrice: form.oldPrice > 0 ? form.oldPrice : undefined,
                     image: form.image,
+                    images: form.images,
                     category: form.category,
                     brand: form.brand,
+                    sku: form.sku || undefined,
+                    status: form.status,
                     stock: form.stock,
                     isNew: form.isNew,
                     isFeatured: form.isFeatured,
@@ -372,28 +394,47 @@ export default function AdminProductsPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <button
-                                                onClick={() => handleToggleActive(product)}
-                                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${product.isActive
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                                                (product.status || "published") === "published"
                                                     ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                    : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
-                                                    }`}
-                                            >
-                                                {product.isActive ? (
+                                                    : (product.status || "published") === "draft"
+                                                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                                            }`}>
+                                                {(product.status || "published") === "published" ? (
                                                     <>
                                                         <Eye className="w-3.5 h-3.5" />
-                                                        Ativo
+                                                        Publicado
+                                                    </>
+                                                ) : (product.status || "published") === "draft" ? (
+                                                    <>
+                                                        <EyeOff className="w-3.5 h-3.5" />
+                                                        Rascunho
                                                     </>
                                                 ) : (
                                                     <>
                                                         <EyeOff className="w-3.5 h-3.5" />
-                                                        Inativo
+                                                        Arquivado
                                                     </>
                                                 )}
-                                            </button>
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => setAdjustProduct(product)}
+                                                    title="Ajustar stock"
+                                                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 hover:text-amber-500 transition-colors"
+                                                >
+                                                    <SlidersHorizontal className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleToggleActive(product)}
+                                                    title={product.isActive ? "Desativar" : "Ativar"}
+                                                    className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors ${product.isActive ? 'text-green-500' : 'text-gray-400'}`}
+                                                >
+                                                    {product.isActive ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                                                </button>
                                                 <button
                                                     onClick={() => handleOpenEdit(product)}
                                                     className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 hover:text-primary transition-colors"
@@ -524,11 +565,49 @@ export default function AdminProductsPage() {
                                 </div>
                             </div>
 
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                        SKU (Referência)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={form.sku}
+                                        onChange={(e) => setForm({ ...form, sku: e.target.value })}
+                                        className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                                        placeholder="Ex: CAM-HIK-4MP"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                        Estado
+                                    </label>
+                                    <select
+                                        value={form.status}
+                                        onChange={(e) => setForm({ ...form, status: e.target.value as ProductForm["status"] })}
+                                        className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:border-primary outline-none"
+                                    >
+                                        <option value="published">Publicado (visível na loja)</option>
+                                        <option value="draft">Rascunho (oculto)</option>
+                                        <option value="archived">Arquivado (oculto)</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-1 gap-4">
                                 <ImageUpload
-                                    label="Imagem do Produto *"
+                                    label="Imagem Principal do Produto *"
                                     value={form.image}
                                     onChange={(url) => setForm({ ...form, image: url })}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4">
+                                <MultiImageUpload
+                                    label="Galeria de Imagens (opcional)"
+                                    value={form.images}
+                                    onChange={(urls) => setForm({ ...form, images: urls })}
+                                    purpose="product"
                                 />
                             </div>
 
@@ -674,6 +753,100 @@ export default function AdminProductsPage() {
                     </div>
                 </div>
             )}
+            {/* Adjust Stock Modal */}
+            {adjustProduct && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-[#151e32] rounded-2xl w-full max-w-md">
+                        <div className="p-6 border-b border-gray-200 dark:border-white/5 flex items-center justify-between">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                                Ajustar Stock
+                            </h2>
+                            <button
+                                onClick={() => setAdjustProduct(null)}
+                                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <p className="font-bold text-gray-900 dark:text-white text-sm">{adjustProduct.name}</p>
+                                <p className="text-xs text-gray-500">
+                                    Stock atual: <span className="font-bold text-gray-900 dark:text-white">{adjustProduct.stock}</span>
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                    Quantidade (positivo para entrada, negativo para saída)
+                                </label>
+                                <input
+                                    type="number"
+                                    value={adjustDelta}
+                                    onChange={(e) => setAdjustDelta(Number(e.target.value))}
+                                    className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                    Motivo / Nota
+                                </label>
+                                <input
+                                    type="text"
+                                    value={adjustNote}
+                                    onChange={(e) => setAdjustNote(e.target.value)}
+                                    className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                                    placeholder="Ex: Reposição de stock, quebra, devolução..."
+                                />
+                            </div>
+                            {adjustDelta !== 0 && (
+                                <p className="text-sm text-gray-500">
+                                    Resultado: <span className="font-bold text-gray-900 dark:text-white">{adjustProduct.stock + adjustDelta}</span> unidades
+                                </p>
+                            )}
+                        </div>
+                        <div className="p-6 border-t border-gray-200 dark:border-white/5 flex justify-end gap-3">
+                            <button
+                                onClick={() => setAdjustProduct(null)}
+                                className="px-5 py-2.5 rounded-xl font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    if (adjustDelta === 0) {
+                                        toast.error("Indique uma quantidade diferente de zero.");
+                                        return;
+                                    }
+                                    setIsAdjusting(true);
+                                    try {
+                                        await adjustStock({
+                                            token: token!,
+                                            id: adjustProduct._id,
+                                            quantity: adjustDelta,
+                                            note: adjustNote || "Ajuste manual",
+                                        });
+                                        toast.success("Stock ajustado com sucesso!");
+                                        setAdjustProduct(null);
+                                        setAdjustDelta(0);
+                                        setAdjustNote("");
+                                    } catch (error) {
+                                        toast.error("Erro ao ajustar o stock.");
+                                    } finally {
+                                        setIsAdjusting(false);
+                                    }
+                                }}
+                                disabled={isAdjusting}
+                                className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50"
+                            >
+                                {isAdjusting ? <Loader2 className="w-5 h-5 animate-spin" /> : <SlidersHorizontal className="w-5 h-5" />}
+                                Confirmar Ajuste
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Bulk Import Modal */}
             <BulkImportModal
                 isOpen={isImportModalOpen}

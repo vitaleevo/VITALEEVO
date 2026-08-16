@@ -19,25 +19,41 @@ import {
     FileSpreadsheet,
     Bot,
     Menu,
-    X
+    X,
+    ClipboardList,
+    Tag,
+    Sparkles,
+    LayoutTemplate,
+    ScrollText,
 } from "lucide-react";
 import Logo from "@/shared/components/Logo";
 import { useAuth } from "@/shared/providers/AuthProvider";
+import { getPermissions } from "../../../convex/permissions";
 
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 
+interface MenuItem {
+    label: string;
+    href: string;
+    icon: any;
+    permission?: string;
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
-    const { user, isAuthenticated, isAdmin: authIsAdmin, isLoading: authLoading, token, logout } = useAuth();
+    const { user, isAuthenticated, isLoading: authLoading, token, logout } = useAuth();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    // Verify admin status with the server using the token for maximum security
-    const serverIsAdmin = useQuery(api.auth.isAdmin, token ? { token } : "skip");
+    // Verify staff status with the server using the token for maximum security
+    const serverStaff = useQuery(api.auth.isStaff, token ? { token } : "skip");
 
-    const isLoading = authLoading || serverIsAdmin === undefined;
-    const isAdmin = authIsAdmin && serverIsAdmin === true;
+    const isLoading = authLoading || serverStaff === undefined;
+    const role = serverStaff?.isStaff ? (serverStaff.role || "user") : "user";
+    const isAdmin = role === "admin";
+
+    const perms = new Set<string>(getPermissions(role));
 
     // Redirect to login if not authenticated
     useEffect(() => {
@@ -63,8 +79,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return null;
     }
 
-    // If authenticated but not admin, show access denied
-    if (!isAdmin) {
+    // If authenticated but not staff, show access denied
+    if (role === "user") {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0b1120] p-4">
                 <div className="max-w-md w-full bg-white dark:bg-[#151e32] p-8 rounded-3xl border border-gray-100 dark:border-white/5 shadow-2xl text-center">
@@ -75,7 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         Acesso Negado
                     </h1>
                     <p className="text-gray-500 dark:text-gray-400 mb-8">
-                        A conta <span className="font-bold text-gray-900 dark:text-gray-200">{user?.email}</span> não tem permissões de administrador.
+                        A conta <span className="font-bold text-gray-900 dark:text-gray-200">{user?.email}</span> não tem permissões de equipa.
                     </p>
                     <div className="space-y-3">
                         <Link href="/" className="block w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-primary/25">
@@ -93,19 +109,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         );
     }
 
-    const menuItems = [
+    const menuItems: MenuItem[] = [
         { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-        { label: "Pedidos", href: "/admin/orders", icon: ShoppingBag },
-        { label: "Produtos", href: "/admin/products", icon: Package },
-        { label: "Categorias", href: "/admin/categories", icon: Palette },
-        { label: "Utilizadores", href: "/admin/users", icon: Users },
-        { label: "Mensagens", href: "/admin/contacts", icon: MessageSquare },
-        { label: "Portfólio", href: "/admin/portfolio", icon: Briefcase },
-        { label: "Blog", href: "/admin/blog", icon: FileText },
-        { label: "Importação", href: "/admin/import", icon: FileSpreadsheet },
-        { label: "Integrações IA", href: "/admin/ai", icon: Bot },
-        { label: "Definições", href: "/admin/settings", icon: Settings },
-    ];
+        { label: "Cotações", href: "/admin/quotes", icon: ClipboardList, permission: "quotes:read" },
+        { label: "Pedidos", href: "/admin/orders", icon: ShoppingBag, permission: "orders:read" },
+        { label: "Produtos", href: "/admin/products", icon: Package, permission: "catalog:manage" },
+        { label: "Categorias", href: "/admin/categories", icon: Palette, permission: "catalog:manage" },
+        { label: "Marcas", href: "/admin/brands", icon: Tag, permission: "catalog:manage" },
+        { label: "Utilizadores", href: "/admin/users", icon: Users, permission: "users:manage" },
+        { label: "Mensagens", href: "/admin/contacts", icon: MessageSquare, permission: "contacts:manage" },
+        { label: "Portfólio", href: "/admin/portfolio", icon: Briefcase, permission: "content:manage" },
+        { label: "Blog", href: "/admin/blog", icon: FileText, permission: "content:manage" },
+        { label: "Serviços", href: "/admin/services", icon: Sparkles, permission: "content:manage" },
+        { label: "Conteúdo do Site", href: "/admin/site", icon: LayoutTemplate, permission: "content:manage" },
+        { label: "Documentos Legais", href: "/admin/legal", icon: ScrollText, permission: "content:manage" },
+        {
+            label: "Importação",
+            href: "/admin/import",
+            icon: FileSpreadsheet,
+            permission: "__import__",
+        },
+        { label: "Integrações IA", href: "/admin/ai", icon: Bot, permission: "ai:manage" },
+        { label: "Definições", href: "/admin/settings", icon: Settings, permission: "settings:manage" },
+    ].filter((item) => {
+        if (!item.permission) return true;
+        if (item.permission === "__import__") {
+            return perms.has("content:import") || perms.has("catalog:import");
+        }
+        return perms.has(item.permission);
+    });
 
     const isActive = (href: string) => {
         if (href === '/admin' && pathname === '/admin') return true;
@@ -154,6 +186,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <p className="text-[10px] text-gray-500 truncate">
                                 {user?.email}
                             </p>
+                            <span className="mt-1 inline-block rounded-md bg-primary/10 text-primary px-2 py-0.5 text-[9px] font-black uppercase tracking-widest">
+                                {role}
+                            </span>
                         </div>
                     </div>
 

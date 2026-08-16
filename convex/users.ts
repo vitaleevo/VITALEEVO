@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkAdmin } from "./utils";
+import { requirePermission } from "./utils";
 
 // Get user by email
 export const getByEmail = query({
@@ -62,7 +62,7 @@ export const updateProfile = mutation({
 export const getAllAdmin = query({
     args: { token: v.string() },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "users:manage");
         const users = await ctx.db
             .query("users")
             .order("desc")
@@ -90,7 +90,7 @@ export const updateRole = mutation({
         role: v.string(),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "users:manage");
         await ctx.db.patch(args.userId, { role: args.role });
         return { success: true };
     },
@@ -104,8 +104,24 @@ export const toggleActive = mutation({
         isActive: v.boolean(),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "users:manage");
         await ctx.db.patch(args.userId, { isActive: args.isActive });
         return { success: true };
+    },
+});
+
+// Staff list for assignment (any quotes:read role)
+export const getStaffList = query({
+    args: { token: v.string() },
+    handler: async (ctx, args) => {
+        await requirePermission(ctx, args.token, "quotes:read");
+        const users = await ctx.db.query("users").collect();
+        return users
+            .filter((u) => u.isActive !== false && ["admin", "commercial", "operations"].includes(u.role || ""))
+            .map((u) => ({
+                _id: u._id,
+                name: u.name,
+                role: u.role,
+            }));
     },
 });

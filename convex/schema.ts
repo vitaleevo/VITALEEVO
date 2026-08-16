@@ -30,6 +30,7 @@ export default defineSchema({
     products: defineTable({
         name: v.string(),
         slug: v.string(),
+        sku: v.optional(v.string()),
         description: v.string(),
         fullDescription: v.optional(v.string()),
         price: v.number(),
@@ -45,14 +46,23 @@ export default defineSchema({
         stock: v.number(),
         isNew: v.boolean(),
         isActive: v.boolean(),
+        status: v.optional(v.union(
+            v.literal("draft"),
+            v.literal("published"),
+            v.literal("archived")
+        )),
         isFeatured: v.optional(v.boolean()),
         rating: v.number(),
         reviewCount: v.number(),
+        publishedAt: v.optional(v.number()),
         createdAt: v.number(),
+        updatedAt: v.optional(v.number()),
     })
         .index("by_slug", ["slug"])
+        .index("by_sku", ["sku"])
         .index("by_category", ["category"])
         .index("by_active", ["isActive"])
+        .index("by_status", ["status"])
         .index("by_featured", ["isFeatured"]),
 
     // Cart items table
@@ -99,6 +109,7 @@ export default defineSchema({
         }),
         paymentMethod: v.string(),
         paymentReference: v.optional(v.string()),
+        accessToken: v.optional(v.string()),
         notes: v.optional(v.string()),
         createdAt: v.number(),
         updatedAt: v.number(),
@@ -106,7 +117,81 @@ export default defineSchema({
         .index("by_user", ["userId"])
         .index("by_status", ["status"])
         .index("by_orderNumber", ["orderNumber"])
+        .index("by_accessToken", ["accessToken"])
         .index("by_guestEmail", ["guestEmail"]),
+
+    quoteRequests: defineTable({
+        publicId: v.string(),
+        status: v.union(
+            v.literal("new"),
+            v.literal("qualified"),
+            v.literal("proposal_sent"),
+            v.literal("negotiating"),
+            v.literal("accepted"),
+            v.literal("lost"),
+            v.literal("cancelled"),
+            v.literal("fulfilled")
+        ),
+        name: v.string(),
+        email: v.string(),
+        phone: v.string(),
+        company: v.optional(v.string()),
+        message: v.optional(v.string()),
+        source: v.string(),
+        assignedTo: v.optional(v.id("users")),
+        nextFollowUpAt: v.optional(v.number()),
+        proposalNote: v.optional(v.string()),
+        quotedTotal: v.optional(v.number()),
+        acceptedAt: v.optional(v.number()),
+        fulfilledAt: v.optional(v.number()),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index("by_publicId", ["publicId"])
+        .index("by_status_createdAt", ["status", "createdAt"])
+        .index("by_assignee_status", ["assignedTo", "status"])
+        .index("by_email", ["email"]),
+
+    quoteItems: defineTable({
+        quoteId: v.id("quoteRequests"),
+        productId: v.optional(v.id("products")),
+        name: v.string(),
+        sku: v.optional(v.string()),
+        image: v.string(),
+        quantity: v.number(),
+        quotedUnitPrice: v.optional(v.number()),
+        createdAt: v.number(),
+    }).index("by_quote", ["quoteId"]),
+
+    quoteTasks: defineTable({
+        quoteId: v.id("quoteRequests"),
+        title: v.string(),
+        assignedTo: v.optional(v.id("users")),
+        dueAt: v.optional(v.number()),
+        status: v.union(v.literal("todo"), v.literal("done"), v.literal("cancelled")),
+        createdBy: v.optional(v.id("users")),
+        createdAt: v.number(),
+        completedAt: v.optional(v.number()),
+    })
+        .index("by_quote", ["quoteId"])
+        .index("by_assignee_status", ["assignedTo", "status"]),
+
+    inventoryMovements: defineTable({
+        productId: v.id("products"),
+        quoteId: v.optional(v.id("quoteRequests")),
+        actorId: v.id("users"),
+        type: v.union(
+            v.literal("adjustment"),
+            v.literal("reserved"),
+            v.literal("released"),
+            v.literal("fulfilled")
+        ),
+        quantity: v.number(),
+        note: v.optional(v.string()),
+        createdAt: v.number(),
+    })
+        .index("by_product", ["productId"])
+        .index("by_quote", ["quoteId"]),
 
     // Contact messages table
     contacts: defineTable({
@@ -196,8 +281,18 @@ export default defineSchema({
         authorImage: v.optional(v.string()),
         readTime: v.string(),
         isPublished: v.boolean(),
+        status: v.optional(v.union(
+            v.literal("draft"),
+            v.literal("scheduled"),
+            v.literal("published"),
+            v.literal("archived")
+        )),
         isFeatured: v.optional(v.boolean()),
         publishedAt: v.optional(v.number()),
+        scheduledAt: v.optional(v.number()),
+        seoTitle: v.optional(v.string()),
+        seoDescription: v.optional(v.string()),
+        deletedAt: v.optional(v.number()),
         createdAt: v.number(),
         updatedAt: v.number(),
     })
@@ -227,6 +322,14 @@ export default defineSchema({
         })),
         ctaText: v.string(),
         isActive: v.boolean(),
+        status: v.optional(v.union(
+            v.literal("draft"),
+            v.literal("published"),
+            v.literal("archived")
+        )),
+        seoTitle: v.optional(v.string()),
+        seoDescription: v.optional(v.string()),
+        updatedAt: v.optional(v.number()),
         order: v.number(),
     })
         .index("by_slug", ["slug"])
@@ -280,6 +383,70 @@ export default defineSchema({
         }),
         updatedAt: v.number(),
     }).index("by_key", ["key"]),
+
+    sitePages: defineTable({
+        slug: v.string(),
+        title: v.string(),
+        seoTitle: v.string(),
+        seoDescription: v.string(),
+        ogImage: v.optional(v.string()),
+        status: v.union(v.literal("draft"), v.literal("published")),
+        updatedBy: v.id("users"),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    }).index("by_slug", ["slug"]),
+
+    siteBlocks: defineTable({
+        pageId: v.id("sitePages"),
+        type: v.union(
+            v.literal("hero"),
+            v.literal("stats"),
+            v.literal("logos"),
+            v.literal("services"),
+            v.literal("projects"),
+            v.literal("benefits"),
+            v.literal("cta"),
+            v.literal("richText")
+        ),
+        content: v.string(),
+        order: v.number(),
+        isVerified: v.boolean(),
+        updatedAt: v.number(),
+    }).index("by_page_order", ["pageId", "order"]),
+
+    legalDocuments: defineTable({
+        slug: v.string(),
+        title: v.string(),
+        content: v.string(),
+        status: v.union(v.literal("draft"), v.literal("published")),
+        updatedBy: v.id("users"),
+        updatedAt: v.number(),
+    }).index("by_slug", ["slug"]),
+
+    media: defineTable({
+        storageId: v.id("_storage"),
+        url: v.string(),
+        filename: v.string(),
+        contentType: v.string(),
+        size: v.number(),
+        purpose: v.union(v.literal("product"), v.literal("content"), v.literal("profile")),
+        uploadedBy: v.id("users"),
+        createdAt: v.number(),
+    })
+        .index("by_uploadedBy", ["uploadedBy"])
+        .index("by_purpose", ["purpose"]),
+
+    auditLogs: defineTable({
+        actorId: v.id("users"),
+        action: v.string(),
+        entityType: v.string(),
+        entityId: v.string(),
+        details: v.optional(v.string()),
+        createdAt: v.number(),
+    })
+        .index("by_actor", ["actorId"])
+        .index("by_entity", ["entityType", "entityId"])
+        .index("by_createdAt", ["createdAt"]),
 
     // Newsletter subscribers table
     newsletters: defineTable({

@@ -101,7 +101,7 @@ const Navbar: React.FC = () => {
           <div className="hidden items-center gap-2 lg:flex">
             {/* Cart */}
             <Link
-              href="/cart"
+              href="/cotacao"
               className="group relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:border-primary/40 hover:text-primary dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
               aria-label="Carrinho"
             >

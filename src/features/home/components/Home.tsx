@@ -14,6 +14,9 @@ import {
   Network,
   Sparkles,
   ShieldCheck,
+  Shield,
+  Camera,
+  ShoppingBag,
 } from "lucide-react";
 import Hero from "@/shared/components/Hero";
 import AnimatedCounter from "@/shared/components/AnimatedCounter";
@@ -38,6 +41,19 @@ const clientLogos = [
   "Eagle General Companies",
   "Haojue Internacional",
 ];
+
+const serviceIconMap: Record<string, React.ReactNode> = {
+  globe: <Globe className="h-6 w-6" />,
+  megaphone: <Megaphone className="h-6 w-6" />,
+  bot: <Bot className="h-6 w-6" />,
+  network: <Network className="h-6 w-6" />,
+  sparkles: <Sparkles className="h-6 w-6" />,
+  shield: <Shield className="h-6 w-6" />,
+  camera: <Camera className="h-6 w-6" />,
+  "shopping-bag": <ShoppingBag className="h-6 w-6" />,
+};
+
+const fallbackServiceIcon = <Sparkles className="h-6 w-6" />;
 
 const serviceGroups = [
   {
@@ -85,6 +101,16 @@ const fadeUp = {
 
 const Home: React.FC = () => {
   const featuredProjects = useQuery(api.projects.getFeaturedProjects);
+  const dbServices = useQuery(api.services.getAll);
+
+  const services = dbServices && dbServices.length > 0
+    ? dbServices.map((s) => ({
+        icon: serviceIconMap[s.icon] || fallbackServiceIcon,
+        title: s.title,
+        tagline: s.subtitle,
+        items: s.features,
+      }))
+    : serviceGroups;
 
   return (
     <div className="overflow-x-hidden">
@@ -152,7 +178,7 @@ const Home: React.FC = () => {
           </div>
 
           <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {serviceGroups.map((group, idx) => (
+            {services.map((group, idx) => (
               <motion.div
                 key={group.title}
                 initial="hidden"

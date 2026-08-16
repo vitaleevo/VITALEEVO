@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { checkAdmin } from "./utils";
+import { requirePermission } from "./utils";
 
 // Submit a contact message
 export const submit = mutation({
@@ -26,7 +26,7 @@ export const submit = mutation({
 export const getAll = query({
     args: { token: v.string() },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "contacts:manage");
         return await ctx.db
             .query("contacts")
             .order("desc")
@@ -38,7 +38,7 @@ export const getAll = query({
 export const markAsRead = mutation({
     args: { token: v.string(), id: v.id("contacts"), isRead: v.boolean() },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "contacts:manage");
         await ctx.db.patch(args.id, { isRead: args.isRead });
     },
 });
@@ -47,7 +47,7 @@ export const markAsRead = mutation({
 export const remove = mutation({
     args: { token: v.string(), id: v.id("contacts") },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "contacts:manage");
         await ctx.db.delete(args.id);
     },
 });

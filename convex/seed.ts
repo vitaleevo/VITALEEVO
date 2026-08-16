@@ -110,3 +110,86 @@ export const seedBlogCategories = mutation({
         return { message: "Blog categories seeded" };
     },
 });
+
+export const seedServices = mutation({
+    args: {},
+    handler: async (ctx) => {
+        const services = [
+            {
+                title: "Desenvolvimento Web",
+                slug: "desenvolvimento-web",
+                subtitle: "A sua vitrine digital a converter visitantes em clientes.",
+                description: "Websites, e-commerce e sistemas web à medida, com design de alto impacto e performance.",
+                icon: "globe",
+                image: "",
+                features: ["Websites", "E-commerce", "Sistemas Web"],
+                benefits: [],
+                process: [],
+                ctaText: "Pedir Proposta",
+                isActive: true,
+                status: "published" as const,
+                order: 1,
+            },
+            {
+                title: "Marketing Digital",
+                slug: "marketing-digital",
+                subtitle: "Tráfego qualificado e campanhas que geram vendas.",
+                description: "Gestão de redes sociais, anúncios pagos e SEO para posicionar a sua marca.",
+                icon: "megaphone",
+                image: "",
+                features: ["Gestão de Redes Sociais", "Meta Ads", "Google Ads", "SEO"],
+                benefits: [],
+                process: [],
+                ctaText: "Pedir Proposta",
+                isActive: true,
+                status: "published" as const,
+                order: 2,
+            },
+            {
+                title: "Sistemas & Automação",
+                slug: "sistemas-automacao",
+                subtitle: "Processos otimizados com ERP, IA e integrações.",
+                description: "Automatize operações com sistemas integrados, IA e fluxos inteligentes.",
+                icon: "bot",
+                image: "",
+                features: ["ERP", "IA", "Integrações"],
+                benefits: [],
+                process: [],
+                ctaText: "Pedir Proposta",
+                isActive: true,
+                status: "published" as const,
+                order: 3,
+            },
+            {
+                title: "Infraestrutura TI",
+                slug: "infraestrutura-ti",
+                subtitle: "Redes, segurança e equipamentos para a sua operação.",
+                description: "Redes estruturadas, videovigilância (CCTV) e controlo de acessos biométrico.",
+                icon: "network",
+                image: "",
+                features: ["Redes", "CCTV", "Biometria"],
+                benefits: [],
+                process: [],
+                ctaText: "Pedir Proposta",
+                isActive: true,
+                status: "published" as const,
+                order: 4,
+            },
+        ];
+
+        let inserted = 0;
+        for (const s of services) {
+            const existing = await ctx.db
+                .query("services")
+                .withIndex("by_slug", (q) => q.eq("slug", s.slug))
+                .first();
+
+            if (!existing) {
+                await ctx.db.insert("services", { ...s, updatedAt: Date.now() });
+                inserted++;
+            }
+        }
+
+        return { message: `Services seeded (${inserted} new)` };
+    },
+});

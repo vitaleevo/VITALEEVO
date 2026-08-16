@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { checkAdmin } from "./utils";
+import { requirePermission } from "./utils";
 
 const DEFAULT_SETTINGS = {
     key: "site_config",
@@ -69,7 +69,7 @@ export const update = mutation({
         updatedAt: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "settings:manage");
         const { token, key, _id, _creationTime, updatedAt, ...cleanArgs } = args;
 
         const existing = await ctx.db

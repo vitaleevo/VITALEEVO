@@ -1,6 +1,6 @@
 import { action, internalMutation, mutation, query } from "./_generated/server";
 import { v, ConvexError } from "convex/values";
-import { checkAdmin, checkAuthenticated } from "./utils";
+import { checkAdmin, checkAuthenticated, requirePermission, requireStaff } from "./utils";
 import { getPasswordValidationError, hashPassword, verifyPassword, isLegacyHash, randomToken } from "./password";
 import { internal } from "./_generated/api";
 
@@ -205,11 +205,24 @@ export const isAdmin = query({
     },
 });
 
+// Check if user is staff (any backoffice role) (Authenticated)
+export const isStaff = query({
+    args: { token: v.optional(v.string()) },
+    handler: async (ctx, args) => {
+        try {
+            const user = await requireStaff(ctx, args.token);
+            return { isStaff: true, role: user.role, name: user.name };
+        } catch {
+            return { isStaff: false, role: "user", name: null };
+        }
+    },
+});
+
 // Get all users (Admin only)
 export const getAllAdmin = query({
     args: { token: v.string() },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "users:manage");
 
         const users = await ctx.db
             .query("users")
@@ -241,7 +254,7 @@ export const adminUpdateUser = mutation({
         isActive: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "users:manage");
         const { token, userId, ...updates } = args;
 
         const cleanUpdates = Object.fromEntries(
@@ -264,7 +277,7 @@ export const adminResetPassword = mutation({
         newPassword: v.string(),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "users:manage");
         const passwordError = getPasswordValidationError(args.newPassword);
         if (passwordError) throw new ConvexError(passwordError);
 
@@ -289,7 +302,7 @@ export const adminCreateUser = mutation({
         role: v.string(),
     },
     handler: async (ctx, args) => {
-        await checkAdmin(ctx, args.token);
+        await requirePermission(ctx, args.token, "users:manage");
 
         const existingUser = await ctx.db
             .query("users")
