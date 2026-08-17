@@ -18,10 +18,15 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("SECRET_KEY", default="dev-only-secret-key-change-me-!1234567890abcdef")
 DEBUG = env("DEBUG")
 
-# Railway injeta RAILWAY_PUBLIC_DOMAIN automaticamente — juntar aos hosts permitidos.
+# Railway injeta RAILWAY_PUBLIC_DOMAIN/RAILWAY_PRIVATE_DOMAIN automaticamente —
+# juntar aos hosts permitidos (o healthcheck interno usa o hostname privado).
 _allowed_hosts = env("ALLOWED_HOSTS")
-if railway_domain := env.str("RAILWAY_PUBLIC_DOMAIN", default=""):
-    _allowed_hosts.append(railway_domain)
+for _domain in (
+    env.str("RAILWAY_PUBLIC_DOMAIN", default=""),
+    env.str("RAILWAY_PRIVATE_DOMAIN", default=""),
+):
+    if _domain:
+        _allowed_hosts.append(_domain)
 ALLOWED_HOSTS = _allowed_hosts
 
 INSTALLED_APPS = [

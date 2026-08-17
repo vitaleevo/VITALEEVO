@@ -17,4 +17,4 @@ EXPOSE 8080
 #   web    → migra, estáticos e gunicorn (API) — escuta em PORT (Railway: 8080)
 #   worker → consome a fila RQ (e-mails, tarefas em background)
 #   seed   → carga inicial idempotente (opcional)
-CMD ["sh", "-c", "if [ \"$SERVICE_ROLE\" = \"worker\" ]; then exec python manage.py rqworker default; elif [ \"$SERVICE_ROLE\" = \"seed\" ]; then exec python manage.py seed; else python manage.py migrate --noinput && python manage.py collectstatic --noinput && exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 60; fi"]
+CMD ["sh", "-c", "if [ \"$SERVICE_ROLE\" = \"worker\" ]; then exec python manage.py rqworker default; elif [ \"$SERVICE_ROLE\" = \"seed\" ]; then exec python manage.py seed; else python manage.py migrate --noinput && python manage.py collectstatic --noinput && exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 60 --access-logfile -; fi"]
