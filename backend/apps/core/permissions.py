@@ -7,7 +7,9 @@ from apps.core.enums import has_permission
 class HasCapability(BasePermission):
     """Requer que o utilizador staff possua uma capacidade (ex.: 'quotes:manage')."""
 
-    capability = None
+    def __init__(self, capability: str | None = None):
+        self.capability = capability
+        super().__init__()
 
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
