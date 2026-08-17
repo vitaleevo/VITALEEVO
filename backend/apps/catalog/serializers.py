@@ -1,5 +1,6 @@
 """Serializers do catálogo — públicos (loja) e de gestão (staff)."""
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 from apps.core.validators import validate_positive_quantity, validate_slug
 
@@ -61,7 +62,7 @@ class ProductDetailSerializer(ProductListSerializer):
 class ProductAdminSerializer(serializers.ModelSerializer):
     """Gestão (staff) — todos os campos, inclui estado e stock."""
 
-    slug = serializers.CharField(max_length=220, validators=[validate_slug])
+    slug = serializers.CharField(max_length=220, validators=[validate_slug, UniqueValidator(queryset=Product.objects.all())])
     category = serializers.SlugRelatedField(slug_field="slug", queryset=Category.objects.all())
     brand = serializers.SlugRelatedField(slug_field="slug", queryset=Brand.objects.all(), allow_null=True, required=False)
 

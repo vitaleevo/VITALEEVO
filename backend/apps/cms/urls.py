@@ -1,5 +1,21 @@
-"""Rotas do CMS (serviços, documentos legais, conteúdo do site) — v1.
+"""Rotas do CMS (v1) — serviços, documentos legais, páginas, contactos, newsletter e configurações."""
+from rest_framework.routers import DefaultRouter
 
-Populado na fase de CMS; enquanto vazio, não é incluído no api_urls.
-"""
-urlpatterns = []
+from .views import (
+    ContactMessageViewSet,
+    LegalDocumentViewSet,
+    NewsletterViewSet,
+    ServiceViewSet,
+    SettingViewSet,
+    SitePageViewSet,
+)
+
+router = DefaultRouter()
+router.register("cms/services", ServiceViewSet, basename="service")
+router.register("cms/legal", LegalDocumentViewSet, basename="legal-document")
+router.register("cms/pages", SitePageViewSet, basename="site-page")
+router.register("cms/contacts", ContactMessageViewSet, basename="contact-message")
+router.register("cms/newsletters", NewsletterViewSet, basename="newsletter")
+router.register("cms/settings", SettingViewSet, basename="setting")
+
+urlpatterns = router.urls
