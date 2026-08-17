@@ -18,7 +18,11 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("SECRET_KEY", default="dev-only-secret-key-change-me-!1234567890abcdef")
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+# Railway injeta RAILWAY_PUBLIC_DOMAIN automaticamente — juntar aos hosts permitidos.
+_allowed_hosts = env("ALLOWED_HOSTS")
+if railway_domain := env.str("RAILWAY_PUBLIC_DOMAIN", default=""):
+    _allowed_hosts.append(railway_domain)
+ALLOWED_HOSTS = _allowed_hosts
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -169,6 +173,10 @@ EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="no-reply@vitaleevo.ao")
+
+# Sem SMTP configurado, usa o backend de console — as tarefas nunca falham em prod.
+if not EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # --- URLs públicas do site (usadas em e-mails/notificações) ---
 SITE_URL = env.str("SITE_URL", default="https://vitaleevo.ao")
