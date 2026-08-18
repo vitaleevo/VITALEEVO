@@ -5,6 +5,7 @@ import Script from "next/script";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { SITE_CONTACT } from "@/shared/utils/contact";
+import { getSiteConfig } from "@/shared/utils/api";
 import { ThemeProvider } from "@/shared/components/ThemeProvider";
 import { ConvexClientProvider } from "@/shared/providers/ConvexClientProvider";
 import { CartProvider } from "@/shared/providers/CartProvider";
@@ -30,31 +31,11 @@ export const viewport: Viewport = {
     initialScale: 1,
 };
 
-import { ConvexHttpClient } from "convex/browser";
-import { api } from "../../convex/_generated/api";
-
 export async function generateMetadata(
     _props: any,
     parent: ResolvingMetadata
 ): Promise<Metadata> {
-    let settings: any = null;
-    try {
-        const url = process.env.CONVEX_URL || process.env.NEXT_PUBLIC_CONVEX_URL;
-
-        if (url && api?.settings?.get) {
-            const client = new ConvexHttpClient(url);
-            settings = await client.query(api.settings.get);
-        } else {
-            if (!url && process.env.NODE_ENV === 'development') {
-                console.warn("⚠️ CONVEX_URL is not set for metadata generation.");
-            }
-        }
-    } catch (error: any) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error("❌ Failed to fetch settings for metadata:", error?.message || error);
-        }
-        // Fallback to default values is handled below
-    }
+    const settings = await getSiteConfig();
 
     const previousImages = (await parent).openGraph?.images || [];
     const siteName = settings?.siteName || "VitalEvo";
