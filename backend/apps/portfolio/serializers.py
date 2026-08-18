@@ -12,6 +12,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     """Projeto público — o essencial para cards e página do projeto."""
 
     category = serializers.SlugRelatedField(slug_field="slug", read_only=True, allow_null=True)
+    category_name = serializers.CharField(source="category.name", read_only=True, allow_null=True)
 
     class Meta:
         model = Project
@@ -20,6 +21,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "title",
             "slug",
             "category",
+            "category_name",
             "tags",
             "image",
             "images",

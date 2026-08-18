@@ -82,6 +82,14 @@ class WishlistViewSet(viewsets.ViewSet):
         WishlistItem.objects.create(user=request.user, product=product)
         return Response({"favorited": True})
 
+    @action(detail=False, methods=["get"])
+    def is_favorited(self, request):
+        product_slug = request.query_params.get("product")
+        if not product_slug:
+            return Response({"favorited": False})
+        favorited = WishlistItem.objects.filter(user=request.user, product__slug=product_slug).exists()
+        return Response({"favorited": favorited})
+
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     """Notificações do utilizador autenticado."""

@@ -1,19 +1,22 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
+import { api, AUTH_STORAGE_KEY, clearStoredAuth, getStoredAuth, setStoredAuth } from "../utils/apiClient";
 import { getErrorMessage } from "../utils/error-handler";
 
 interface User {
-    _id: Id<"users">;
+    _id: string; // id do Django (UUID)
     email: string;
     name: string;
+    firstName?: string;
+    lastName?: string;
     role: string;
-    token: string; // Session token
+    token: string; // JWT access
+    refreshToken?: string;
     avatarUrl?: string;
     phone?: string;
+    isStaff?: boolean;
+    permissions?: string[];
 }
 
 interface AuthContextType {
@@ -31,95 +34,76 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_STORAGE_KEY = "vitaleevo_auth";
-
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const loginMutation = useMutation(api.auth.login);
-    const registerMutation = useMutation(api.auth.register);
-
-    const dbUser = useQuery(api.auth.getById, user?._id ? { userId: user._id, token: user.token } : "skip");
-
-    // Sync with database updates
+    // Restaurar sessão do storage e validar via /auth/me/
     useEffect(() => {
-        if (dbUser === null && user?._id && !isLoading) {
-            console.warn("Sessão inválida ou utilizador não encontrado. Logging out.");
-            logout();
+        const stored = getStoredAuth();
+        if (!stored) {
+            localStorage.removeItem(AUTH_STORAGE_KEY);
+            setIsLoading(false);
             return;
         }
-
-        if (dbUser) {
-            setUser(prev => {
-                // If we don't have a local user yet, this is an unexpected state since dbUser is triggered by user?._id
-                if (!prev) return null;
-
-                // Compare fields to avoid unnecessary state updates
-                const hasChanges =
-                    prev.email !== dbUser.email ||
-                    prev.name !== dbUser.name ||
-                    prev.role !== dbUser.role ||
-                    prev.phone !== dbUser.phone ||
-                    prev.avatarUrl !== dbUser.avatarUrl;
-
-                if (hasChanges) {
-                    return {
-                        ...prev,
-                        email: dbUser.email,
-                        name: dbUser.name,
-                        role: dbUser.role,
-                        phone: dbUser.phone,
-                        avatarUrl: dbUser.avatarUrl
-                    };
-                }
-                return prev;
-            });
-        }
-    }, [dbUser, user?._id, isLoading]);
-
-    // Keep the session scoped to the current browser tab.
-    useEffect(() => {
-        const stored = sessionStorage.getItem(AUTH_STORAGE_KEY);
-        if (stored) {
-            try {
-                const parsed = JSON.parse(stored);
-                setUser(parsed);
-            } catch (e) {
-                sessionStorage.removeItem(AUTH_STORAGE_KEY);
-            }
-        }
-        localStorage.removeItem(AUTH_STORAGE_KEY);
-        setIsLoading(false);
+        api.auth
+            .me(stored.token)
+            .then(profile => {
+                setUser({
+                    _id: profile.id as string,
+                    email: profile.email as string,
+                    name: `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim() || (profile.email as string),
+                    firstName: profile.firstName as string | undefined,
+                    lastName: profile.lastName as string | undefined,
+                    role: profile.role as string,
+                    token: stored.token,
+                    refreshToken: stored.refreshToken,
+                    phone: (profile.phone as string | undefined) ?? "",
+                    isStaff: Boolean(profile.isStaff),
+                    permissions: profile.permissions as string[] | undefined,
+                });
+            })
+            .catch(() => {
+                clearStoredAuth();
+                setUser(null);
+            })
+            .finally(() => setIsLoading(false));
     }, []);
 
-    // Do not persist authentication beyond the current browser session.
+    // Persistência da sessão (tab atual)
     useEffect(() => {
-        if (user) {
-            sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+        if (user?.token) {
+            sessionStorage.setItem(
+                AUTH_STORAGE_KEY,
+                JSON.stringify({ token: user.token, refreshToken: user.refreshToken })
+            );
         } else {
             sessionStorage.removeItem(AUTH_STORAGE_KEY);
         }
-    }, [user]);
+    }, [user?.token, user?.refreshToken]);
 
     const login = async (email: string, password: string) => {
         setError(null);
         setIsLoading(true);
         try {
-            const result = await loginMutation({ email, password });
-
-            // If it returns (didn't throw), it's successful
+            const { access, refresh } = await api.auth.login(email, password);
+            const profile = await api.auth.me(access);
+            setStoredAuth({ token: access, refreshToken: refresh });
             setUser({
-                _id: result.userId as Id<"users">,
-                email: result.email!,
-                name: result.name!,
-                role: result.role!,
-                token: result.sessionToken!,
-                avatarUrl: result.avatarUrl,
-                phone: result.phone,
+                _id: profile.id as string,
+                email: profile.email as string,
+                name: `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim() || (profile.email as string),
+                firstName: profile.firstName as string | undefined,
+                lastName: profile.lastName as string | undefined,
+                role: profile.role as string,
+                token: access,
+                refreshToken: refresh,
+                phone: (profile.phone as string | undefined) ?? "",
+                isStaff: Boolean(profile.isStaff),
+                permissions: profile.permissions as string[] | undefined,
             });
-        } catch (err: any) {
+        } catch (err: unknown) {
             const message = getErrorMessage(err);
             setError(message);
             throw new Error(message);
@@ -132,18 +116,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError(null);
         setIsLoading(true);
         try {
-            const result = await registerMutation({ email, password, name, phone });
-
-            // Auto-login after registration
-            setUser({
-                _id: result.userId as Id<"users">,
-                email: email.toLowerCase(),
-                name: name,
-                role: "user",
-                token: result.sessionToken!,
-                phone: phone,
+            const [firstName = "", lastName = ""] = name.split(" ").filter(Boolean);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8100"}/api/v1/auth/register/`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password, first_name: firstName, last_name: lastName.slice(0, 80) || "", phone: phone ?? "" }),
             });
-        } catch (err: any) {
+            const data = await res.json();
+            if (!res.ok) {
+                const first = Array.isArray(data.email) ? data.email[0] : data.detail;
+                throw new Error(typeof first === "string" ? first : "Registo falhou");
+            }
+            await login(email, password);
+        } catch (err: unknown) {
             const message = getErrorMessage(err);
             setError(message);
             throw new Error(message);
@@ -154,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const logout = () => {
         setUser(null);
-        sessionStorage.removeItem(AUTH_STORAGE_KEY);
+        clearStoredAuth();
     };
 
     const clearError = () => setError(null);

@@ -1,32 +1,37 @@
 "use client";
 
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
+import { api } from "@/shared/utils/apiClient";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { Heart } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface WishlistButtonProps {
-    productId: Id<"products">;
+    productId: string;
     className?: string;
 }
 
 export default function WishlistButton({ productId, className }: WishlistButtonProps) {
-    const { user, isAuthenticated } = useAuth();
-    const isFavorited = useQuery(api.wishlist.isFavorited, {
-        userId: user?._id,
-        productId
-    });
-    const toggleWishlist = useMutation(api.wishlist.toggle);
+    const { token, isAuthenticated } = useAuth();
+    const [isFavorited, setIsFavorited] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const handleToggle = async (e: React.MouseEvent) => {
+    useEffect(() => {
+        if (!isAuthenticated || !token) {
+            setIsFavorited(false);
+            return;
+        }
+        let active = true;
+        api.wishlist.isFavorited(productId, token)
+            .then((res) => { if (active) setIsFavorited(Boolean(res?.favorited)); })
+            .catch(() => { if (active) setIsFavorited(false); });
+        return () => { active = false; };
+    }, [productId, token, isAuthenticated]);
+
+    const handleToggle = useCallback(async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
-        if (!isAuthenticated) {
-            // Option: Redirect to login or show message
+        if (!isAuthenticated || !token) {
             alert("Por favor, faça login para adicionar aos favoritos.");
             return;
         }
@@ -35,16 +40,14 @@ export default function WishlistButton({ productId, className }: WishlistButtonP
 
         setLoading(true);
         try {
-            await toggleWishlist({
-                userId: user!._id,
-                productId
-            });
+            const res = await api.wishlist.toggle(productId, token);
+            setIsFavorited(Boolean(res?.favorited));
         } catch (error) {
             console.error("Error toggling wishlist:", error);
         } finally {
             setLoading(false);
         }
-    };
+    }, [productId, token, isAuthenticated, loading]);
 
     return (
         <button

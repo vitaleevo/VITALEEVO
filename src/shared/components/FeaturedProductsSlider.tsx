@@ -1,8 +1,8 @@
 "use client";
 
 import React from 'react';
-import { useQuery } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+import { useApiQuery } from '@/shared/hooks/useApiQuery';
+import { api } from '@/shared/utils/apiClient';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import  { ShoppingBag, ArrowRight, ArrowLeft, Plus }  from 'lucide-react';
@@ -15,7 +15,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 export default function FeaturedProductsSlider() {
-    const featuredProducts = useQuery(api.products.getFeatured, { limit: 10 });
+    const { data: featuredProducts } = useApiQuery<any[]>(null, { fetcher: () => api.products.getFeatured(10) });
 
     if (!featuredProducts || featuredProducts.length === 0) return null;
 

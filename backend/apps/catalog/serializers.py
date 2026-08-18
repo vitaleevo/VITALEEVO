@@ -34,6 +34,9 @@ class ProductListSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(slug_field="slug", read_only=True)
     subcategory = serializers.SlugRelatedField(slug_field="slug", read_only=True, allow_null=True)
     brand = serializers.SlugRelatedField(slug_field="slug", read_only=True)
+    category_name = serializers.CharField(source="category.name", read_only=True)
+    subcategory_name = serializers.CharField(source="subcategory.name", read_only=True, allow_null=True)
+    brand_name = serializers.CharField(source="brand.name", read_only=True, allow_null=True)
 
     class Meta:
         model = Product
@@ -46,8 +49,11 @@ class ProductListSerializer(serializers.ModelSerializer):
             "price",
             "old_price",
             "category",
+            "category_name",
             "subcategory",
+            "subcategory_name",
             "brand",
+            "brand_name",
             "stock",
             "is_new",
             "is_featured",
@@ -80,6 +86,9 @@ class ProductAdminSerializer(serializers.ModelSerializer):
         required=False,
     )
     brand = serializers.SlugRelatedField(slug_field="slug", queryset=Brand.objects.all(), allow_null=True, required=False)
+    category_name = serializers.CharField(source="category.name", read_only=True)
+    subcategory_name = serializers.CharField(source="subcategory.name", read_only=True, allow_null=True)
+    brand_name = serializers.CharField(source="brand.name", read_only=True, allow_null=True)
 
     class Meta:
         model = Product
@@ -95,8 +104,11 @@ class ProductAdminSerializer(serializers.ModelSerializer):
             "image",
             "images",
             "category",
+            "category_name",
             "subcategory",
+            "subcategory_name",
             "brand",
+            "brand_name",
             "specs",
             "stock",
             "is_new",

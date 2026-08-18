@@ -2,8 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -101,10 +101,10 @@ const fadeUp = {
 };
 
 const Home: React.FC = () => {
-  const featuredProjects = useQuery(api.projects.getFeaturedProjects);
-  const dbServices = useQuery(api.services.getAll);
+const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.projects.getFeatured(3) });
 
-  const services = dbServices && dbServices.length > 0
+  const { data: dbServices } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.services.getAll() });
+  const services: any[] = dbServices && dbServices.length > 0
     ? dbServices.map((s) => ({
         icon: serviceIconMap[s.icon] || fallbackServiceIcon,
         title: s.title,
@@ -206,7 +206,7 @@ const Home: React.FC = () => {
                   </div>
                 </div>
                 <ul className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                  {group.items.map((item) => (
+                  {group.items.map((item: string) => (
                     <li
                       key={item}
                       className="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors group-hover:bg-primary/5 dark:bg-white/5 dark:text-slate-300"

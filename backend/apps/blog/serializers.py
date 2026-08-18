@@ -12,6 +12,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     """Artigo público — o essencial para cards e página do artigo."""
 
     category = serializers.SlugRelatedField(slug_field="slug", read_only=True, allow_null=True)
+    category_name = serializers.CharField(source="category.name", read_only=True, allow_null=True)
 
     class Meta:
         model = Article
@@ -20,6 +21,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             "title",
             "slug",
             "category",
+            "category_name",
             "excerpt",
             "content",
             "image",

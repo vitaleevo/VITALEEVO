@@ -1,22 +1,21 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../convex/_generated/api";
+import { api } from '@/shared/utils/apiClient';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Link from 'next/link';
 import { ArrowLeft, Clock, Calendar, User, Share2 } from "lucide-react";
 import { formatDate } from "@/shared/utils/format";
 import ShareButtons from '@/features/blog/components/ShareButtons';
-import { sanitizeRichText } from "../../../../convex/content";
+import { sanitizeRichText } from "@/shared/utils/sanitize";
 
 interface Props {
-    params: { slug: string };
+    params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
     try {
-        const article = await fetchQuery(api.articles.getBySlug, { slug });
+        const article = await api.articles.getBySlug(slug);
         if (!article) return { title: 'Artigo Não Encontrado' };
 
         return {
@@ -40,7 +39,7 @@ export default async function ArticlePage({ params }: Props) {
     const { slug } = await params;
     let article = null;
     try {
-        article = await fetchQuery(api.articles.getBySlug, { slug });
+        article = await api.articles.getBySlug(slug);
     } catch (error) {
         console.error("Failed to fetch article for page:", error);
     }

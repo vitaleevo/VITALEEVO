@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
 import { ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
@@ -14,7 +14,7 @@ import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 
 export default function FeaturedProjectsSlider() {
-  const featuredProjects = useQuery(api.projects.getFeaturedProjects);
+  const { data: featuredProjects } = useApiQuery<any[]>(null, { fetcher: () => api.projects.getFeatured(6) });
 
   if (!featuredProjects || featuredProjects.length === 0) return null;
 

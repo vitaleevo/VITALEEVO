@@ -1,12 +1,11 @@
 "use client";
 
 import React from 'react';
-import { Article } from '@/shared/types';
 import Link from 'next/link';
 import { Rss, Clock, ArrowRight } from "lucide-react";
 
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
 import ConceptBackdrop, { CONCEPT_IMAGES } from "@/shared/components/ConceptBackdrop";
 import SafeImage from "@/shared/components/SafeImage";
 import { formatDate } from "@/shared/utils/format";
@@ -61,10 +60,14 @@ const Blog: React.FC = () => {
     }
   };
 
-  const articles = useQuery(api.articles.getPublished, {
-    category: activeCategory === 'Todos' ? undefined : activeCategory
+  const { data: dbCategories } = useApiQuery<any[]>("/catalog/categories/", { params: { type: "blog", page_size: 100 } });
+  const { data: articles } = useApiQuery<any[]>(null, {
+    deps: [activeCategory, dbCategories],
+    fetcher: () => api.articles.getPublished({
+      category: activeCategory === 'Todos' ? undefined : dbCategories?.find(c => c.name === activeCategory)?.slug,
+      page_size: 100,
+    }),
   });
-  const dbCategories = useQuery(api.categories.getByType, { type: "blog" });
 
   const categories = React.useMemo(() => {
     if (!dbCategories) return ['Todos'];

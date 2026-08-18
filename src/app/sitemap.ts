@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next';
-import { fetchQuery } from "convex/nextjs";
-import { api } from "../../convex/_generated/api";
+import { request } from '@/shared/utils/apiClient';
 
 export const dynamic = "force-dynamic";
+
+interface SitemapItem { slug: string; updated_at?: string | null; }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = 'https://vitaleevo.ao';
@@ -26,10 +27,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Produtos
     let productRoutes: MetadataRoute.Sitemap = [];
     try {
-        const products = await fetchQuery(api.products.getAll, {});
-        productRoutes = products.map((product: any) => ({
+        const data = await request<{ results: SitemapItem[] }>("/catalog/products/", { params: { page_size: 200 } });
+        productRoutes = data.results.map((product) => ({
             url: `${baseUrl}/store/${product.slug}`,
-            lastModified: new Date(product._creationTime),
+            lastModified: new Date(product.updated_at || Date.now()),
             changeFrequency: 'weekly' as const,
             priority: 0.9,
         }));
@@ -38,10 +39,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Artigos do Blog
     let postRoutes: MetadataRoute.Sitemap = [];
     try {
-        const posts = await fetchQuery(api.articles.getPublished, {});
-        postRoutes = posts.map((post: any) => ({
+        const data = await request<{ results: SitemapItem[] }>("/blog/articles/", { params: { page_size: 200 } });
+        postRoutes = data.results.map((post) => ({
             url: `${baseUrl}/blog/${post.slug}`,
-            lastModified: new Date(post.createdAt || post._creationTime),
+            lastModified: new Date(post.updated_at || Date.now()),
             changeFrequency: 'weekly' as const,
             priority: 0.8,
         }));
@@ -50,10 +51,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Serviços
     let serviceRoutes: MetadataRoute.Sitemap = [];
     try {
-        const services = await fetchQuery(api.services.getAll, {});
-        serviceRoutes = services.map((service: any) => ({
+        const data = await request<{ results: SitemapItem[] }>("/cms/services/", { params: { page_size: 200 } });
+        serviceRoutes = data.results.map((service) => ({
             url: `${baseUrl}/services/${service.slug}`,
-            lastModified: new Date(service.updatedAt || service._creationTime),
+            lastModified: new Date(service.updated_at || Date.now()),
             changeFrequency: 'monthly' as const,
             priority: 0.7,
         }));
@@ -62,10 +63,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Documentos legais publicados
     let legalRoutes: MetadataRoute.Sitemap = [];
     try {
-        const docs = await fetchQuery(api.legalDocuments.getAll, {});
-        legalRoutes = docs.map((doc: any) => ({
+        const data = await request<{ results: SitemapItem[] }>("/cms/legal-documents/", { params: { page_size: 200 } });
+        legalRoutes = data.results.map((doc) => ({
             url: `${baseUrl}/legal/${doc.slug}`,
-            lastModified: new Date(doc.updatedAt),
+            lastModified: new Date(doc.updated_at || Date.now()),
             changeFrequency: 'yearly' as const,
             priority: 0.3,
         }));
@@ -74,10 +75,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Portfólio
     let projectRoutes: MetadataRoute.Sitemap = [];
     try {
-        const projects = await fetchQuery(api.projects.getVisibleProjects, {});
-        projectRoutes = projects.map((project: any) => ({
+        const data = await request<{ results: SitemapItem[] }>("/portfolio/projects/", { params: { page_size: 200 } });
+        projectRoutes = data.results.map((project) => ({
             url: `${baseUrl}/portfolio/${project.slug}`,
-            lastModified: new Date(project.createdAt || project._creationTime),
+            lastModified: new Date(project.updated_at || Date.now()),
             changeFrequency: 'monthly' as const,
             priority: 0.7,
         }));

@@ -1,12 +1,10 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
+import { api } from '@/shared/utils/apiClient';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, ArrowRight } from "lucide-react";
-import { sanitizeRichText } from "../../../../convex/content";
+import { sanitizeRichText } from "@/shared/utils/sanitize";
 
 interface Props {
     params: Promise<{ slug: string }>;
@@ -14,13 +12,7 @@ interface Props {
 
 async function resolveProject(slug: string) {
     try {
-        const bySlug = await fetchQuery(api.projects.getBySlug, { slug });
-        if (bySlug) return bySlug;
-    } catch {
-        // Slug not found; fall through to legacy ID lookup below.
-    }
-    try {
-        return await fetchQuery(api.projects.getById, { id: slug as Id<"projects"> });
+        return await api.projects.getBySlug(slug);
     } catch {
         return null;
     }

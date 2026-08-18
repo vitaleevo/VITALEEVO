@@ -7,7 +7,6 @@ import "./globals.css";
 import { SITE_CONTACT } from "@/shared/utils/contact";
 import { getSiteConfig } from "@/shared/utils/api";
 import { ThemeProvider } from "@/shared/components/ThemeProvider";
-import { ConvexClientProvider } from "@/shared/providers/ConvexClientProvider";
 import { CartProvider } from "@/shared/providers/CartProvider";
 import MobileNavigation from "@/shared/components/MobileNavigation";
 import MaintenanceGuard from "@/shared/components/MaintenanceGuard";
@@ -155,31 +154,29 @@ export default function RootLayout({
                 className={`${inter.variable} ${montserrat.variable} antialiased bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 transition-colors duration-300`}
                 suppressHydrationWarning
             >
-                <ConvexClientProvider>
-                    <AuthProvider>
-                        <CartProvider>
-                            <ThemeProvider>
-                                <Toaster richColors position="top-right" />
-                                <a href="#main-content" className="sr-only fixed left-4 top-4 z-[100] rounded-lg bg-primary px-4 py-2 font-semibold text-white focus:not-sr-only">
-                                    Saltar para o conteúdo principal
-                                </a>
-                                <div className="flex flex-col min-h-screen">
-                                    <main id="main-content" className="flex-grow pb-16 lg:pb-0">
-                                        <Suspense>
-                                            <MaintenanceGuard>
-                                                {children}
-                                            </MaintenanceGuard>
-                                        </Suspense>
-                                    </main>
+                <AuthProvider>
+                    <CartProvider>
+                        <ThemeProvider>
+                            <Toaster richColors position="top-right" />
+                            <a href="#main-content" className="sr-only fixed left-4 top-4 z-[100] rounded-lg bg-primary px-4 py-2 font-semibold text-white focus:not-sr-only">
+                                Saltar para o conteúdo principal
+                            </a>
+                            <div className="flex flex-col min-h-screen">
+                                <main id="main-content" className="flex-grow pb-16 lg:pb-0">
                                     <Suspense>
-                                        <MobileNavigation />
-                                        <AIChatWidget />
+                                        <MaintenanceGuard>
+                                            {children}
+                                        </MaintenanceGuard>
                                     </Suspense>
-                                </div>
-                            </ThemeProvider>
-                        </CartProvider>
-                    </AuthProvider>
-                </ConvexClientProvider>
+                                </main>
+                                <Suspense>
+                                    <MobileNavigation />
+                                    <AIChatWidget />
+                                </Suspense>
+                            </div>
+                        </ThemeProvider>
+                    </CartProvider>
+                </AuthProvider>
                 {process.env.NEXT_PUBLIC_GA_ID && (
                     <>
                         <Script

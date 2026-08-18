@@ -1,8 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
+import { api } from '@/shared/utils/apiClient';
 import ProductClient from "./ProductClient";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 
@@ -12,13 +10,7 @@ interface Props {
 
 async function resolveProduct(slug: string) {
     try {
-        const bySlug = await fetchQuery(api.products.getBySlug, { slug });
-        if (bySlug) return bySlug;
-    } catch {
-        // Slug not found; fall through to legacy ID lookup below.
-    }
-    try {
-        return await fetchQuery(api.products.getById, { id: slug as Id<"products"> });
+        return await api.products.getBySlug(slug);
     } catch {
         return null;
     }

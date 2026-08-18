@@ -52,7 +52,9 @@ class TestCheckout:
         assert response.status_code == 201
         data = response.json()
         assert data["order_number"].startswith("VE-")
-        assert str(data["total"]) == "100000.00"
+        assert str(data["subtotal"]) == "100000.00"
+        assert str(data["shipping"]) == "1000.00"
+        assert str(data["total"]) == "101000.00"
         assert data["items"][0]["name"] == "Impressora"
         product.refresh_from_db()
         assert product.stock == 8

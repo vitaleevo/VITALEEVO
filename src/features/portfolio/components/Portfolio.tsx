@@ -11,8 +11,8 @@ import 'swiper/css/effect-fade';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
 import ConceptBackdrop, { CONCEPT_IMAGES } from "@/shared/components/ConceptBackdrop";
 
 const Portfolio: React.FC = () => {
@@ -20,15 +20,19 @@ const Portfolio: React.FC = () => {
   const [visibleCount, setVisibleCount] = useState(9);
   const PAGE_SIZE = 9;
 
+  const { data: dbCategories } = useApiQuery<any[]>("/catalog/categories/", { params: { type: "portfolio", page_size: 100 } });
+
   // Fetch projects based on category
-  const projects = useQuery(api.projects.getVisibleProjects, {
-    category: activeCategory === 'Todos' ? undefined : activeCategory
+  const { data: projects } = useApiQuery<any[]>(null, {
+    deps: [activeCategory, dbCategories],
+    fetcher: () => api.projects.getVisible({
+      category: activeCategory === 'Todos' ? undefined : dbCategories?.find(c => c.name === activeCategory)?.slug,
+      page_size: 100,
+    }),
   });
 
   // Fetch featured projects for the slider
-  const featuredProjects = useQuery(api.projects.getFeaturedProjects);
-
-  const dbCategories = useQuery(api.categories.getByType, { type: "portfolio" });
+  const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.projects.getFeatured(6) });
 
   const categories = useMemo(() => {
     if (!dbCategories) return ['Todos'];

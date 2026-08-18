@@ -3,8 +3,8 @@
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { useApiQuery } from '@/shared/hooks/useApiQuery';
+import { api } from '@/shared/utils/apiClient';
 import { useCart } from '@/shared/providers/CartProvider';
 import { normalizeText } from '@/shared/utils/format';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,9 +28,9 @@ import ConceptBackdrop, { CONCEPT_IMAGES } from '@/shared/components/ConceptBack
 const PAGE_SIZE = 9;
 
 const Store: React.FC = () => {
-    const convexProducts = useQuery(api.products.getAll, {});
-    const dbCategories = useQuery(api.categories.getByType, { type: "store" });
-    const dbBrands = useQuery(api.brands.getAll);
+    const { data: convexProducts } = useApiQuery<any[]>("/catalog/products/", { params: { page_size: 100 } });
+    const { data: dbCategories } = useApiQuery<any[]>("/catalog/categories/", { params: { type: "store", page_size: 100 } });
+    const { data: dbBrands } = useApiQuery<any[]>("/catalog/brands/", { params: { page_size: 100 } });
     const { addItem, totalItems } = useCart();
 
     // Filters State
@@ -233,7 +233,7 @@ const Store: React.FC = () => {
                                     </button>
 
                                     {parentCategories.map((cat) => {
-                                        const children = subcategoriesByParent[cat.slug] || [];
+                                        const children: any[] = subcategoriesByParent[cat.slug] || [];
                                         const isExpanded = expandedCategories.includes(cat.name) || activeCategory === cat.name;
                                         const isActiveCat = activeCategory === cat.name;
                                         return (
