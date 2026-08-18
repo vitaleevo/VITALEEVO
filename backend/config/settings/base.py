@@ -49,6 +49,9 @@ INSTALLED_APPS = [
     "apps.catalog",
     "apps.quotes",
     "apps.cms",
+    "apps.blog",
+    "apps.portfolio",
+    "apps.commerce",
     "apps.audit",
 ]
 
@@ -114,6 +117,9 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 # WhiteNoise: serve ficheiros estáticos (admin) sem servidor dedicado.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},

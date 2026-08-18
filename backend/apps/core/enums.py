@@ -28,6 +28,7 @@ PERMISSIONS = [
     "ai:manage",
     "audit:read",
     "orders:read",
+    "orders:manage",
 ]
 
 ROLE_PERMISSIONS = {

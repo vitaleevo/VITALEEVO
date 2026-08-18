@@ -8,9 +8,16 @@ from .models import Brand, Category, InventoryMovement, Product
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    parent = serializers.SlugRelatedField(
+        slug_field="slug",
+        queryset=Category.objects.all(),
+        allow_null=True,
+        required=False,
+    )
+
     class Meta:
         model = Category
-        fields = ["id", "name", "slug", "type", "description", "order"]
+        fields = ["id", "name", "slug", "type", "parent", "description", "order"]
         read_only_fields = ["id"]
 
 
@@ -25,6 +32,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     """Lista pública — dados essenciais para cards da loja."""
 
     category = serializers.SlugRelatedField(slug_field="slug", read_only=True)
+    subcategory = serializers.SlugRelatedField(slug_field="slug", read_only=True, allow_null=True)
     brand = serializers.SlugRelatedField(slug_field="slug", read_only=True)
 
     class Meta:
@@ -38,6 +46,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "price",
             "old_price",
             "category",
+            "subcategory",
             "brand",
             "stock",
             "is_new",
@@ -64,6 +73,12 @@ class ProductAdminSerializer(serializers.ModelSerializer):
 
     slug = serializers.CharField(max_length=220, validators=[validate_slug, UniqueValidator(queryset=Product.objects.all())])
     category = serializers.SlugRelatedField(slug_field="slug", queryset=Category.objects.all())
+    subcategory = serializers.SlugRelatedField(
+        slug_field="slug",
+        queryset=Category.objects.filter(parent__isnull=False),
+        allow_null=True,
+        required=False,
+    )
     brand = serializers.SlugRelatedField(slug_field="slug", queryset=Brand.objects.all(), allow_null=True, required=False)
 
     class Meta:
@@ -80,6 +95,7 @@ class ProductAdminSerializer(serializers.ModelSerializer):
             "image",
             "images",
             "category",
+            "subcategory",
             "brand",
             "specs",
             "stock",

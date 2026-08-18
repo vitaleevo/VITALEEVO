@@ -55,6 +55,83 @@ LEGAL_DOCUMENTS = [
 ]
 
 
+# Árvore do catálogo da loja — espelha convex/catalogSeed.ts (referência da estrutura).
+STORE_CATEGORIES = [
+    {"name": "Computadores", "slug": "computadores", "order": 1, "children": [
+        {"name": "Portáteis", "slug": "portateis"},
+        {"name": "Desktops", "slug": "desktops"},
+        {"name": "All-in-One", "slug": "all-in-one"},
+    ]},
+    {"name": "Impressoras", "slug": "impressoras", "order": 2, "children": [
+        {"name": "Térmicas / POS", "slug": "termicas-pos"},
+        {"name": "Multifunções", "slug": "multifuncoes"},
+        {"name": "Matriciais", "slug": "matriciais"},
+        {"name": "Consumíveis", "slug": "consumiveis"},
+    ]},
+    {"name": "Servidores", "slug": "servidores", "order": 3},
+    {"name": "Software & Licenças", "slug": "software-licencas", "order": 4, "children": [
+        {"name": "Antivírus", "slug": "antivirus"},
+        {"name": "Windows Server", "slug": "windows-server"},
+        {"name": "Windows 11 Pro", "slug": "windows-11-pro"},
+    ]},
+    {"name": "Câmaras de Vigilância", "slug": "camaras-vigilancia", "order": 5, "children": [
+        {"name": "IP Bullet", "slug": "ip-bullet"},
+        {"name": "Analógicas", "slug": "analogicas"},
+        {"name": "Dome", "slug": "dome"},
+        {"name": "PTZ", "slug": "ptz"},
+    ]},
+    {"name": "Redes & Conectividade", "slug": "redes-conectividade", "order": 6, "children": [
+        {"name": "Switches", "slug": "switches"},
+        {"name": "Routers", "slug": "routers"},
+        {"name": "Access Points", "slug": "access-points"},
+        {"name": "Cabos & Acessórios", "slug": "cabos-acessorios"},
+    ]},
+    {"name": "Gravação & Armazenamento", "slug": "gravacao-armazenamento", "order": 7, "children": [
+        {"name": "NVR", "slug": "nvr"},
+        {"name": "DVR", "slug": "dvr"},
+        {"name": "Discos (HDD/SSD)", "slug": "discos"},
+    ]},
+    {"name": "Acessórios & Periféricos", "slug": "acessorios-perifericos", "order": 8, "children": [
+        {"name": "Pendrives", "slug": "pendrives"},
+        {"name": "Teclados & Ratos", "slug": "teclados-ratos"},
+        {"name": "Outros Acessórios", "slug": "outros-acessorios"},
+    ]},
+    {"name": "Controlo de Acesso & Biometria", "slug": "controlo-acesso-biometria", "order": 9, "children": [
+        {"name": "Relógios de Ponto", "slug": "relogios-ponto"},
+        {"name": "Controladores de Acesso", "slug": "controladores-acesso"},
+    ]},
+    {"name": "Smartphones", "slug": "smartphones", "order": 10},
+]
+
+SAMPLE_PRODUCTS = [
+    {
+        "name": "Portátil HP ProBook 440 G10",
+        "slug": "portatil-hp-probook-440-g10",
+        "sku": "HP-PB-440",
+        "description": "Portátil empresarial de 14\" com processador Intel i5.",
+        "price": "1250000.00",
+        "image": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=70",
+        "category_slug": "computadores",
+        "subcategory_slug": "portateis",
+        "brand": "HP",
+        "stock": 12,
+        "is_new": True,
+    },
+    {
+        "name": "Switch 24 Portas Gigabit",
+        "slug": "switch-24-portas-gigabit",
+        "sku": "NET-SW-24",
+        "description": "Switch de rede para escritórios e pequenas empresas.",
+        "price": "185000.00",
+        "image": "https://images.unsplash.com/photo-1600267185393-e158a98703de?auto=format&fit=crop&w=800&q=70",
+        "category_slug": "redes-conectividade",
+        "subcategory_slug": "switches",
+        "brand": "TP-Link",
+        "stock": 20,
+    },
+]
+
+
 class Command(BaseCommand):
     help = "Cria dados iniciais (superuser, catálogo, serviços, documentos legais e configuração)."
 
@@ -76,37 +153,34 @@ class Command(BaseCommand):
             self.stdout.write("Superuser já existe.")
 
     def create_catalog(self) -> None:
-        if Category.objects.exists():
-            self.stdout.write("Catálogo já existe — a saltar.")
-            return
-        informatica = Category.objects.create(name="Informática", slug="informatica", type="store")
-        redes = Category.objects.create(name="Redes e Segurança", slug="redes-seguranca", type="store")
-        hp = Brand.objects.create(name="HP", slug="hp")
-        Product.objects.create(
-            name="Portátil HP ProBook 440 G10",
-            slug="portatil-hp-probook-440-g10",
-            sku="HP-PB-440",
-            description="Portátil empresarial de 14\" com processador Intel i5.",
-            price="1250000.00",
-            image="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=70",
-            category=informatica,
-            brand=hp,
-            stock=12,
-            is_new=True,
-            status="published",
-        )
-        Product.objects.create(
-            name="Switch 24 Portas Gigabit",
-            slug="switch-24-portas-gigabit",
-            sku="NET-SW-24",
-            description="Switch de rede para escritórios e pequenas empresas.",
-            price="185000.00",
-            image="https://images.unsplash.com/photo-1600267185393-e158a98703de?auto=format&fit=crop&w=800&q=70",
-            category=redes,
-            stock=20,
-            status="published",
-        )
-        self.stdout.write("Catálogo criado (2 categorias, 1 marca, 2 produtos).")
+        created_categories = 0
+        for cat in STORE_CATEGORIES:
+            parent, was_created = Category.objects.get_or_create(
+                slug=cat["slug"],
+                defaults={"name": cat["name"], "type": "store", "order": cat["order"]},
+            )
+            created_categories += was_created
+            for child in cat.get("children", []):
+                _, child_created = Category.objects.get_or_create(
+                    slug=child["slug"],
+                    defaults={"name": child["name"], "type": "store", "parent": parent, "order": cat["order"] * 10},
+                )
+                created_categories += child_created
+
+        brand_map = {}
+        upserted_products = 0
+        for data in SAMPLE_PRODUCTS:
+            brand_name = data.pop("brand")
+            brand, _ = Brand.objects.get_or_create(slug=brand_name.lower().replace(" ", "-"), defaults={"name": brand_name})
+            brand_map[brand_name] = brand
+            category = Category.objects.get(slug=data.pop("category_slug"))
+            subcategory = Category.objects.get(slug=data.pop("subcategory_slug"))
+            _, was_created = Product.objects.update_or_create(
+                slug=data["slug"],
+                defaults={**data, "category": category, "subcategory": subcategory, "brand": brand, "status": "published"},
+            )
+            upserted_products += 1 if not was_created else 1
+        self.stdout.write(f"Catálogo criado: {created_categories} categorias, {upserted_products} produtos.")
 
     def create_services(self) -> None:
         created = 0
@@ -128,11 +202,14 @@ class Command(BaseCommand):
             defaults={
                 "value": {
                     "siteName": "Vitalevo",
-                    "siteDescription": "Agência de Tecnologia & Marketing — Luanda",
+                    "siteDescription": "Tecnologia & Marketing — Luanda",
                     "contactEmail": "geral@vitalevo.ao",
                     "contactPhone": "+244 923 000 000",
                     "whatsapp": "+244 923 000 000",
                     "currency": "AOA",
+                    "address": "Luanda, Angola",
+                    "socialLinks": {"facebook": "", "instagram": "", "linkedin": ""},
+                    "businessConfig": {"shippingFee": 1000, "freeShippingThreshold": 200000, "maintenanceMode": False},
                 }
             },
         )

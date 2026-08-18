@@ -30,3 +30,10 @@ class IsStaff(BasePermission):
             and request.user.is_authenticated
             and request.user.is_staff
         )
+
+
+class CanUploadMedia(HasCapability):
+    """Requer capacidade media:upload — usado em views de função (@api_view)."""
+
+    def __init__(self):
+        super().__init__("media:upload")

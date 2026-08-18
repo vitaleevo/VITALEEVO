@@ -54,11 +54,11 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     lookup_field = "slug"
     search_fields = ["name", "sku", "description"]
-    filterset_fields = ["category__slug", "brand__slug", "is_new", "is_featured", "status"]
+    filterset_fields = ["category__slug", "subcategory__slug", "brand__slug", "is_new", "is_featured", "status"]
     ordering_fields = ["price", "name", "created_at", "-price", "-created_at"]
 
     def get_queryset(self):
-        qs = Product.objects.select_related("category", "brand")
+        qs = Product.objects.select_related("category", "subcategory", "brand")
         if self.action in {"list", "retrieve"} and not self.request.user.is_staff:
             qs = qs.filter(is_active=True, status="published")
         return qs

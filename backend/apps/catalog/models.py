@@ -23,12 +23,23 @@ class Category(BaseModel):
         choices=[("store", "Loja"), ("blog", "Blog"), ("portfolio", "Portfólio")],
         default="store",
     )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="children",
+        verbose_name="categoria pai",
+    )
     description = models.TextField(blank=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta(BaseModel.Meta):
         verbose_name = "categoria"
         verbose_name_plural = "categorias"
+        constraints = [
+            models.UniqueConstraint(fields=["parent", "name"], name="unique_child_name_per_parent"),
+        ]
 
     def __str__(self):
         return f"{self.name} ({self.type})"
@@ -60,6 +71,14 @@ class Product(BaseModel):
     image = models.URLField()
     images = models.JSONField(default=list, blank=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="products")
+    subcategory = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="products_sub",
+        verbose_name="subcategoria",
+    )
     brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name="products")
     specs = models.JSONField(default=list, blank=True)
     stock = models.PositiveIntegerField(default=0)
