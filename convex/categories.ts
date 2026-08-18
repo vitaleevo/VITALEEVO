@@ -30,6 +30,7 @@ export const create = mutation({
         name: v.string(),
         slug: v.string(),
         type: v.string(), // 'store', 'blog', 'portfolio'
+        parentSlug: v.optional(v.string()),
         description: v.optional(v.string()),
         order: v.number(),
         isActive: v.boolean(),
@@ -48,6 +49,7 @@ export const update = mutation({
         name: v.optional(v.string()),
         slug: v.optional(v.string()),
         type: v.optional(v.string()),
+        parentSlug: v.optional(v.string()),
         description: v.optional(v.string()),
         order: v.optional(v.number()),
         isActive: v.optional(v.boolean()),

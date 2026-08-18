@@ -18,25 +18,37 @@ function publicFilter(q: any) {
 export const getAll = query({
     args: {
         category: v.optional(v.string()),
+        subcategory: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         let products;
 
         if (args.category && args.category !== "Todos") {
             const category = args.category;
-            products = await ctx.db
+            const q = ctx.db
                 .query("products")
                 .withIndex("by_category", (q) => q.eq("category", category))
-                .filter((q) => publicFilter(q))
-                .collect();
+                .filter((q) => publicFilter(q));
+
+            if (args.subcategory) {
+                products = await q
+                    .filter((q) => q.eq(q.field("subcategory"), args.subcategory))
+                    .collect();
+            } else {
+                products = await q.collect();
+            }
 
             products.sort((a, b) => b._creationTime - a._creationTime);
         } else {
-            products = await ctx.db
+            let q = ctx.db
                 .query("products")
-                .filter((q) => publicFilter(q))
-                .order("desc")
-                .collect();
+                .filter((q) => publicFilter(q));
+
+            if (args.subcategory) {
+                q = q.filter((q) => q.eq(q.field("subcategory"), args.subcategory));
+            }
+
+            products = await q.order("desc").collect();
         }
 
         return products;
@@ -118,6 +130,7 @@ export const create = mutation({
         image: v.string(),
         images: v.optional(v.array(v.string())),
         category: v.string(),
+        subcategory: v.optional(v.string()),
         brand: v.optional(v.string()),
         specs: v.optional(v.array(v.object({
             label: v.string(),
@@ -186,6 +199,7 @@ export const update = mutation({
         image: v.optional(v.string()),
         images: v.optional(v.array(v.string())),
         category: v.optional(v.string()),
+        subcategory: v.optional(v.string()),
         brand: v.optional(v.string()),
         stock: v.optional(v.number()),
         isNew: v.optional(v.boolean()),

@@ -38,6 +38,7 @@ export default defineSchema({
         image: v.string(),
         images: v.optional(v.array(v.string())),
         category: v.string(),
+        subcategory: v.optional(v.string()), // Subcategoria (ex.: "Portáteis", "NVR", "Switch")
         brand: v.optional(v.string()),
         specs: v.optional(v.array(v.object({
             label: v.string(),
@@ -340,13 +341,15 @@ export default defineSchema({
         name: v.string(),
         slug: v.string(),
         type: v.string(), // 'store', 'blog', 'portfolio'
+        parentSlug: v.optional(v.string()), // Slug da categoria pai (subcategoria)
         description: v.optional(v.string()),
         order: v.number(),
         isActive: v.boolean(),
     })
         .index("by_type", ["type"])
         .index("by_slug", ["slug"])
-        .index("by_active", ["isActive"]),
+        .index("by_active", ["isActive"])
+        .index("by_parent", ["parentSlug"]),
 
     // Brands table
     brands: defineTable({

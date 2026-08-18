@@ -16,6 +16,7 @@ import type * as audit from "../audit.js";
 import type * as auth from "../auth.js";
 import type * as brands from "../brands.js";
 import type * as cart from "../cart.js";
+import type * as catalogSeed from "../catalogSeed.js";
 import type * as categories from "../categories.js";
 import type * as contacts from "../contacts.js";
 import type * as content from "../content.js";
@@ -64,6 +65,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   brands: typeof brands;
   cart: typeof cart;
+  catalogSeed: typeof catalogSeed;
   categories: typeof categories;
   contacts: typeof contacts;
   content: typeof content;

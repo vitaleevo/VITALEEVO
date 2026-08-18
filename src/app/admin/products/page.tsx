@@ -36,6 +36,7 @@ interface ProductForm {
     image: string;
     images: string[];
     category: string;
+    subcategory: string;
     brand: string;
     sku: string;
     status: "published" | "draft" | "archived";
@@ -55,6 +56,7 @@ const emptyForm: ProductForm = {
     image: "",
     images: [],
     category: "Câmeras de Segurança",
+    subcategory: "",
     brand: "",
     sku: "",
     status: "published",
@@ -141,6 +143,7 @@ export default function AdminProductsPage() {
             image: product.image,
             images: (product.images as string[]) || [],
             category: product.category,
+            subcategory: product.subcategory || "",
             brand: product.brand || "",
             sku: product.sku || "",
             status: product.status || "published",
@@ -167,6 +170,7 @@ export default function AdminProductsPage() {
                     image: form.image,
                     images: form.images,
                     category: form.category,
+                    subcategory: form.subcategory || undefined,
                     brand: form.brand,
                     sku: form.sku || undefined,
                     status: form.status,
@@ -187,6 +191,7 @@ export default function AdminProductsPage() {
                     image: form.image,
                     images: form.images,
                     category: form.category,
+                    subcategory: form.subcategory || undefined,
                     brand: form.brand,
                     sku: form.sku || undefined,
                     status: form.status,
@@ -618,13 +623,31 @@ export default function AdminProductsPage() {
                                     </label>
                                     <select
                                         value={form.category}
-                                        onChange={(e) => setForm({ ...form, category: e.target.value })}
+                                        onChange={(e) => setForm({ ...form, category: e.target.value, subcategory: "" })}
                                         className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:border-primary outline-none"
                                     >
                                         <option value="">Selecione uma categoria</option>
-                                        {dbCategories.map(cat => (
+                                        {dbCategories.filter(cat => !cat.parentSlug).map(cat => (
                                             <option key={cat._id} value={cat.name}>{cat.name}</option>
                                         ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                        Subcategoria
+                                    </label>
+                                    <select
+                                        value={form.subcategory}
+                                        onChange={(e) => setForm({ ...form, subcategory: e.target.value })}
+                                        className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:border-primary outline-none disabled:opacity-50"
+                                        disabled={!form.category}
+                                    >
+                                        <option value="">Sem subcategoria</option>
+                                        {dbCategories
+                                            .filter(cat => cat.parentSlug === dbCategories.find(c => c.name === form.category)?.slug)
+                                            .map(cat => (
+                                                <option key={cat._id} value={cat.name}>{cat.name}</option>
+                                            ))}
                                     </select>
                                 </div>
                                 <div>

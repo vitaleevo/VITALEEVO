@@ -22,6 +22,7 @@ interface CategoryForm {
     name: string;
     slug: string;
     type: string;
+    parentSlug: string;
     description: string;
     order: number;
     isActive: boolean;
@@ -31,6 +32,7 @@ const emptyForm: CategoryForm = {
     name: "",
     slug: "",
     type: "store",
+    parentSlug: "",
     description: "",
     order: 0,
     isActive: true,
@@ -91,6 +93,7 @@ export default function AdminCategoriesPage() {
             name: cat.name,
             slug: cat.slug,
             type: cat.type,
+            parentSlug: cat.parentSlug || "",
             description: cat.description || "",
             order: cat.order,
             isActive: cat.isActive,
@@ -105,12 +108,14 @@ export default function AdminCategoriesPage() {
                 await updateCategory({
                     token: token!,
                     id: editingId,
-                    ...form
+                    ...form,
+                    parentSlug: form.parentSlug || undefined,
                 });
             } else {
                 await createCategory({
                     token: token!,
                     ...form,
+                    parentSlug: form.parentSlug || undefined,
                     slug: form.slug || generateSlug(form.name)
                 });
             }
@@ -301,13 +306,33 @@ export default function AdminCategoriesPage() {
                                 </label>
                                 <select
                                     value={form.type}
-                                    onChange={(e) => setForm({ ...form, type: e.target.value })}
+                                    onChange={(e) => setForm({ ...form, type: e.target.value, parentSlug: "" })}
                                     className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:border-primary outline-none"
                                 >
                                     {types.map(t => (
                                         <option key={t.value} value={t.value}>{t.label}</option>
                                     ))}
                                 </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                    Categoria Pai (subcategoria)
+                                </label>
+                                <select
+                                    value={form.parentSlug}
+                                    onChange={(e) => setForm({ ...form, parentSlug: e.target.value })}
+                                    className="w-full px-4 py-2.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:border-primary outline-none"
+                                >
+                                    <option value="">— Nenhuma (categoria principal) —</option>
+                                    {categories
+                                        .filter(cat => cat.type === form.type && !cat.parentSlug)
+                                        .map(cat => (
+                                            <option key={cat._id} value={cat.slug}>{cat.name}</option>
+                                        ))}
+                                </select>
+                                <p className="mt-1 text-xs text-gray-400">
+                                    Ex.: «Computadores» como pai → «Portáteis», «Desktops» como subcategorias.
+                                </p>
                             </div>
                             <div>
                                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">

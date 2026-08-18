@@ -25,6 +25,8 @@ import {
 import WishlistButton from '@/shared/components/WishlistButton';
 import ConceptBackdrop, { CONCEPT_IMAGES } from '@/shared/components/ConceptBackdrop';
 
+const PAGE_SIZE = 9;
+
 const Store: React.FC = () => {
     const convexProducts = useQuery(api.products.getAll, {});
     const dbCategories = useQuery(api.categories.getByType, { type: "store" });
@@ -35,8 +37,11 @@ const Store: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [activeCategory, setActiveCategory] = useState('Todos');
+    const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
+    const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
     const [sortBy, setSortBy] = useState('Relevantes');
+    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
     const handleAddToCart = (e: React.MouseEvent, product: any) => {
         e.preventDefault();
@@ -55,16 +60,43 @@ const Store: React.FC = () => {
         );
     };
 
-    const clearFilters = () => {
-        setActiveCategory('Todos');
-        setSelectedBrands([]);
-        setSearchQuery('');
+    const handleSelectCategory = (cat: string) => {
+        setActiveCategory(cat);
+        setActiveSubcategory(null);
+        setVisibleCount(PAGE_SIZE);
+        setExpandedCategories(prev =>
+            prev.includes(cat) ? prev : [...prev, cat]
+        );
     };
 
-    const categories = useMemo(() => {
-        if (!dbCategories) return ['Todos'];
-        return ['Todos', ...dbCategories.map(c => c.name)];
+    const handleSelectSubcategory = (sub: string) => {
+        setActiveSubcategory(sub);
+        setVisibleCount(PAGE_SIZE);
+    };
+
+    const clearFilters = () => {
+        setActiveCategory('Todos');
+        setActiveSubcategory(null);
+        setSelectedBrands([]);
+        setSearchQuery('');
+        setVisibleCount(PAGE_SIZE);
+    };
+
+    const parentCategories = useMemo(() => {
+        if (!dbCategories) return [];
+        return dbCategories.filter(c => !c.parentSlug);
     }, [dbCategories]);
+
+    const subcategoriesByParent = useMemo(() => {
+        if (!dbCategories) return {} as Record<string, any[]>;
+        return dbCategories.reduce((acc, c) => {
+            if (c.parentSlug) {
+                (acc[c.parentSlug] ||= []).push(c);
+            }
+            return acc;
+        }, {} as Record<string, any[]>);
+    }, [dbCategories]);
+
     const brands = useMemo(() => {
         if (!dbBrands) return [];
         return dbBrands.map(b => b.name);
@@ -84,9 +116,10 @@ const Store: React.FC = () => {
                 descNormalized.includes(searchNormalized);
 
             const matchesCategory = activeCategory === 'Todos' || product.category === activeCategory;
+            const matchesSubcategory = !activeSubcategory || product.subcategory === activeSubcategory;
             const matchesBrand = selectedBrands.length === 0 || (product.brand && selectedBrands.includes(product.brand));
 
-            return matchesSearch && matchesCategory && matchesBrand;
+            return matchesSearch && matchesCategory && matchesSubcategory && matchesBrand;
         });
 
         if (sortBy === 'A-Z') {
@@ -96,7 +129,7 @@ const Store: React.FC = () => {
         }
 
         return result;
-    }, [convexProducts, searchQuery, activeCategory, selectedBrands, sortBy]);
+    }, [convexProducts, searchQuery, activeCategory, activeSubcategory, selectedBrands, sortBy]);
 
     if (!convexProducts || !dbCategories || !dbBrands) {
         return (
@@ -187,20 +220,63 @@ const Store: React.FC = () => {
                             {/* Categorias */}
                             <div className="space-y-4">
                                 <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Categorias</h4>
-                                <div className="space-y-2">
-                                    {categories.map((cat) => (
-                                        <button
-                                            key={cat}
-                                            onClick={() => setActiveCategory(cat)}
-                                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all group ${activeCategory === cat
-                                                ? 'bg-primary/10 text-primary border border-primary/20'
-                                                : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-400'
-                                                }`}
-                                        >
-                                            <span className="text-sm font-medium">{cat}</span>
-                                            {activeCategory === cat && <CheckCircle className="w-4 h-4" />}
-                                        </button>
-                                    ))}
+                                <div className="space-y-1">
+                                    <button
+                                        onClick={() => handleSelectCategory('Todos')}
+                                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all group ${activeCategory === 'Todos'
+                                            ? 'bg-primary/10 text-primary border border-primary/20'
+                                            : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-400'
+                                            }`}
+                                    >
+                                        <span className="text-sm font-medium">Todos os Produtos</span>
+                                        {activeCategory === 'Todos' && <CheckCircle className="w-4 h-4" />}
+                                    </button>
+
+                                    {parentCategories.map((cat) => {
+                                        const children = subcategoriesByParent[cat.slug] || [];
+                                        const isExpanded = expandedCategories.includes(cat.name) || activeCategory === cat.name;
+                                        const isActiveCat = activeCategory === cat.name;
+                                        return (
+                                            <div key={cat._id}>
+                                                <button
+                                                    onClick={() => handleSelectCategory(cat.name)}
+                                                    className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl transition-all group ${isActiveCat
+                                                        ? 'bg-primary/10 text-primary border border-primary/20'
+                                                        : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-400'
+                                                        }`}
+                                                >
+                                                    <span className="text-sm font-medium truncate">{cat.name}</span>
+                                                    <span className="flex items-center gap-1 shrink-0">
+                                                        {isActiveCat && <CheckCircle className="w-4 h-4" />}
+                                                        {children.length > 0 && (
+                                                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+                                                        )}
+                                                    </span>
+                                                </button>
+
+                                                {children.length > 0 && isExpanded && (
+                                                    <div className="ml-3 mt-1 space-y-1 border-l-2 border-gray-100 dark:border-white/10 pl-3">
+                                                        {children.map((child) => {
+                                                            const isActiveSub = activeSubcategory === child.name;
+                                                            return (
+                                                                <button
+                                                                    key={child._id}
+                                                                    onClick={() => handleSelectSubcategory(child.name)}
+                                                                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${isActiveSub
+                                                                        ? 'bg-primary/10 text-primary font-bold'
+                                                                        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-primary'
+                                                                        }`}
+                                                                >
+                                                                    {child.name}
+                                                                    {isActiveSub && <CheckCircle className="w-3.5 h-3.5" />}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
@@ -277,7 +353,7 @@ const Store: React.FC = () => {
                             className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"
                         >
                             <AnimatePresence mode="popLayout">
-                                {filteredProducts.map(product => (
+                                {filteredProducts.slice(0, visibleCount).map(product => (
                                     <motion.div
                                         key={product._id}
                                         layout
@@ -342,6 +418,19 @@ const Store: React.FC = () => {
                                 ))}
                             </AnimatePresence>
                         </motion.div>
+
+                        {/* Ver Mais (carregar em metades) */}
+                        {filteredProducts.length > visibleCount && (
+                            <div className="mt-12 flex flex-col items-center gap-3">
+                                <button
+                                    onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
+                                    className="inline-flex items-center gap-2 px-10 py-4 bg-white dark:bg-surface-dark border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 text-sm font-bold rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-none hover:border-primary/50 hover:text-primary transition-all"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Ver Mais Produtos ({filteredProducts.length - visibleCount} restantes)
+                                </button>
+                            </div>
+                        )}
 
                         {/* No Results Fallback */}
                         {filteredProducts.length === 0 && (

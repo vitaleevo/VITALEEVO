@@ -17,6 +17,8 @@ import ConceptBackdrop, { CONCEPT_IMAGES } from "@/shared/components/ConceptBack
 
 const Portfolio: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState('Todos');
+  const [visibleCount, setVisibleCount] = useState(9);
+  const PAGE_SIZE = 9;
 
   // Fetch projects based on category
   const projects = useQuery(api.projects.getVisibleProjects, {
@@ -179,7 +181,7 @@ const Portfolio: React.FC = () => {
               {categories.map(cat => (
                 <button
                   key={cat}
-                  onClick={() => setActiveCategory(cat)}
+                  onClick={() => { setActiveCategory(cat); setVisibleCount(9); }}
                   className={`rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-300 border ${activeCategory === cat
                     ? 'border-primary bg-primary text-white shadow-lg shadow-primary/25'
                     : 'border-transparent bg-gray-100 text-slate-600 hover:bg-gray-200 dark:bg-white/5 dark:text-slate-400 dark:hover:bg-white/10'
@@ -201,7 +203,7 @@ const Portfolio: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {projects.map((project: any) => (
+              {projects.slice(0, visibleCount).map((project: any) => (
                 <Link
                   href={`/portfolio/${project.slug}`}
                   key={project._id}
@@ -235,6 +237,19 @@ const Portfolio: React.FC = () => {
                   </div>
                 </Link>
               ))}
+            </div>
+          )}
+
+          {/* Ver Mais (carregar em metades) */}
+          {projects.length > visibleCount && (
+            <div className="mt-12 flex justify-center">
+              <button
+                onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
+                className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-10 py-4 text-sm font-bold text-slate-700 shadow-lg shadow-gray-200/50 transition-all hover:border-primary/50 hover:text-primary dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:shadow-none"
+              >
+                <ArrowRight className="h-4 w-4 rotate-90" />
+                Ver Mais Projetos ({projects.length - visibleCount} restantes)
+              </button>
             </div>
           )}
 

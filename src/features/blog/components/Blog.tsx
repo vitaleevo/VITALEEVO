@@ -22,9 +22,12 @@ const Blog: React.FC = () => {
   const [activeCategory, setActiveCategory] = React.useState(categoryParam);
   const [email, setEmail] = React.useState('');
   const [loading, setLoading] = React.useState(false);
+  const [visibleCount, setVisibleCount] = React.useState(6);
+  const PAGE_SIZE = 6;
 
   React.useEffect(() => {
     setActiveCategory(categoryParam);
+    setVisibleCount(6);
   }, [categoryParam]);
 
   const handleCategoryChange = (cat: string) => {
@@ -163,7 +166,7 @@ const Blog: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3">
-            {otherArticles.length > 0 ? otherArticles.map(art => (
+            {otherArticles.length > 0 ? otherArticles.slice(0, visibleCount).map(art => (
               <Link href={`/blog/${art.slug}`} key={art._id} className="group flex h-full cursor-pointer flex-col">
                 <div className="relative mb-6 aspect-video overflow-hidden rounded-3xl shadow-lg">
                   <SafeImage
@@ -205,6 +208,19 @@ const Blog: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Ver Mais (carregar em metades) */}
+          {otherArticles.length > visibleCount && (
+            <div className="mt-12 flex justify-center">
+              <button
+                onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
+                className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-10 py-4 text-sm font-bold text-slate-700 shadow-lg shadow-gray-200/50 transition-all hover:border-primary/50 hover:text-primary dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:shadow-none"
+              >
+                <ArrowRight className="h-4 w-4 rotate-90" />
+                Ver Mais Artigos ({otherArticles.length - visibleCount} restantes)
+              </button>
+            </div>
+          )}
 
           {/* Newsletter */}
           <div className="relative mt-24 overflow-hidden rounded-[2rem] bg-primary text-center">
