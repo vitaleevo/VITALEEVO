@@ -8,6 +8,7 @@ import { Rss, Clock, ArrowRight } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import ConceptBackdrop, { CONCEPT_IMAGES } from "@/shared/components/ConceptBackdrop";
+import SafeImage from "@/shared/components/SafeImage";
 import { formatDate } from "@/shared/utils/format";
 import { useSearchParams, useRouter } from "next/navigation";
 import { toast } from 'sonner';
@@ -112,12 +113,13 @@ const Blog: React.FC = () => {
             <section className="mb-24">
               <div className="group relative grid grid-cols-1 items-center overflow-hidden rounded-[2rem] border border-white/10 bg-gray-900 shadow-2xl lg:grid-cols-2">
                 <div className="relative min-h-[400px] h-full overflow-hidden">
-                  <img
+                  <SafeImage
                     src={featuredArticle.image}
-                    className="absolute inset-0 h-full w-full object-cover opacity-80 transition-all duration-700 ease-out group-hover:scale-105 group-hover:opacity-100"
-                    alt="Featured"
+                    alt={featuredArticle.title}
+                    sizes="(min-width:1024px) 50vw, 100vw"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-black/60 lg:hidden"></div>
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent lg:hidden"></div>
                 </div>
 
                 <div className="relative z-10 space-y-8 p-8 md:p-16">
@@ -164,8 +166,13 @@ const Blog: React.FC = () => {
             {otherArticles.length > 0 ? otherArticles.map(art => (
               <Link href={`/blog/${art.slug}`} key={art._id} className="group flex h-full cursor-pointer flex-col">
                 <div className="relative mb-6 aspect-video overflow-hidden rounded-3xl shadow-lg">
-                  <img src={art.image} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" alt={art.title} />
-                  <div className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/40"></div>
+                  <SafeImage
+                    src={art.image}
+                    alt={art.title}
+                    sizes="(min-width:1024px) 33vw, (min-width:768px) 50vw, 100vw"
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent"></div>
                   <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-black backdrop-blur">
                     {art.category}
                   </span>

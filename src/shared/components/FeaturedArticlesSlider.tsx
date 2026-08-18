@@ -7,6 +7,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { ArrowRight, ArrowLeft, Clock, User } from "lucide-react";
 import Link from "next/link";
+import SafeImage from "@/shared/components/SafeImage";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -64,18 +65,20 @@ export default function FeaturedArticlesSlider() {
                   className="card-hover group flex h-full flex-col overflow-hidden !rounded-3xl"
                 >
                   <div className="relative aspect-[16/10] overflow-hidden">
-                    <img
+                    <SafeImage
                       src={article.image}
                       alt={article.title}
+                      sizes="(min-width:1920px) 25vw, (min-width:1280px) 33vw, (min-width:768px) 50vw, 100vw"
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
                     <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary shadow-sm backdrop-blur">
                       {article.category}
                     </span>
                   </div>
 
                   <div className="flex flex-1 flex-col p-6">
-                    <div className="mb-4 flex items-center gap-5 text-xs font-bold text-slate-400">
+                    <div className="mb-4 flex items-center gap-5 text-xs font-bold text-slate-500 dark:text-slate-400">
                       <span className="flex items-center gap-1.5">
                         <Clock className="h-4 w-4 text-primary" />
                         {article.readTime}
@@ -112,7 +115,7 @@ export default function FeaturedArticlesSlider() {
             </button>
           </div>
 
-          <div className="articles-pagination absolute bottom-0 left-1/2 z-10 flex -translate-x-1/2 justify-center !w-auto" />
+          <div className="articles-pagination absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 justify-center !w-auto" />
         </div>
       </div>
     </section>
