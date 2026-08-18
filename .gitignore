@@ -63,3 +63,6 @@ loja/
 *.pptx
 .convex-tmp/
 .vercel
+
+# Django media (uploads locais — fora do git)
+backend/media/
