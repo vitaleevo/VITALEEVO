@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "@/shared/utils/apiClient";
 import { useRouter, useSearchParams } from "next/navigation";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import { Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, CheckCircle } from "lucide-react";
@@ -15,14 +14,13 @@ function RecuperarSenhaContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
+    const email = searchParams.get("email");
 
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
-
-    const resetPasswordMutation = useMutation(api.auth.resetPassword);
 
     useEffect(() => {
         if (!token) {
@@ -44,11 +42,15 @@ function RecuperarSenhaContent() {
             return;
         }
 
-        if (!token) return;
+        if (!token || !email) {
+            toast.error("Token de recuperação ausente");
+            router.push("/login");
+            return;
+        }
 
         setIsLoading(true);
         try {
-            await resetPasswordMutation({ token, newPassword: password });
+            await api.auth.resetPassword(email, token, password);
             setIsSuccess(true);
             toast.success("Senha redefinida com sucesso!");
 

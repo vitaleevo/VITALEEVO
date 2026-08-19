@@ -101,7 +101,7 @@ class TestCustomerAccount:
     def test_wishlist_toggle(self, user_client, product):
         response = user_client.post("/api/v1/commerce/wishlist/toggle/", {"product": "impressora"}, format="json")
         assert response.status_code == 200 and response.json()["favorited"] is True
-        assert user_client.get("/api/v1/commerce/wishlist/").json()[0]["product"] == "impressora"
+        assert user_client.get("/api/v1/commerce/wishlist/").json()[0]["product"]["slug"] == "impressora"
         response = user_client.post("/api/v1/commerce/wishlist/toggle/", {"product": "impressora"}, format="json")
         assert response.json()["favorited"] is False
 

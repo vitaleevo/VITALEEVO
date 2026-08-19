@@ -7,7 +7,6 @@ import {
     User,
     MapPin,
     CreditCard,
-    Calendar,
     Truck,
     CheckCircle,
     Clock,
@@ -16,10 +15,8 @@ import {
     Save,
     Loader2
 } from "lucide-react";
-import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
 import { formatDate, formatCurrency } from "@/shared/utils/format";
+import { api } from "@/shared/utils/apiClient";
 import Image from 'next/image';
 
 import { useAuth } from '@/shared/providers/AuthProvider';
@@ -33,7 +30,6 @@ interface OrderDetailModalProps {
 
 const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onClose }) => {
     const { token } = useAuth();
-    const updateStatus = useMutation(api.orders.updateStatus);
     const [isUpdating, setIsUpdating] = useState(false);
     const [status, setStatus] = useState(order?.status || 'pending');
 
@@ -47,29 +43,13 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, isOpen, onCl
     const handleStatusUpdate = async () => {
         setIsUpdating(true);
         try {
-            await updateStatus({
-                token: token!,
-                orderId: order._id as Id<"orders">,
-                status: status as any
-            });
+            await api.orders.updateStatus(order._id, status, token!);
             toast.success("Status do pedido atualizado!");
         } catch (error) {
             console.error("Error updating order status:", error);
             toast.error("Erro ao atualizar o status do pedido.");
         } finally {
             setIsUpdating(false);
-        }
-    };
-
-    const getStatusColor = (s: string) => {
-        switch (s) {
-            case 'pending': return 'text-yellow-500 bg-yellow-500/10';
-            case 'paid': return 'text-blue-500 bg-blue-500/10';
-            case 'processing': return 'text-purple-500 bg-purple-500/10';
-            case 'shipped': return 'text-indigo-500 bg-indigo-500/10';
-            case 'delivered': return 'text-green-500 bg-green-500/10';
-            case 'cancelled': return 'text-red-500 bg-red-500/10';
-            default: return 'text-gray-500 bg-gray-500/10';
         }
     };
 

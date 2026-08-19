@@ -12,14 +12,14 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { useMutation, useQuery } from 'convex/react';
-import { api } from '../../../../convex/_generated/api';
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
 import FeaturedProjectsSlider from '@/shared/components/FeaturedProjectsSlider';
 import { PHONE_CONTACTS, SITE_CONTACT } from '@/shared/utils/contact';
 import ConceptBackdrop, { CONCEPT_IMAGES } from '@/shared/components/ConceptBackdrop';
 
 const Contact: React.FC = () => {
-  const settings = useQuery(api.settings.get);
+  const { data: settings } = useApiQuery<any>(null, { deps: [], fetcher: () => api.settings.get() });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -31,8 +31,6 @@ const Contact: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const submitMessage = useMutation(api.contacts.submit);
 
   const config = {
     contactEmail: SITE_CONTACT.email,
@@ -51,7 +49,7 @@ const Contact: React.FC = () => {
     setError(null);
 
     try {
-      await submitMessage({
+      await api.contacts.submit({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,

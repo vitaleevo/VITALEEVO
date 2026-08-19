@@ -4,8 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMutation, useAction } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { api } from "@/shared/utils/apiClient";
 import { useCart } from "@/shared/providers/CartProvider";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import {
@@ -16,8 +15,6 @@ import {
 export default function CotacaoPage() {
     const router = useRouter();
     const { items, updateQuantity, removeItem, clearCart } = useCart();
-    const createQuote = useMutation(api.quotes.create);
-    const sendConfirmation = useAction(api.quotesActions.sendQuoteConfirmation);
 
     const [form, setForm] = useState({ name: "", email: "", phone: "", company: "", message: "" });
     const [error, setError] = useState("");
@@ -39,7 +36,7 @@ export default function CotacaoPage() {
 
         setSubmitting(true);
         try {
-            const result = await createQuote({
+            const result = await api.quotes.create({
                 name: form.name,
                 email: form.email,
                 phone: form.phone,
@@ -47,7 +44,6 @@ export default function CotacaoPage() {
                 message: form.message || undefined,
                 source: "store",
                 items: items.map((item) => ({
-                    productId: (typeof item.productId === "string" ? item.productId : undefined) as any,
                     name: item.name,
                     sku: item.sku,
                     image: item.image,
@@ -55,7 +51,6 @@ export default function CotacaoPage() {
                 })),
             });
 
-            sendConfirmation({ quoteId: result.quoteId }).catch(() => {});
             clearCart();
             router.push(`/cotacao/sucesso?ref=${result.publicId}`);
         } catch (err: any) {

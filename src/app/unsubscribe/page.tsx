@@ -2,8 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
+import { api } from '@/shared/utils/apiClient';
 import Link from 'next/link';
 import { MailX, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import FeatureLayout from '@/shared/components/FeatureLayout';
@@ -11,7 +10,6 @@ import FeatureLayout from '@/shared/components/FeatureLayout';
 function UnsubscribeContent() {
     const searchParams = useSearchParams();
     const email = searchParams.get('email');
-    const unsubscribe = useMutation(api.newsletter.unsubscribe);
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
     useEffect(() => {
@@ -22,7 +20,7 @@ function UnsubscribeContent() {
             }
 
             try {
-                await unsubscribe({ email });
+                await api.newsletter.unsubscribe(email);
                 setStatus('success');
             } catch (error) {
                 console.error("Unsubscribe error:", error);
@@ -31,7 +29,7 @@ function UnsubscribeContent() {
         };
 
         performUnsubscribe();
-    }, [email, unsubscribe]);
+    }, [email]);
 
     return (
         <div className="min-h-[60vh] flex items-center justify-center px-4">

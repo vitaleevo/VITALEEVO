@@ -14,12 +14,12 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 
-import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
 import { PHONE_CONTACTS, SITE_CONTACT } from "@/shared/utils/contact";
 
 const Footer: React.FC = () => {
-  const settings = useQuery(api.settings.get);
+  const { data: settings } = useApiQuery<any>(null, { deps: [], fetcher: () => api.settings.get() });
 
   const config: any = settings || {
     siteName: "Vitaleevo",

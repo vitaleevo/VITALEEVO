@@ -1,15 +1,19 @@
 "use client";
 
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { FileText, ArrowLeft } from "lucide-react";
+import { sanitizeRichText } from "@/shared/utils/sanitize";
 
 export default function LegalDocumentPage({ params }: { params: { slug: string } }) {
-    const doc = useQuery(api.legalDocuments.getBySlug, { slug: params.slug });
+    const { data: doc, isLoading } = useApiQuery<any>(null, {
+        deps: [params.slug],
+        fetcher: () => api.legal.getBySlug(params.slug),
+    });
 
-    if (doc === undefined) {
+    if (isLoading) {
         return (
             <div className="min-h-[60vh] flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -17,7 +21,7 @@ export default function LegalDocumentPage({ params }: { params: { slug: string }
         );
     }
 
-    if (doc === null) {
+    if (!doc) {
         notFound();
     }
 
@@ -42,7 +46,7 @@ export default function LegalDocumentPage({ params }: { params: { slug: string }
                 <div className="mt-10 rounded-3xl bg-white p-8 shadow-sm border border-slate-100 dark:bg-white/5 dark:border-white/5 md:p-12">
                     <div
                         className="prose prose-slate max-w-none prose-headings:font-display prose-headings:font-extrabold prose-headings:text-slate-900 dark:prose-invert dark:prose-headings:text-white"
-                        dangerouslySetInnerHTML={{ __html: doc.content }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeRichText(doc.content || "") }}
                     />
                 </div>
                 <p className="mt-8 text-center text-xs text-slate-400 dark:text-slate-500">

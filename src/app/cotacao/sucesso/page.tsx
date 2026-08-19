@@ -2,18 +2,24 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import {
-    CheckCircle2, MessageSquare, ShoppingBag, Home, ArrowRight, RefreshCw, AlertCircle,
+    CheckCircle2, MessageSquare, ShoppingBag, Home, RefreshCw, AlertCircle,
 } from "lucide-react";
 
 export default function CotacaoSucessoPage() {
     const searchParams = useSearchParams();
     const ref = searchParams.get("ref") || "";
 
-    const data = useQuery(api.quotes.getByPublicId, ref ? { publicId: ref } : "skip");
+    const { data, isLoading } = useApiQuery<any>(null, {
+        deps: [ref],
+        enabled: !!ref,
+        fetcher: () => api.quotes.getByPublicId(ref),
+    });
+
+    const quote = data ?? null;
 
     const shareToWhatsApp = () => {
         const message = encodeURIComponent(
@@ -39,27 +45,27 @@ export default function CotacaoSucessoPage() {
                         melhor proposta. Enviámos também uma confirmação para o seu e-mail.
                     </p>
 
-                    {data === undefined ? (
+                    {isLoading ? (
                         <div className="flex justify-center p-8">
                             <RefreshCw className="w-8 h-8 text-primary animate-spin" />
                         </div>
-                    ) : data ? (
+                    ) : quote ? (
                         <div className="bg-white dark:bg-[#151e32] p-6 rounded-2xl border border-gray-100 dark:border-white/5 mb-8 text-left shadow-xl">
                             <div className="flex justify-between mb-3">
                                 <span className="text-sm text-gray-500">Referência:</span>
-                                <span className="font-bold text-gray-900 dark:text-white">{data.quote.publicId}</span>
+                                <span className="font-bold text-gray-900 dark:text-white">{quote.publicId}</span>
                             </div>
                             <div className="flex justify-between mb-3">
                                 <span className="text-sm text-gray-500">Estado:</span>
-                                <span className="font-bold text-primary capitalize">{data.quote.status.replace("_", " ")}</span>
+                                <span className="font-bold text-primary capitalize">{String(quote.status || "").replace("_", " ")}</span>
                             </div>
                             <div className="flex justify-between mb-3">
                                 <span className="text-sm text-gray-500">Itens:</span>
-                                <span className="font-bold text-gray-900 dark:text-white">{data.items.length}</span>
+                                <span className="font-bold text-gray-900 dark:text-white">{quote.items?.length || 0}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-sm text-gray-500">Contacto:</span>
-                                <span className="font-bold text-gray-900 dark:text-white">{data.quote.phone}</span>
+                                <span className="font-bold text-gray-900 dark:text-white">{quote.phone}</span>
                             </div>
                             <div className="grid grid-cols-1 gap-3 mt-6">
                                 <button

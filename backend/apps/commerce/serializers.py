@@ -15,7 +15,23 @@ class AddressSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at"]
 
 
+class ProductMiniSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ["id", "slug", "name", "image", "price"]
+        read_only_fields = fields
+
+
 class WishlistItemSerializer(serializers.ModelSerializer):
+    product = ProductMiniSerializer(read_only=True)
+
+    class Meta:
+        model = WishlistItem
+        fields = ["id", "product", "created_at"]
+        read_only_fields = ["id", "created_at"]
+
+
+class WishlistWriteSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(slug_field="slug", queryset=Product.objects.all())
 
     class Meta:
@@ -45,9 +61,11 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 
 class OrderItemReadSerializer(serializers.ModelSerializer):
+    product_id = serializers.UUIDField(source="product.id", read_only=True, allow_null=True)
+
     class Meta:
         model = OrderItem
-        fields = ["name", "price", "quantity", "image"]
+        fields = ["product_id", "name", "price", "quantity", "image"]
         read_only_fields = fields
 
 

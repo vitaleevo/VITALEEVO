@@ -1,8 +1,7 @@
 "use server";
 
 import { Resend } from "resend";
-import { fetchMutation } from "convex/nextjs";
-import { api } from "../../../convex/_generated/api";
+import { API_BASE_URL } from "@/shared/utils/apiClient";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const emailFrom = process.env.EMAIL_FROM;
@@ -158,7 +157,19 @@ export async function subscribeToNewsletter(email: string) {
     }
 
     try {
-        await fetchMutation(api.newsletter.subscribe, { email: normalizedEmail });
+        const res = await fetch(`${API_BASE_URL}/api/v1/cms/newsletters/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: normalizedEmail }),
+        });
+        if (!res.ok) {
+            const data = await res.json().catch(() => null);
+            const first = data?.email?.[0] ?? data?.detail;
+            if (typeof first === "string" && /já|existente|duplicado/i.test(first)) {
+                return { success: false, error: "Este e-mail já está inscrito." };
+            }
+            return { success: false, error: "Não foi possível concluir a inscrição." };
+        }
 
         const welcome = await resend!.emails.send({
             from: emailFrom!,

@@ -363,7 +363,11 @@ return {
 
     // ── Cotações ─────────────────────────────────────────────────────────
     quotes: {
-        create: (body: Record<string, unknown>) => request("/quotes/", { method: "POST", body }),
+        create: (body: Record<string, unknown>) =>
+            request<{ public_id: string; status: string }>("/quotes/", { method: "POST", body }).then(d => ({
+                publicId: d.public_id,
+                status: d.status,
+            })),
         getByPublicId: (publicId: string) => request<Record<string, unknown>>(`/quotes/${publicId}/`),
         list: (token: string, params: Record<string, unknown> = {}) =>
             request<Paginated<Record<string, unknown>>>("/quotes/manage/", { auth: true, token, params }).then(d => asPaginated<Record<string, unknown>>(d)),
@@ -414,7 +418,13 @@ return {
 
     // ── Conta (comércio) ─────────────────────────────────────────────────
     addresses: {
-        list: (token: string) => request<Record<string, unknown>[]>("/commerce/addresses/", { auth: true, token }),
+        list: (token: string) =>
+            request<Record<string, unknown>[]>("/commerce/addresses/", { auth: true, token }).then(list =>
+                list.map(a => ({
+                    ...withId(a),
+                    isDefault: Boolean((a as Record<string, unknown>).isDefault),
+                }) as any)
+            ),
         create: (body: Record<string, unknown>, token: string) =>
             request("/commerce/addresses/", { method: "POST", body, token, auth: true }),
         update: (id: string, body: Record<string, unknown>, token: string) =>
@@ -424,7 +434,16 @@ return {
             request(`/commerce/addresses/${id}/set_default/`, { method: "POST", token, auth: true }),
     },
     wishlist: {
-        list: (token: string) => request<Record<string, unknown>[]>("/commerce/wishlist/", { auth: true, token }),
+        list: (token: string) =>
+            request<Record<string, unknown>[]>("/commerce/wishlist/", { auth: true, token }).then(list =>
+                list.map(item => ({
+                    ...withId(item),
+                    product: {
+                        ...withId((item as Record<string, unknown>).product as Record<string, unknown>),
+                        price: Number(((item as Record<string, unknown>).product as Record<string, unknown>)?.price ?? 0),
+                    },
+                }) as any)
+            ),
         toggle: (slug: string, token: string) =>
             request<{ favorited: boolean }>("/commerce/wishlist/toggle/", { method: "POST", body: { product: slug }, token, auth: true }),
         isFavorited: (slug: string, token: string) =>
@@ -432,7 +451,13 @@ return {
         remove: (id: string, token: string) => request(`/commerce/wishlist/${id}/`, { method: "DELETE", token, auth: true }),
     },
     notifications: {
-        list: (token: string) => request<Record<string, unknown>[]>("/commerce/notifications/", { auth: true, token }),
+        list: (token: string) =>
+            request<Record<string, unknown>[]>("/commerce/notifications/", { auth: true, token }).then(list =>
+                list.map(n => ({
+                    ...withId(n),
+                    status: (n as Record<string, unknown>).isRead ? "read" : "unread",
+                }) as any)
+            ),
         unreadCount: (token: string) =>
             request<{ count: number }>("/commerce/notifications/unread_count/", { auth: true, token }),
         markRead: (id: string, token: string) =>
@@ -454,10 +479,39 @@ return {
     orders: {
         create: (body: Record<string, unknown>) => request("/commerce/orders/", { method: "POST", body }),
         getByOrderNumber: (orderNumber: string, accessToken: string) =>
-            request(`/commerce/orders/by_number/?order_number=${encodeURIComponent(orderNumber)}&access_token=${encodeURIComponent(accessToken)}`),
-        getByUser: (token: string) => request<Record<string, unknown>[]>("/commerce/orders/mine/", { auth: true, token }),
+            request<Record<string, unknown>>(`/commerce/orders/by_number/?order_number=${encodeURIComponent(orderNumber)}&access_token=${encodeURIComponent(accessToken)}`).then(o => {
+                const order = o as Record<string, unknown>;
+                return {
+                    ...withId(order),
+                    subtotal: Number(order.subtotal ?? 0),
+                    shipping: Number(order.shipping ?? 0),
+                    total: Number(order.total ?? 0),
+                    items: ((order.items ?? []) as Record<string, unknown>[]).map(i => ({
+                        ...i,
+                        productId: (i as Record<string, unknown>).productId ?? (i as Record<string, unknown>).product_id,
+                        price: Number((i as Record<string, unknown>).price ?? 0),
+                    })),
+                } as any;
+            }),
+        getByUser: (token: string) =>
+            request<Record<string, unknown>[]>("/commerce/orders/mine/", { auth: true, token }).then(list =>
+                list.map(o => ({ ...withId(o), total: Number((o as Record<string, unknown>).total ?? 0) }) as any)
+            ),
         getById: (id: string, token: string, accessToken?: string) =>
-            request(`/commerce/orders/${id}/`, { auth: !!token || !!accessToken, token, params: accessToken ? { access_token: accessToken } : undefined }),
+            request<Record<string, unknown>>(`/commerce/orders/${id}/`, { auth: !!token || !!accessToken, token, params: accessToken ? { access_token: accessToken } : undefined }).then(o => {
+                const order = o as Record<string, unknown>;
+                return {
+                    ...withId(order),
+                    subtotal: Number(order.subtotal ?? 0),
+                    shipping: Number(order.shipping ?? 0),
+                    total: Number(order.total ?? 0),
+                    items: ((order.items ?? []) as Record<string, unknown>[]).map(i => ({
+                        ...i,
+                        productId: (i as Record<string, unknown>).productId ?? (i as Record<string, unknown>).product_id,
+                        price: Number((i as Record<string, unknown>).price ?? 0),
+                    })),
+                } as any;
+            }),
         list: (token: string, params: Record<string, unknown> = {}) =>
             request<Paginated<Record<string, unknown>>>("/commerce/orders/manage/", { auth: true, token, params }).then(d => asPaginated<Record<string, unknown>>(d)),
         getStats: (token: string) => request("/commerce/orders/manage/stats/", { auth: true, token }),

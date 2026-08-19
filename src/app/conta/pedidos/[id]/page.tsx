@@ -1,9 +1,8 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { useParams, useRouter } from "next/navigation";
-import { api } from "../../../../../convex/_generated/api";
-import { Id } from "../../../../../convex/_generated/dataModel";
+import { api } from "@/shared/utils/apiClient";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { useCart } from "@/shared/providers/CartProvider";
@@ -40,9 +39,13 @@ export default function OrderDetailPage() {
     const [copiedField, setCopiedField] = useState<string | null>(null);
 
     const orderId = params.id as string;
-    const order = useQuery(api.orders.getById, token ? { token, orderId: orderId as Id<"orders"> } : "skip");
+    const { data: order, isLoading: orderLoading } = useApiQuery<any>(null, {
+        deps: [token, orderId],
+        enabled: !!token,
+        fetcher: () => api.orders.getById(orderId, token!),
+    });
 
-    if (authLoading || (order === undefined)) {
+    if (authLoading || orderLoading) {
         return (
             <FeatureLayout>
                 <div className="min-h-screen pt-32 pb-24 flex items-center justify-center text-gray-500">
@@ -78,7 +81,7 @@ export default function OrderDetailPage() {
 
     const handleRepeatOrder = () => {
         setIsRepeating(true);
-        order.items.forEach(item => {
+        order.items.forEach((item: any) => {
             addItem({
                 id: item.productId as any,
                 name: item.name,
@@ -135,7 +138,7 @@ export default function OrderDetailPage() {
         if (order.shippingAddress.nif) doc.text(`NIF: ${order.shippingAddress.nif}`, 14, 96);
 
         // Table
-        const tableData = order.items.map(item => [
+        const tableData = order.items.map((item: any) => [
             item.name,
             item.quantity,
             formatCurrency(item.price),
@@ -356,7 +359,7 @@ export default function OrderDetailPage() {
                                 </h3>
 
                                 <div className="divide-y divide-gray-100 dark:divide-white/5">
-                                    {order.items.map((item) => (
+                                    {order.items.map((item: any) => (
                                         <div key={item.productId} className="py-6 first:pt-0 last:pb-0 flex gap-6">
                                             <div className="w-20 h-20 bg-gray-50 dark:bg-black/20 rounded-2xl overflow-hidden shrink-0 border border-gray-100 dark:border-white/5">
                                                 <img src={item.image} alt={item.name} className="w-full h-full object-cover" />

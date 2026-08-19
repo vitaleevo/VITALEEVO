@@ -18,6 +18,7 @@ from .serializers import (
     OrderReadSerializer,
     OrderStatusSerializer,
     WishlistItemSerializer,
+    WishlistWriteSerializer,
 )
 from .services import update_order_status
 
@@ -61,7 +62,7 @@ class WishlistViewSet(viewsets.ViewSet):
         return Response(WishlistItemSerializer(items, many=True).data)
 
     def create(self, request):
-        serializer = WishlistItemSerializer(data=request.data)
+        serializer = WishlistWriteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         item, _ = WishlistItem.objects.get_or_create(user=request.user, product=serializer.validated_data["product"])
         return Response(WishlistItemSerializer(item).data, status=status.HTTP_201_CREATED)
@@ -72,7 +73,7 @@ class WishlistViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"])
     def toggle(self, request):
-        serializer = WishlistItemSerializer(data=request.data)
+        serializer = WishlistWriteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         product = serializer.validated_data["product"]
         item = WishlistItem.objects.filter(user=request.user, product=product).first()

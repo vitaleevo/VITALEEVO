@@ -1,7 +1,7 @@
 "use client";
 
-import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
 import { Hammer, Mail, Phone, Instagram, Facebook, Linkedin, Twitter } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -9,15 +9,15 @@ import Logo from "@/shared/components/Logo";
 
 export default function MaintenancePage() {
     const router = useRouter();
-    const settings = useQuery(api.settings.get);
+    const { data: settings } = useApiQuery<any>(null, { deps: [], fetcher: () => api.settings.get() });
 
     useEffect(() => {
-        if (settings && !settings.businessConfig.maintenanceMode) {
+        if (settings && !settings.businessConfig?.maintenanceMode) {
             router.push("/");
         }
     }, [settings, router]);
 
-    if (settings && !settings.businessConfig.maintenanceMode) {
+    if (settings && !settings.businessConfig?.maintenanceMode) {
         return null;
     }
 

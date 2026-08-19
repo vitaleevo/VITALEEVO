@@ -1,8 +1,8 @@
 "use client";
 
 import { useSearchParams } from 'next/navigation';
-import { useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
 import Link from 'next/link';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import { CheckCircle, Download, ShoppingBag, Home, ArrowRight, RefreshCw, AlertCircle, MessageSquare } from "lucide-react";
@@ -13,7 +13,11 @@ export default function OrderSuccessPage() {
     const orderNumber = searchParams.get('order');
     const accessToken = searchParams.get('token') || undefined;
 
-    const order = useQuery(api.orders.getByOrderNumber, orderNumber ? { orderNumber, accessToken } : "skip");
+    const { data: order, isLoading } = useApiQuery<any>(null, {
+        deps: [orderNumber, accessToken],
+        enabled: !!orderNumber,
+        fetcher: () => api.orders.getByOrderNumber(orderNumber as string, accessToken as string),
+    });
 
     const shareToWhatsApp = () => {
         if (!order) return;
@@ -57,7 +61,7 @@ export default function OrderSuccessPage() {
         doc.text(order.shippingAddress.address, 14, 86);
 
         // Table
-        const tableData = order.items.map(item => [
+        const tableData = order.items.map((item: any) => [
             item.name,
             item.quantity,
             formatCurrency(item.price),
@@ -107,7 +111,7 @@ export default function OrderSuccessPage() {
                         Obrigado pela sua compra. Seu pedido foi recebido com sucesso e estamos aguardando o pagamento via transferência.
                     </p>
 
-                    {order === undefined ? (
+                    {isLoading ? (
                         <div className="flex justify-center p-8">
                             <RefreshCw className="w-8 h-8 text-primary animate-spin" />
                         </div>

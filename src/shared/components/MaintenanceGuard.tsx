@@ -1,7 +1,7 @@
 "use client";
 
-import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { useApiQuery } from "../hooks/useApiQuery";
+import { api } from "../utils/apiClient";
 import { useAuth } from "../providers/AuthProvider";
 import { usePathname } from "next/navigation";
 import MaintenancePage from "@/app/maintenance/page";
@@ -11,7 +11,7 @@ interface MaintenanceGuardProps {
 }
 
 export default function MaintenanceGuard({ children }: MaintenanceGuardProps) {
-    const settings = useQuery(api.settings.get);
+    const { data: settings } = useApiQuery<any>(null, { deps: [], fetcher: () => api.settings.get() });
     const { isAdmin, isLoading: authLoading } = useAuth();
     const pathname = usePathname();
 
@@ -22,7 +22,7 @@ export default function MaintenanceGuard({ children }: MaintenanceGuardProps) {
 
     if (!settings) return <>{children}</>;
 
-    const isMaintenanceOn = settings.businessConfig.maintenanceMode;
+    const isMaintenanceOn = settings.businessConfig?.maintenanceMode;
 
     if (isMaintenanceOn && !isAdmin && !isAdminRoute && !isLoginPage && !isMaintenancePage) {
         // If auth is still loading, wait a bit to avoid flashing the maintenance page to an admin

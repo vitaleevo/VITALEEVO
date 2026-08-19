@@ -4,8 +4,8 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import Link from "next/link";
 import {
@@ -42,22 +42,35 @@ import { getErrorMessage } from "@/shared/utils/error-handler";
 import { formatDate, formatCurrency } from "@/shared/utils/format";
 
 export default function ContaPage() {
-    const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
+    const { user, token, isAuthenticated, isLoading: authLoading, logout } = useAuth();
     const router = useRouter();
 
-    // Mutations & Queries
-    const updateProfile = useMutation(api.auth.updateProfile);
-    const changePassword = useMutation(api.auth.changePassword);
-    const createAddress = useMutation(api.addresses.create);
-    const removeAddress = useMutation(api.addresses.remove);
-    const setDefaultAddress = useMutation(api.addresses.setDefault);
-    const toggleWishlist = useMutation(api.wishlist.toggle);
-
-    const orders = useQuery(api.orders.getByUser, user ? { userId: user._id, token: user.token } : "skip");
-    const addresses = useQuery(api.addresses.getByUser, user ? { userId: user._id } : "skip");
-    const wishlistItems = useQuery(api.wishlist.getByUser, user ? { userId: user._id } : "skip");
-    const notifications = useQuery(api.notifications.getByUser, user ? { userId: user._id } : "skip");
-    const unreadCount = useQuery(api.notifications.getUnreadCount, user ? { userId: user._id } : "skip");
+    // Queries — API Django
+    const { data: orders, refetch: refetchOrders } = useApiQuery<any[]>(null, {
+        deps: [token],
+        enabled: !!token,
+        fetcher: () => api.orders.getByUser(token!),
+    });
+    const { data: addresses, refetch: refetchAddresses } = useApiQuery<any[]>(null, {
+        deps: [token],
+        enabled: !!token,
+        fetcher: () => api.addresses.list(token!),
+    });
+    const { data: wishlistItems, refetch: refetchWishlist } = useApiQuery<any[]>(null, {
+        deps: [token],
+        enabled: !!token,
+        fetcher: () => api.wishlist.list(token!),
+    });
+    const { data: notifications, refetch: refetchNotifications } = useApiQuery<any[]>(null, {
+        deps: [token],
+        enabled: !!token,
+        fetcher: () => api.notifications.list(token!),
+    });
+    const { data: unreadCount, refetch: refetchUnread } = useApiQuery<number>(null, {
+        deps: [token],
+        enabled: !!token,
+        fetcher: () => api.notifications.unreadCount(token!).then(r => r.count),
+    });
 
     const [activeTab, setActiveTab] = useState<"profile" | "orders" | "addresses" | "wishlist" | "notifications" | "security">("profile");
     const [isEditing, setIsEditing] = useState(false);
@@ -65,10 +78,6 @@ export default function ContaPage() {
     const [showPasswords, setShowPasswords] = useState(false);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-
-    const markAsRead = useMutation(api.notifications.markAsRead);
-    const markAllAsRead = useMutation(api.notifications.markAllAsRead);
-    const removeNotification = useMutation(api.notifications.remove);
 
     const [editForm, setEditForm] = useState({ name: "", phone: "" });
     const [passwordForm, setPasswordForm] = useState({ current: "", new: "", confirm: "" });
@@ -107,15 +116,16 @@ export default function ContaPage() {
     }
 
     const handleSaveProfile = async () => {
-        if (!user) return;
+        if (!user || !token) return;
         setSaving(true);
         setMessage(null);
         try {
-            await updateProfile({
-                token: user.token,
-                name: editForm.name || undefined,
+            const [firstName = "", lastName = ""] = editForm.name.split(" ").filter(Boolean);
+            await api.auth.updateProfile({
+                first_name: firstName,
+                last_name: lastName.slice(0, 80),
                 phone: editForm.phone || undefined,
-            });
+            }, token);
             toast.success("Perfil atualizado com sucesso!");
             setMessage({ type: "success", text: "Perfil atualizado com sucesso!" });
             setIsEditing(false);
@@ -129,7 +139,7 @@ export default function ContaPage() {
     };
 
     const handleChangePassword = async () => {
-        if (!user) return;
+        if (!user || !token) return;
 
         if (passwordForm.new !== passwordForm.confirm) {
             setMessage({ type: "error", text: "As senhas não coincidem" });
@@ -144,11 +154,7 @@ export default function ContaPage() {
         setSaving(true);
         setMessage(null);
         try {
-            await changePassword({
-                token: user.token,
-                currentPassword: passwordForm.current,
-                newPassword: passwordForm.new,
-            });
+            await api.auth.changePassword(passwordForm.current, passwordForm.new, token);
             toast.success("Senha alterada com sucesso!");
             setMessage({ type: "success", text: "Senha alterada com sucesso!" });
             setPasswordForm({ current: "", new: "", confirm: "" });
@@ -179,13 +185,13 @@ export default function ContaPage() {
 
         setSaving(true);
         try {
-            await createAddress({
-                userId: user._id,
-                ...addressForm
-            });
+            await api.addresses.create({
+                ...addressForm,
+            }, token!);
             toast.success("Endereço adicionado!");
             setMessage({ type: "success", text: "Endereço adicionado!" });
             setShowAddressModal(false);
+            refetchAddresses();
             setAddressForm({
                 label: "Casa",
                 name: user.name,
@@ -207,8 +213,9 @@ export default function ContaPage() {
     const handleDeleteAddress = async (id: any) => {
         if (!confirm("Tem certeza que deseja excluir este endereço?")) return;
         try {
-            await removeAddress({ addressId: id });
+            await api.addresses.remove(id, token!);
             setMessage({ type: "success", text: "Endereço removido" });
+            refetchAddresses();
         } catch (err) {
             setMessage({ type: "error", text: "Erro ao remover endereço" });
         }
@@ -216,8 +223,9 @@ export default function ContaPage() {
 
     const handleSetDefault = async (id: any) => {
         try {
-            await setDefaultAddress({ addressId: id });
+            await api.addresses.setDefault(id, token!);
             setMessage({ type: "success", text: "Endereço padrão atualizado" });
+            refetchAddresses();
         } catch (err) {
             setMessage({ type: "error", text: "Erro ao atualizar padrão" });
         }
@@ -730,8 +738,9 @@ export default function ContaPage() {
                                                             <button
                                                                 onClick={async () => {
                                                                     try {
-                                                                        await toggleWishlist({ userId: user!._id, productId: item.product._id });
+                                                                        await api.wishlist.toggle(item.product.slug, token!);
                                                                         setMessage({ type: "success", text: "Removido dos favoritos" });
+                                                                        refetchWishlist();
                                                                     } catch (err) {
                                                                         setMessage({ type: "error", text: "Erro ao remover" });
                                                                     }
@@ -760,7 +769,11 @@ export default function ContaPage() {
                                         </h2>
                                         {notifications && notifications.length > 0 && (
                                             <button
-                                                onClick={() => markAllAsRead({ userId: user!._id })}
+                                                onClick={async () => {
+                                                    await api.notifications.markAllRead(token!);
+                                                    refetchNotifications();
+                                                    refetchUnread();
+                                                }}
                                                 className="text-xs font-bold text-primary hover:underline uppercase tracking-wider"
                                             >
                                                 Marcar todas como lidas
@@ -807,7 +820,11 @@ export default function ContaPage() {
                                                                 {note.metadata?.link && (
                                                                     <Link
                                                                         href={note.metadata.link}
-                                                                        onClick={() => markAsRead({ notificationId: note._id })}
+                                                                        onClick={async () => {
+                                                                            await api.notifications.markRead(note._id, token!);
+                                                                            refetchNotifications();
+                                                                            refetchUnread();
+                                                                        }}
                                                                         className="text-xs font-bold text-primary hover:underline"
                                                                     >
                                                                         Ver detalhes
@@ -815,7 +832,11 @@ export default function ContaPage() {
                                                                 )}
                                                                 {note.status === "unread" && (
                                                                     <button
-                                                                        onClick={() => markAsRead({ notificationId: note._id })}
+                                                                        onClick={async () => {
+                                                                            await api.notifications.markRead(note._id, token!);
+                                                                            refetchNotifications();
+                                                                            refetchUnread();
+                                                                        }}
                                                                         className="text-xs font-bold text-gray-400 hover:text-primary transition-colors"
                                                                     >
                                                                         Marcar como lida
@@ -824,7 +845,11 @@ export default function ContaPage() {
                                                             </div>
                                                         </div>
                                                         <button
-                                                            onClick={() => removeNotification({ notificationId: note._id })}
+                                                            onClick={async () => {
+                                                                await api.notifications.remove(note._id, token!);
+                                                                refetchNotifications();
+                                                                refetchUnread();
+                                                            }}
                                                             className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 transition-all rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
