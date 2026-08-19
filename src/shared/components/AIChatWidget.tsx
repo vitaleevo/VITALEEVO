@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useAction } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 import { MessageSquare, X, Send, Loader2, Bot } from 'lucide-react';
 
 // Simple type for chat messages
@@ -18,9 +16,6 @@ export const AIChatWidget = () => {
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-
-    // Convex Action
-    const sendMessageToOpenAI = useAction(api.ai.chat);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -45,17 +40,17 @@ export const AIChatWidget = () => {
         setIsLoading(true);
 
         try {
-            // Call Backend
-            const response = await sendMessageToOpenAI({
-                message: userMessage,
-                // Send last 10 messages as history context (excluding the just added one for simplicity in UI sync, but better to include all valid ones)
-                // Filtering out 'system' if purely UI, but here we keep roles.
-                history: messages.slice(-6)
-            });
-
-            if (response) {
-                setMessages([...newMessages, { role: 'assistant', content: response }]);
-            }
+            // O backend ainda não expõe um endpoint de IA — responder com fallback
+            // até a integração (ex.: OpenAI) ser ligada à API Django.
+            setMessages([
+                ...newMessages,
+                {
+                    role: 'assistant',
+                    content:
+                        'Obrigado pela mensagem! A minha integração de IA está em manutenção. ' +
+                        'Entretanto, a nossa equipa está disponível por WhatsApp ou através da página de contactos.',
+                },
+            ]);
         } catch (error) {
             console.error("Erro no chat:", error);
             setMessages([...newMessages, { role: 'assistant', content: 'Desculpe, estou com dificuldades de conexão no momento. Pode tentar novamente?' }]);
