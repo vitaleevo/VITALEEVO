@@ -1,29 +1,157 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
-import { Construction, ArrowLeft } from "lucide-react";
+import { Banknote, ShoppingCart, FileText, Inbox, Mail, Users, Package, AlertTriangle, ArrowRight } from "lucide-react";
+import { useAuth } from "@/shared/providers/AuthProvider";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
+import { AdminHeader, Card, Loading, ErrorBox, Badge, Table, Td, Empty } from "@/shared/components/admin/ui";
+import { formatCurrency, formatDate } from "@/shared/utils/format";
 
-export default function AdminDisabledPage() {
+export default function AdminDashboardPage() {
+    const { token } = useAuth();
+    const { data: stats, isLoading, error } = useApiQuery<any>(null, {
+        deps: [token],
+        enabled: !!token,
+        fetcher: () => api.dashboard.getStats(token as string),
+    });
+
+    if (isLoading) return <Loading label="A carregar dashboard..." />;
+    if (error) return <ErrorBox message={error} />;
+    if (!stats) return <Empty />;
+
+    const orders = stats.orders || {};
+    const quotes = stats.quotes || {};
+    const contacts = stats.contacts || {};
+    const products = stats.products || {};
+    const users = stats.users || {};
+
+    const cards = [
+        { label: "Receita (não cancelada)", value: formatCurrency(stats.revenue ?? 0), icon: Banknote, to: "/admin/orders" },
+        { label: "Encomendas", value: String(orders.total ?? 0), icon: ShoppingCart, to: "/admin/orders" },
+        { label: "Cotações", value: String(quotes.total ?? 0), icon: FileText, to: "/admin/quotes" },
+        { label: "Contactos", value: String(contacts.total ?? 0), icon: Inbox, to: "/admin/contacts" },
+        { label: "Subscritores", value: String(stats.newsletterSubscribers ?? 0), icon: Mail, to: "/admin/newsletter" },
+        { label: "Utilizadores", value: String(users.total ?? 0), icon: Users, to: "/admin/users" },
+        { label: "Produtos ativos", value: String(products.active ?? 0), icon: Package, to: "/admin/products" },
+        { label: "Stock baixo (≤5)", value: String(products.lowStock ?? 0), icon: AlertTriangle, to: "/admin/products" },
+    ];
+
+    const maxRevenue = Math.max(1, ...(stats.monthlyRevenue || []).map((m: any) => m.total));
+
     return (
-        <div className="min-h-[70vh] flex items-center justify-center bg-gray-50 dark:bg-[#0b1120] px-4">
-            <div className="max-w-md w-full text-center">
-                <div className="w-24 h-24 rounded-full bg-amber-100 dark:bg-amber-500/15 flex items-center justify-center mx-auto mb-8">
-                    <Construction className="w-12 h-12 text-amber-500" />
-                </div>
-                <h1 className="font-display text-3xl font-black text-gray-900 dark:text-white mb-4">
-                    Painel em Construção
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-                    O painel de administração está temporariamente indisponível enquanto
-                    migramos o sistema para o novo backend. Volte em breve.
-                </p>
-                <Link
-                    href="/"
-                    className="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-primary/25 transition-all"
-                >
-                    <ArrowLeft className="w-5 h-5" />
-                    Voltar ao Início
-                </Link>
+        <div>
+            <AdminHeader title="Dashboard" subtitle="Visão geral do negócio" />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+                {cards.map(card => (
+                    <Link key={card.label} href={card.to} className="group">
+                        <Card className="p-5 hover:border-primary/30 transition-colors">
+                            <div className="flex items-center justify-between mb-3">
+                                <card.icon className="w-5 h-5 text-primary" />
+                                <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
+                            </div>
+                            <p className="text-2xl font-black text-gray-900 dark:text-white">{card.value}</p>
+                            <p className="mt-1 text-xs font-medium text-gray-500">{card.label}</p>
+                        </Card>
+                    </Link>
+                ))}
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                {/* Receita mensal */}
+                <Card className="p-6 xl:col-span-1">
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-4">Receita Mensal (6 meses)</h3>
+                    {stats.monthlyRevenue?.length ? (
+                        <div className="flex items-end gap-2 h-40">
+                            {stats.monthlyRevenue.map((m: any) => (
+                                <div key={m.month} className="flex-1 flex flex-col items-center gap-1">
+                                    <span className="text-[9px] font-bold text-gray-400">{Math.round((m.total / maxRevenue) * 100)}%</span>
+                                    <div
+                                        className="w-full rounded-t-lg bg-primary/80"
+                                        style={{ height: `${Math.max(4, (m.total / maxRevenue) * 100)}%` }}
+                                    />
+                                    <span className="text-[9px] text-gray-400">{m.month}</span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <Empty label="Sem receita registada" />
+                    )}
+                </Card>
+
+                {/* Encomendas recentes */}
+                <Card className="xl:col-span-2 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+                        <h3 className="font-bold text-gray-900 dark:text-white">Encomendas Recentes</h3>
+                        <Link href="/admin/orders" className="text-xs font-bold text-primary hover:underline">Ver todas</Link>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="text-left text-xs uppercase tracking-wider text-gray-400 border-b border-gray-50 dark:border-white/5">
+                                    <th className="px-4 py-3 font-bold">Número</th>
+                                    <th className="px-4 py-3 font-bold">Cliente</th>
+                                    <th className="px-4 py-3 font-bold">Total</th>
+                                    <th className="px-4 py-3 font-bold">Estado</th>
+                                    <th className="px-4 py-3 font-bold">Data</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50 dark:divide-white/5">
+                                {(stats.recent?.orders || []).map((o: any) => (
+                                    <tr key={o.orderNumber || o.order_number}>
+                                        <Td className="font-bold">#{o.orderNumber || o.order_number}</Td>
+                                        <Td>{o.guestEmail || o.guest_email || "—"}</Td>
+                                        <Td className="font-bold">{formatCurrency(Number(o.total))}</Td>
+                                        <Td><Badge value={o.status} /></Td>
+                                        <Td className="text-gray-400">{formatDate(o.createdAt || o.created_at)}</Td>
+                                    </tr>
+                                ))}
+                                {!(stats.recent?.orders || []).length && <tr><td><Empty /></td></tr>}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+
+                {/* Cotações recentes */}
+                <Card className="xl:col-span-2 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+                        <h3 className="font-bold text-gray-900 dark:text-white">Cotações Recentes</h3>
+                        <Link href="/admin/quotes" className="text-xs font-bold text-primary hover:underline">Ver todas</Link>
+                    </div>
+                    <Table headers={["Ref", "Nome", "Telefone", "Estado", "Data"]}>
+                        {(stats.recent?.quotes || []).map((q: any) => (
+                            <tr key={q.publicId || q.public_id}>
+                                <Td className="font-mono text-xs font-bold">{(q.publicId || q.public_id)}</Td>
+                                <Td>{q.name}</Td>
+                                <Td>{q.phone}</Td>
+                                <Td><Badge value={q.status} /></Td>
+                                <Td className="text-gray-400">{formatDate(q.createdAt || q.created_at)}</Td>
+                            </tr>
+                        ))}
+                        {!(stats.recent?.quotes || []).length && (
+                            <tr><td colSpan={5}><Empty /></td></tr>
+                        )}
+                    </Table>
+                </Card>
+
+                {/* Contactos recentes */}
+                <Card className="overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+                        <h3 className="font-bold text-gray-900 dark:text-white">Contactos Recentes</h3>
+                        <Link href="/admin/contacts" className="text-xs font-bold text-primary hover:underline">Ver todos</Link>
+                    </div>
+                    <div className="divide-y divide-gray-50 dark:divide-white/5">
+                        {(stats.recent?.contacts || []).map((c: any) => (
+                            <div key={c.id} className="px-6 py-3">
+                                <p className="font-bold text-sm text-gray-900 dark:text-white">{c.name}</p>
+                                <p className="text-xs text-gray-500 truncate">{c.subject}</p>
+                            </div>
+                        ))}
+                        {!(stats.recent?.contacts || []).length && <Empty />}
+                    </div>
+                </Card>
             </div>
         </div>
     );

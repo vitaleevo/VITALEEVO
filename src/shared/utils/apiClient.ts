@@ -330,6 +330,8 @@ return {
             request<Record<string, unknown>>(`/cms/legal/${slug}/`),
         upsert: (body: Record<string, unknown>, token: string) =>
             request("/cms/legal/", { method: "POST", body, token, auth: true }),
+        update: (slug: string, body: Record<string, unknown>, token: string) =>
+            request(`/cms/legal/${slug}/`, { method: "PATCH", body, token, auth: true }),
         remove: (slug: string, token: string) =>
             request(`/cms/legal/${slug}/`, { method: "DELETE", token, auth: true }),
     },
@@ -359,6 +361,8 @@ return {
             request<Paginated<Record<string, unknown>>>("/cms/newsletters/", { auth: true, token }).then(d => asPaginated<Record<string, unknown>>(d).results),
         remove: (id: string, token: string) =>
             request(`/cms/newsletters/${id}/`, { method: "DELETE", token, auth: true }),
+        broadcast: (subject: string, body: string, token: string) =>
+            request<{ sent: number }>("/cms/newsletters/broadcast/", { method: "POST", body: { subject, body }, token, auth: true }),
     },
 
     // ── Cotações ─────────────────────────────────────────────────────────
@@ -372,7 +376,9 @@ return {
         list: (token: string, params: Record<string, unknown> = {}) =>
             request<Paginated<Record<string, unknown>>>("/quotes/manage/", { auth: true, token, params }).then(d => asPaginated<Record<string, unknown>>(d)),
         getStats: (token: string) => request("/quotes/manage/stats/", { auth: true, token }),
-        assign: (id: string, token: string) => request(`/quotes/manage/${id}/assign/`, { method: "POST", token, auth: true }),
+        getById: (id: string, token: string) =>
+            request<Record<string, unknown>>(`/quotes/manage/${id}/`, { auth: true, token }),
+        assign: (id: string, assignedTo: string, token: string) => request(`/quotes/manage/${id}/assign/`, { method: "POST", body: { assigned_to: assignedTo || null }, token, auth: true }),
         setStatus: (id: string, status: string, token: string) =>
             request(`/quotes/manage/${id}/status/`, { method: "POST", body: { status }, token, auth: true }),
         setFollowUp: (id: string, date: string, token: string) =>
@@ -513,7 +519,26 @@ return {
                 } as any;
             }),
         list: (token: string, params: Record<string, unknown> = {}) =>
-            request<Paginated<Record<string, unknown>>>("/commerce/orders/manage/", { auth: true, token, params }).then(d => asPaginated<Record<string, unknown>>(d)),
+            request<Paginated<Record<string, unknown>>>("/commerce/orders/manage/", { auth: true, token, params }).then(d => {
+                const page = asPaginated<Record<string, unknown>>(d);
+                return {
+                    ...page,
+                    results: page.results.map(o => ({
+                        ...withId(o),
+                        guestEmail: (o as Record<string, unknown>).guestEmail ?? (o as Record<string, unknown>).guest_email,
+                        paymentMethod: (o as Record<string, unknown>).paymentMethod ?? (o as Record<string, unknown>).payment_method,
+                        createdAt: (o as Record<string, unknown>).createdAt ?? (o as Record<string, unknown>).created_at,
+                        subtotal: Number((o as Record<string, unknown>).subtotal ?? 0),
+                        shipping: Number((o as Record<string, unknown>).shipping ?? 0),
+                        total: Number((o as Record<string, unknown>).total ?? 0),
+                        items: (((o as Record<string, unknown>).items ?? []) as Record<string, unknown>[]).map((i: Record<string, unknown>) => ({
+                            ...i,
+                            productId: i.productId ?? i.product_id,
+                            price: Number(i.price ?? 0),
+                        })),
+                    }) as any),
+                };
+            }),
         getStats: (token: string) => request("/commerce/orders/manage/stats/", { auth: true, token }),
         updateStatus: (id: string, status: string, token: string) =>
             request(`/commerce/orders/manage/${id}/update_status/`, { method: "POST", body: { status }, token, auth: true }),
@@ -522,17 +547,10 @@ return {
     // ── Dashboard / misc ─────────────────────────────────────────────────
     dashboard: {
         getStats: (token: string) =>
-            Promise.all([
-                request<{ count: number }>("/catalog/products/", { auth: true, token, params: { page_size: 1 } }),
-                request<{ count: number }>("/blog/articles/", { auth: true, token, params: { page_size: 1 } }),
-                api.orders.getStats(token),
-                api.quotes.getStats(token),
-            ]).then(([products, articles, orders, quotes]) => ({
-                totalProducts: products.count,
-                totalArticles: articles.count,
-                ...(orders as Record<string, unknown>),
-                ...(quotes as Record<string, unknown>),
-            })),
+            request<Record<string, unknown>>("/dashboard/", { auth: true, token }).then(d => ({
+                ...d,
+                revenue: Number((d as Record<string, unknown>).revenue ?? 0),
+            }) as any),
     },
 
     // ── Media ────────────────────────────────────────────────────────────
@@ -552,6 +570,51 @@ return {
             }
             return data as { url: string };
         },
+    },
+
+    // ── Auditoria ────────────────────────────────────────────────────────
+    audit: {
+        list: (token: string, params: Record<string, unknown> = {}) =>
+            request<Paginated<Record<string, unknown>>>("/audit/logs/", { auth: true, token, params }).then(d => asPaginated<Record<string, unknown>>(d)),
+    },
+
+    // ── Importação ───────────────────────────────────────────────────────
+    imports: {
+        importProducts: async (file: File, token: string) => {
+            const form = new FormData();
+            form.append("file", file);
+            const res = await fetch(`${API_BASE_URL}/api/v1/imports/products/`, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: form,
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                const first = Array.isArray(data.file) ? data.file[0] : data.detail;
+                throw new ApiError(res.status, typeof first === "string" ? first : "Importação falhou", data);
+            }
+            return data as { created: number; updated: number; errors: { row: number; error: string }[] };
+        },
+    },
+
+    // ── Páginas do site ──────────────────────────────────────────────────
+    pages: {
+        list: (params: Record<string, unknown> = {}) =>
+            request<Paginated<Record<string, unknown>>>("/cms/pages/", { params }).then(d => asPaginated<Record<string, unknown>>(d).results),
+        create: (body: Record<string, unknown>, token: string) =>
+            request("/cms/pages/", { method: "POST", body, token, auth: true }),
+        update: (slug: string, body: Record<string, unknown>, token: string) =>
+            request(`/cms/pages/${slug}/`, { method: "PATCH", body, token, auth: true }),
+        remove: (slug: string, token: string) =>
+            request(`/cms/pages/${slug}/`, { method: "DELETE", token, auth: true }),
+        publish: (slug: string, token: string) =>
+            request(`/cms/pages/${slug}/publish/`, { method: "POST", token, auth: true }),
+    },
+
+    // ── IA ───────────────────────────────────────────────────────────────
+    ai: {
+        chat: (message: string, history: { role: string; content: string }[] = []) =>
+            request<{ reply: string }>("/ai/chat/", { method: "POST", body: { message, history } }),
     },
 };
 
