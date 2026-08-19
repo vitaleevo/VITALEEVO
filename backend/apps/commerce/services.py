@@ -1,6 +1,8 @@
 """Serviços do comércio — lógica de negócio fora das views."""
 from decimal import Decimal
 
+from apps.audit.helpers import log_audit
+
 from .models import Notification, NotificationType, Order, OrderItem, OrderStatus
 
 
@@ -42,10 +44,17 @@ def create_order(*, user, items, shipping_address, guest_email="", guest_name=""
     return order
 
 
-def update_order_status(order: Order, new_status: str) -> Order:
+def update_order_status(order: Order, new_status: str, actor=None) -> Order:
     """Muda o estado da encomenda e notifica o cliente."""
     order.status = new_status
     order.save(update_fields=["status", "updated_at"])
+    log_audit(
+        user=actor,
+        action=f"order.status.{new_status}",
+        resource_type="order",
+        resource_id=str(order.id),
+        details={"order_number": order.order_number},
+    )
     if order.user:
         labels = dict(OrderStatus.choices)
         notify_order(order.user, order, f"Encomenda {labels[new_status].lower()}", f"A encomenda {order.order_number} mudou para {labels[new_status].lower()}.")

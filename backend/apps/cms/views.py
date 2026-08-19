@@ -134,6 +134,29 @@ class NewsletterViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         return NewsletterSerializer
 
+    @action(detail=False, methods=["post"])
+    def broadcast(self, request):
+        """POST /cms/newsletters/broadcast/ — envia e-mail a todos os subscritores ativos."""
+        from django.conf import settings
+        from django.core.mail import send_mail
+
+        from apps.audit.helpers import log_audit
+
+        subject = str(request.data.get("subject", "")).strip()
+        body = str(request.data.get("body", "")).strip()
+        if not subject or not body:
+            return Response({"detail": "subject e body são obrigatórios."}, status=400)
+        emails = list(Newsletter.objects.filter(is_active=True).values_list("email", flat=True))
+        for email in emails:
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=True)
+        log_audit(
+            user=request.user,
+            action="newsletter.broadcast",
+            resource_type="newsletter",
+            details={"recipients": len(emails), "subject": subject},
+        )
+        return Response({"sent": len(emails)})
+
 
 class SettingViewSet(viewsets.ModelViewSet):
     """Configurações do site (ex.: site_config) — leitura pública, gestão com settings:manage."""

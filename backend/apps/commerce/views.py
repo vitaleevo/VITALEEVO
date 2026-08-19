@@ -235,5 +235,5 @@ class OrderAdminViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = OrderStatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         order = self.get_object()
-        update_order_status(order, serializer.validated_data["status"])
+        update_order_status(order, serializer.validated_data["status"], actor=request.user)
         return Response(OrderAdminSerializer(order).data)
