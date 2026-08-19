@@ -610,12 +610,6 @@ return {
         publish: (slug: string, token: string) =>
             request(`/cms/pages/${slug}/publish/`, { method: "POST", token, auth: true }),
     },
-
-    // ── IA ───────────────────────────────────────────────────────────────
-    ai: {
-        chat: (message: string, history: { role: string; content: string }[] = []) =>
-            request<{ reply: string }>("/ai/chat/", { method: "POST", body: { message, history } }),
-    },
 };
 
 export type { SiteConfig };

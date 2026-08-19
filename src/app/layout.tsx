@@ -10,7 +10,6 @@ import { ThemeProvider } from "@/shared/components/ThemeProvider";
 import { CartProvider } from "@/shared/providers/CartProvider";
 import MobileNavigation from "@/shared/components/MobileNavigation";
 import MaintenanceGuard from "@/shared/components/MaintenanceGuard";
-import { AIChatWidget } from "@/shared/components/AIChatWidget";
 
 const inter = Inter({
     variable: "--font-inter",
@@ -171,7 +170,6 @@ export default function RootLayout({
                                 </main>
                                 <Suspense>
                                     <MobileNavigation />
-                                    <AIChatWidget />
                                 </Suspense>
                             </div>
                         </ThemeProvider>

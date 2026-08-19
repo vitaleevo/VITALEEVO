@@ -1,6 +1,4 @@
 """Endpoints utilitários do core."""
-import json
-import urllib.request
 import uuid
 
 from django.conf import settings
@@ -147,57 +145,3 @@ class DashboardStatsView(views.APIView):
                 "recent": {"orders": recent_orders, "quotes": recent_quotes, "contacts": recent_contacts},
             }
         )
-
-
-@api_view(["POST"])
-@permission_classes([AllowAny])
-def ai_chat(request):
-    """POST /ai/chat/ — responde com a IA da VitalEvo (requer OPENAI_API_KEY no ambiente).
-
-    Sem chave configurada devolve 503 — o widget degrada graciosamente.
-    """
-    api_key = getattr(settings, "OPENAI_API_KEY", "")
-    if not api_key:
-        return Response({"detail": "IA não configurada."}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-
-    message = str(request.data.get("message", "")).strip()
-    if not message:
-        return Response({"detail": "message é obrigatório."}, status=status.HTTP_400_BAD_REQUEST)
-
-    history = request.data.get("history", []) or []
-    messages = [
-        {
-            "role": "system",
-            "content": (
-                "És a assistente virtual da VitalEvo, agência digital de Luanda, Angola, "
-                "que oferece websites, branding, e-commerce, marketing digital e consultoria. "
-                "Responde em português, de forma breve e profissional. "
-                "Para preços e orçamentos, recomenda o formulário de cotação do site."
-            ),
-        },
-        *[
-            {"role": str(m.get("role", "user")), "content": str(m.get("content", ""))}
-            for m in history[-6:]
-            if m.get("content")
-        ],
-        {"role": "user", "content": message},
-    ]
-
-    payload = json.dumps(
-        {"model": "gpt-4o-mini", "messages": messages, "max_tokens": 600, "temperature": 0.6}
-    ).encode("utf-8")
-
-    req = urllib.request.Request(
-        "https://api.openai.com/v1/chat/completions",
-        data=payload,
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310 — chamada HTTPS fixa à OpenAI
-            data = json.loads(resp.read().decode("utf-8"))
-        reply = data["choices"][0]["message"]["content"].strip()
-    except Exception as exc:  # noqa: BLE001 — erro de rede/API → resposta de serviço indisponível
-        return Response({"detail": f"Falha ao contactar o serviço de IA: {exc}"}, status=status.HTTP_502_BAD_GATEWAY)
-
-    return Response({"reply": reply})

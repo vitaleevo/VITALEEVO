@@ -106,13 +106,6 @@ def test_import_requires_catalog_import_permission(client):
 
 
 @pytest.mark.django_db
-def test_ai_chat_without_key_returns_503(client, settings):
-    settings.OPENAI_API_KEY = ""
-    response = client.post(f"{API}/ai/chat/", {"message": "Olá"}, format="json")
-    assert response.status_code == 503
-
-
-@pytest.mark.django_db
 def test_quote_stats_assign_and_follow_up(client):
     from apps.quotes.models import QuoteRequest
     from apps.quotes.services import create_quote_request

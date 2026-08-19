@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard, Package, Tags, Building2, Newspaper, FolderKanban, Briefcase,
     ScrollText, ShoppingCart, FileText, Inbox, Mail, Users, Upload, ShieldCheck,
-    Settings, LayoutTemplate, UserCircle, Menu, X, LogOut, Bot,
+    Settings, LayoutTemplate, UserCircle, Menu, X, LogOut,
 } from "lucide-react";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { Loading } from "@/shared/components/admin/ui";
@@ -29,7 +29,6 @@ const NAV = [
     { href: "/admin/audit", label: "Auditoria", icon: ShieldCheck },
     { href: "/admin/settings", label: "Configurações", icon: Settings },
     { href: "/admin/site", label: "Páginas do Site", icon: LayoutTemplate },
-    { href: "/admin/ai", label: "IA", icon: Bot },
     { href: "/admin/profile", label: "Perfil", icon: UserCircle },
 ];
 

@@ -187,8 +187,6 @@ EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="no-reply@vitaleevo.ao")
 
-OPENAI_API_KEY = env.str("OPENAI_API_KEY", default="")
-
 # Sem SMTP configurado, usa o backend de console — as tarefas nunca falham em prod.
 if not EMAIL_HOST:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
