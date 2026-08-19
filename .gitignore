@@ -29,9 +29,6 @@ out/
 build/
 *.tsbuildinfo
 
-# Convex
-.convex/
-
 # Production
 .env
 .env.local
@@ -61,7 +58,6 @@ Projectos para postar/
 investimento/
 loja/
 *.pptx
-.convex-tmp/
 .vercel
 
 # Django media (uploads locais — fora do git)

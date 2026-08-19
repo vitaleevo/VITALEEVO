@@ -60,7 +60,7 @@ const Blog: React.FC = () => {
     }
   };
 
-  const { data: dbCategories } = useApiQuery<any[]>("/catalog/categories/", { params: { type: "blog", page_size: 100 } });
+  const { data: dbCategories } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.categories.getByType("blog") });
   const { data: articles } = useApiQuery<any[]>(null, {
     deps: [activeCategory, dbCategories],
     fetcher: () => api.articles.getPublished({

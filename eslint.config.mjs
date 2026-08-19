@@ -7,8 +7,6 @@ export default defineConfig([
     ...nextTypeScript,
     globalIgnores([
         ".next/**",
-        ".convex-tmp/**",
-        "convex/_generated/**",
         "node_modules/**",
     ]),
     {

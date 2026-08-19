@@ -28,9 +28,9 @@ import ConceptBackdrop, { CONCEPT_IMAGES } from '@/shared/components/ConceptBack
 const PAGE_SIZE = 9;
 
 const Store: React.FC = () => {
-    const { data: convexProducts } = useApiQuery<any[]>("/catalog/products/", { params: { page_size: 100 } });
-    const { data: dbCategories } = useApiQuery<any[]>("/catalog/categories/", { params: { type: "store", page_size: 100 } });
-    const { data: dbBrands } = useApiQuery<any[]>("/catalog/brands/", { params: { page_size: 100 } });
+    const { data: products } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.products.list({ page_size: 100 }).then(d => d.results) });
+    const { data: dbCategories } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.categories.getByType("store") });
+    const { data: dbBrands } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.brands.list() });
     const { addItem, totalItems } = useCart();
 
     // Filters State
@@ -104,9 +104,9 @@ const Store: React.FC = () => {
 
     // Filtering Logic
     const filteredProducts = useMemo(() => {
-        if (!convexProducts) return [];
+        if (!products) return [];
 
-        let result = convexProducts.filter(product => {
+        let result = products.filter(product => {
             const searchNormalized = normalizeText(searchQuery);
             const nameNormalized = normalizeText(product.name);
             const descNormalized = normalizeText(product.description || "");
@@ -129,9 +129,9 @@ const Store: React.FC = () => {
         }
 
         return result;
-    }, [convexProducts, searchQuery, activeCategory, activeSubcategory, selectedBrands, sortBy]);
+    }, [products, searchQuery, activeCategory, activeSubcategory, selectedBrands, sortBy]);
 
-    if (!convexProducts || !dbCategories || !dbBrands) {
+    if (!products || !dbCategories || !dbBrands) {
         return (
             <div className="pt-24 pb-20 bg-gray-50 dark:bg-background-dark min-h-screen flex items-center justify-center">
                 <Loader2 className="w-12 h-12 text-primary animate-spin" />

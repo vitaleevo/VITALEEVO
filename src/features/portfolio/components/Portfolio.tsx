@@ -20,7 +20,7 @@ const Portfolio: React.FC = () => {
   const [visibleCount, setVisibleCount] = useState(9);
   const PAGE_SIZE = 9;
 
-  const { data: dbCategories } = useApiQuery<any[]>("/catalog/categories/", { params: { type: "portfolio", page_size: 100 } });
+  const { data: dbCategories } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.categories.getByType("portfolio") });
 
   // Fetch projects based on category
   const { data: projects } = useApiQuery<any[]>(null, {

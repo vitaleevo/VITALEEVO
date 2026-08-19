@@ -3,8 +3,6 @@ const scriptSources = [
     "'self'",
     "'unsafe-inline'",
     ...(isDevelopment ? ["'unsafe-eval'"] : []),
-    "https://*.convex.cloud",
-    "https://*.convex.site",
 ].join(" ");
 
 /** @type {import('next').NextConfig} */
@@ -41,10 +39,6 @@ const nextConfig = {
             { protocol: "https", hostname: "images.unsplash.com" },
             { protocol: "https", hostname: "picsum.photos" },
             { protocol: "https", hostname: "lh3.googleusercontent.com" },
-            { protocol: "https", hostname: "*.convex.cloud" },
-            { protocol: "https", hostname: "convex.cloud" },
-            { protocol: "https", hostname: "*.convex.site" },
-            { protocol: "https", hostname: "convex.site" },
         ],
         formats: ["image/avif", "image/webp"],
     },
