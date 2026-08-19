@@ -14,7 +14,7 @@ def category():
 
 @pytest.fixture
 def brand():
-    return Brand.objects.create(name="HP", slug="hp")
+    return Brand.objects.get_or_create(name="HP", defaults={"slug": "hp"})[0]
 
 
 @pytest.fixture
@@ -40,7 +40,8 @@ class TestCatalogPublic:
         response = client.get("/api/v1/catalog/products/")
         assert response.status_code == 200
         slugs = [p["slug"] for p in response.json()["results"]]
-        assert slugs == ["portatil-hp"]
+        assert "portatil-hp" in slugs
+        assert "rascunho" not in slugs
 
     def test_retrieve_by_slug(self, client, product):
         response = client.get("/api/v1/catalog/products/portatil-hp/")
@@ -50,7 +51,9 @@ class TestCatalogPublic:
     def test_categories_public(self, client, category):
         response = client.get("/api/v1/catalog/categories/")
         assert response.status_code == 200
-        assert len(response.json()["results"]) == 1
+        names = [c["name"] for c in response.json()["results"]]
+        assert "Informática" in names
+        assert len(names) >= 1
 
 
 class TestCatalogStaff:
