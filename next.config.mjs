@@ -5,6 +5,17 @@ const scriptSources = [
     ...(isDevelopment ? ["'unsafe-eval'"] : []),
 ].join(" ");
 
+// Origens da API permitidas no connect-src: o valor de NEXT_PUBLIC_API_URL
+// (se definido) + localhost em desenvolvimento (apiClient dev usa :8100).
+const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim()?.replace(/\/+$/, "");
+const connectSources = [
+    "'self'",
+    "https:",
+    "wss:",
+    ...(isDevelopment ? ["http://localhost:8100", "http://127.0.0.1:8100"] : []),
+    ...(apiUrl ? [apiUrl] : []),
+].join(" ");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     async headers() {
@@ -21,7 +32,7 @@ const nextConfig = {
                         value: [
                             "default-src 'self'",
                             `script-src ${scriptSources}`,
-                            "connect-src 'self' https: wss:",
+                            `connect-src ${connectSources}`,
                             "img-src 'self' data: https: blob:",
                             "style-src 'self' 'unsafe-inline'",
                             "font-src 'self' data:",
