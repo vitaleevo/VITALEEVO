@@ -1,13 +1,18 @@
 """Serviços do comércio — lógica de negócio fora das views."""
 from decimal import Decimal
 
+from django.db import transaction
+from django.db.models import F
+from rest_framework.exceptions import ValidationError
+
 from apps.audit.helpers import log_audit
+from apps.catalog.models import Product
 
 from .models import Notification, NotificationType, Order, OrderItem, OrderStatus
 
 
 def create_order(*, user, items, shipping_address, guest_email="", guest_name="", payment_method="", payment_reference="", notes=""):
-    """Cria a encomenda com preços do servidor, stock reservado e notificação."""
+    """Cria a encomenda com preços do servidor, stock reservado (atómico) e notificação."""
     from apps.cms.models import Setting
 
     config = {}
@@ -21,27 +26,37 @@ def create_order(*, user, items, shipping_address, guest_email="", guest_name=""
     shipping = Decimal("0") if subtotal >= free_threshold else shipping_fee
     total = subtotal + shipping
 
-    order = Order.objects.create(
-        user=user if (user and user.is_authenticated) else None,
-        guest_email=guest_email.strip() or (user.email if user and user.is_authenticated else ""),
-        guest_name=guest_name.strip() or (user.full_name if user and user.is_authenticated else ""),
-        subtotal=subtotal,
-        shipping=shipping,
-        total=total,
-        shipping_address=shipping_address,
-        payment_method=payment_method,
-        payment_reference=payment_reference,
-        notes=notes,
-    )
-    for item in items:
-        product = item["product"]
-        OrderItem.objects.create(order=order, product=product, name=product.name, price=product.price, quantity=item["quantity"], image=product.image)
-        product.stock -= item["quantity"]
-        product.save(update_fields=["stock", "updated_at"])
+    with transaction.atomic():
+        # Validação e decremento atómicos com F() + stock__gte evita oversell concorrente
+        # (compatível com SQLite dev e PostgreSQL prod — sem select_for_update)
+        order = Order.objects.create(
+            user=user if (user and user.is_authenticated) else None,
+            guest_email=guest_email.strip() or (user.email if user and user.is_authenticated else ""),
+            guest_name=guest_name.strip() or (user.full_name if user and user.is_authenticated else ""),
+            subtotal=subtotal,
+            shipping=shipping,
+            total=total,
+            shipping_address=shipping_address,
+            payment_method=payment_method,
+            payment_reference=payment_reference,
+            notes=notes,
+        )
+        for item in items:
+            prod = item["product"]
+            # Tentativa atómica: só atualiza se stock suficiente
+            updated = Product.objects.filter(id=prod.id, stock__gte=item["quantity"]).update(stock=F("stock") - item["quantity"])
+            if not updated:
+                # recarregar para mensagem precisa
+                prod.refresh_from_db()
+                raise ValidationError({"items": [f"Stock insuficiente para {prod.name} (disponível {prod.stock})"]})
+            # recarregar preço/nome atuais (já em prod) para OrderItem
+            OrderItem.objects.create(
+                order=order, product=prod, name=prod.name, price=prod.price, quantity=item["quantity"], image=prod.image
+            )
 
-    if order.user:
-        notify_order(order.user, order, "Encomenda criada", f"A sua encomenda {order.order_number} foi recebida e está pendente.")
-    return order
+        if order.user:
+            notify_order(order.user, order, "Encomenda criada", f"A sua encomenda {order.order_number} foi recebida e está pendente.")
+        return order
 
 
 def update_order_status(order: Order, new_status: str, actor=None) -> Order:

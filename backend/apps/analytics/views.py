@@ -7,7 +7,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.core.permissions import HasCapability
+from apps.core.permissions import HasAnyCapability
 from .models import ClickEvent, PageView
 from .serializers import TrackBatchSerializer
 
@@ -111,9 +111,12 @@ class AnalyticsOverviewView(APIView):
     """Métricas globais de audiência, ranking de páginas e botões mais clicados."""
 
     def get_permissions(self):
-        if self.request.user.is_staff or getattr(self.request.user, "is_superuser", False):
-            return []
-        return [HasCapability("audit:read") | HasCapability("settings:manage") | HasCapability("content:manage")]
+        if self.request.user and self.request.user.is_authenticated and (self.request.user.is_staff or getattr(self.request.user, "is_superuser", False)):
+            # staff sem capacidade específica ainda precisa passar pela verificação abaixo; superuser/admin já tem acesso
+            if self.request.user.is_superuser or getattr(self.request.user, "role", None) == "admin":
+                return []
+            return [HasAnyCapability("audit:read", "settings:manage", "content:manage")]
+        return [HasAnyCapability("audit:read", "settings:manage", "content:manage")]
 
     def get(self, request):
         period = request.query_params.get("period", "30d")
@@ -182,9 +185,11 @@ class AnalyticsHeatmapView(APIView):
     """Retorna a nuvem de coordenadas de cliques e ranking de elementos para uma rota específica."""
 
     def get_permissions(self):
-        if self.request.user.is_staff or getattr(self.request.user, "is_superuser", False):
-            return []
-        return [HasCapability("audit:read") | HasCapability("settings:manage") | HasCapability("content:manage")]
+        if self.request.user and self.request.user.is_authenticated and (self.request.user.is_staff or getattr(self.request.user, "is_superuser", False)):
+            if self.request.user.is_superuser or getattr(self.request.user, "role", None) == "admin":
+                return []
+            return [HasAnyCapability("audit:read", "settings:manage", "content:manage")]
+        return [HasAnyCapability("audit:read", "settings:manage", "content:manage")]
 
     def get(self, request):
         path = request.query_params.get("path", "/")
@@ -251,9 +256,11 @@ class AnalyticsPagesListView(APIView):
     """Lista de todas as rotas com tráfego registado para o seletor do Mapa de Calor."""
 
     def get_permissions(self):
-        if self.request.user.is_staff or getattr(self.request.user, "is_superuser", False):
-            return []
-        return [HasCapability("audit:read") | HasCapability("settings:manage") | HasCapability("content:manage")]
+        if self.request.user and self.request.user.is_authenticated and (self.request.user.is_staff or getattr(self.request.user, "is_superuser", False)):
+            if self.request.user.is_superuser or getattr(self.request.user, "role", None) == "admin":
+                return []
+            return [HasAnyCapability("audit:read", "settings:manage", "content:manage")]
+        return [HasAnyCapability("audit:read", "settings:manage", "content:manage")]
 
     def get(self, request):
         pages = PageView.objects.values("path").annotate(

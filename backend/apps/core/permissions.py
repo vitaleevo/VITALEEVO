@@ -34,6 +34,23 @@ class IsStaff(BasePermission):
         )
 
 
+class HasAnyCapability(BasePermission):
+    """Requer que o utilizador possua pelo menos uma das capacidades listadas."""
+
+    def __init__(self, *capabilities: str):
+        self.capabilities = capabilities
+        super().__init__()
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        if not request.user.is_staff:
+            return False
+        if request.user.is_superuser or getattr(request.user, "role", None) == "admin":
+            return True
+        return any(request.user.has_capability(c) for c in self.capabilities)
+
+
 class CanUploadMedia(HasCapability):
     """Requer capacidade media:upload — usado em views de função (@api_view)."""
 

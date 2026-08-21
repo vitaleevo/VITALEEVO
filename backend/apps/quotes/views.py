@@ -47,6 +47,20 @@ class QuoteCreateView(CreateAPIView):
         return Response({"public_id": quote.public_id, "status": quote.status}, status=status.HTTP_201_CREATED)
 
 
+class QuotePublicView(CreateAPIView):
+    """GET /quotes/{public_id}/ — consulta pública do estado da cotação pelo código."""
+
+    permission_classes = [AllowAny]
+    serializer_class = QuoteReadSerializer
+
+    def get(self, request, public_id, *args, **kwargs):
+        try:
+            quote = QuoteRequest.objects.prefetch_related("items").get(public_id=public_id)
+        except QuoteRequest.DoesNotExist:
+            return Response({"detail": "Cotação não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(QuoteReadSerializer(quote).data)
+
+
 class QuoteViewSet(viewsets.ModelViewSet):
     """Backoffice — leitura com quotes:read, gestão com quotes:manage."""
 

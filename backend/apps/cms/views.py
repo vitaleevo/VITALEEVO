@@ -127,12 +127,22 @@ class NewsletterViewSet(viewsets.ModelViewSet):
     serializer_class = NewsletterSerializer
 
     def get_permissions(self):
-        if self.action == "create":
+        if self.action in {"create", "unsubscribe"}:
             return [AllowAny()]
         return [HasCapability("contacts:manage")]
 
     def get_serializer_class(self):
         return NewsletterSerializer
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
+    def unsubscribe(self, request):
+        """POST /cms/newsletters/unsubscribe/ — remove subscrição pública por e-mail."""
+        email = str(request.data.get("email", "")).strip().lower()
+        if not email:
+            return Response({"detail": "E-mail é obrigatório."}, status=400)
+        deleted, _ = Newsletter.objects.filter(email=email).delete()
+        # idempotente: mesmo se não existir, devolve ok
+        return Response({"unsubscribed": bool(deleted), "email": email})
 
     @action(detail=False, methods=["post"])
     def broadcast(self, request):
