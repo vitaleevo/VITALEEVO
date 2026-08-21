@@ -8,9 +8,18 @@ import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
 import { AdminHeader, Card, Modal, Loading, ErrorBox, Empty, Table, Td } from "@/shared/components/admin/ui";
 import DeleteDialog from "@/shared/components/DeleteDialog";
+import { PermissionGuard } from "@/shared/components/admin/PermissionGuard";
 import { formatDate } from "@/shared/utils/format";
 
 export default function AdminContactsPage() {
+    return (
+        <PermissionGuard permission="contacts:manage">
+            <AdminContactsContent />
+        </PermissionGuard>
+    );
+}
+
+export function AdminContactsContent() {
     const { token } = useAuth();
     const { data: contacts, isLoading, error, refetch } = useApiQuery<any[]>(null, {
         deps: [token],

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Eye, UserPlus, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/shared/providers/AuthProvider";
@@ -8,10 +8,19 @@ import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
 import { AdminHeader, Card, Modal, Loading, ErrorBox, Empty, Table, Td, Badge, Field, Select, inputClass } from "@/shared/components/admin/ui";
 import { formatDate } from "@/shared/utils/format";
+import { PermissionGuard } from "@/shared/components/admin/PermissionGuard";
 
 const QUOTE_STATUSES = ["new", "in_review", "proposal_sent", "accepted", "fulfilled", "rejected"];
 
 export default function AdminQuotesPage() {
+    return (
+        <PermissionGuard permission="quotes:read">
+            <AdminQuotesContent />
+        </PermissionGuard>
+    );
+}
+
+function AdminQuotesContent() {
     const { token } = useAuth();
     const { data: page, isLoading, error, refetch } = useApiQuery<any>(null, {
         deps: [token],
@@ -116,8 +125,15 @@ function QuoteDetailModal({ quote, staffList, onClose, onStatus, onAssign, savin
     onAssign: (userId: string) => void;
     saving: boolean;
 }) {
-    const [status, setStatus] = useState("new");
-    const [assigned, setAssigned] = useState("");
+    const [status, setStatus] = useState(() => quote?.status ?? "new");
+    const [assigned, setAssigned] = useState(() => quote?.assignedTo ?? quote?.assigned_to ?? "");
+
+    useEffect(() => {
+        if (quote) {
+            setStatus(quote.status ?? "new");
+            setAssigned(quote.assignedTo ?? quote.assigned_to ?? "");
+        }
+    }, [quote]);
 
     if (!quote) return null;
 

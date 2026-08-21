@@ -7,11 +7,20 @@ import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
 import { AdminHeader, Card, Loading, ErrorBox, Empty, Table, Td, Badge, Select, inputClass } from "@/shared/components/admin/ui";
 import OrderDetailModal from "@/shared/components/OrderDetailModal";
+import { PermissionGuard } from "@/shared/components/admin/PermissionGuard";
 import { formatCurrency, formatDate } from "@/shared/utils/format";
 
 const STATUSES = ["pending", "paid", "processing", "shipped", "delivered", "cancelled"];
 
 export default function AdminOrdersPage() {
+    return (
+        <PermissionGuard permission="orders:read">
+            <AdminOrdersContent />
+        </PermissionGuard>
+    );
+}
+
+function AdminOrdersContent() {
     const { token } = useAuth();
     const { data: page, isLoading, error, refetch } = useApiQuery<any>(null, {
         deps: [token],

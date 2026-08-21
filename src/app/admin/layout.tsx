@@ -1,36 +1,64 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard, Package, Tags, Building2, Newspaper, FolderKanban, Briefcase,
     ScrollText, ShoppingCart, FileText, Inbox, Mail, Users, Upload, ShieldCheck,
-    Settings, LayoutTemplate, UserCircle, Menu, X, LogOut,
+    Settings, LayoutTemplate, UserCircle, Menu, X, LogOut, Sparkles, Flame,
 } from "lucide-react";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { Loading } from "@/shared/components/admin/ui";
 
-const NAV = [
-    { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/admin/products", label: "Produtos", icon: Package },
-    { href: "/admin/categories", label: "Categorias", icon: Tags },
-    { href: "/admin/brands", label: "Marcas", icon: Building2 },
-    { href: "/admin/blog", label: "Blog", icon: Newspaper },
-    { href: "/admin/portfolio", label: "Portfólio", icon: FolderKanban },
-    { href: "/admin/services", label: "Serviços", icon: Briefcase },
-    { href: "/admin/legal", label: "Documentos Legais", icon: ScrollText },
-    { href: "/admin/orders", label: "Encomendas", icon: ShoppingCart },
-    { href: "/admin/quotes", label: "Cotações", icon: FileText },
-    { href: "/admin/contacts", label: "Contactos", icon: Inbox },
-    { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
-    { href: "/admin/users", label: "Utilizadores", icon: Users },
-    { href: "/admin/import", label: "Importar Excel", icon: Upload },
-    { href: "/admin/audit", label: "Auditoria", icon: ShieldCheck },
-    { href: "/admin/settings", label: "Configurações", icon: Settings },
-    { href: "/admin/site", label: "Páginas do Site", icon: LayoutTemplate },
-    { href: "/admin/profile", label: "Perfil", icon: UserCircle },
+interface NavItem {
+    href: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    permission?: string;
+}
+
+interface NavSection {
+    title: string;
+    items: NavItem[];
+}
+
+const NAV_SECTIONS: NavSection[] = [
+    {
+        title: "Visão Geral",
+        items: [
+            { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+            { href: "/admin/cms", label: "Hub CMS", icon: Sparkles },
+            { href: "/admin/cms#heatmap", label: "Mapa de Calor", icon: Flame, permission: "audit:read" },
+        ],
+    },
+    {
+        title: "Loja & Vendas",
+        items: [
+            { href: "/admin/products", label: "Produtos", icon: Package, permission: "catalog:read" },
+            { href: "/admin/orders", label: "Encomendas", icon: ShoppingCart, permission: "orders:read" },
+            { href: "/admin/quotes", label: "Cotações", icon: FileText, permission: "quotes:read" },
+        ],
+    },
+    {
+        title: "Atalhos Rápidos CMS",
+        items: [
+            { href: "/admin/cms#blog", label: "Blog & Artigos", icon: Newspaper, permission: "content:manage" },
+            { href: "/admin/cms#portfolio", label: "Portfólio & Serviços", icon: FolderKanban, permission: "content:manage" },
+            { href: "/admin/cms#contacts", label: "Contactos & Newsletter", icon: Inbox, permission: "contacts:manage" },
+            { href: "/admin/cms#users", label: "Utilizadores & Staff", icon: Users, permission: "users:manage" },
+            { href: "/admin/cms#profile", label: "O Meu Perfil", icon: UserCircle },
+        ],
+    },
 ];
+
+const ROLE_LABELS: Record<string, string> = {
+    admin: "Super Admin",
+    commercial: "Comercial",
+    content: "Conteúdo",
+    operations: "Operações",
+    user: "Cliente",
+};
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user, isLoading, isAuthenticated, logout } = useAuth();
@@ -38,7 +66,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
 
-    if (isLoading) {
+    useEffect(() => {
+        if (!isLoading && (!isAuthenticated || !user?.isStaff)) {
+            router.replace("/login");
+        }
+    }, [isLoading, isAuthenticated, user, router]);
+
+    if (isLoading || !isAuthenticated || !user?.isStaff) {
         return (
             <div className="min-h-screen bg-gray-50 dark:bg-[#0b1120] flex items-center justify-center">
                 <Loading label="A verificar sessão..." />
@@ -46,10 +80,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         );
     }
 
-    if (!isAuthenticated || !user?.isStaff) {
-        router.replace("/login");
-        return null;
-    }
+    const hasAccess = (item: NavItem) => {
+        if (!item.permission) return true;
+        if (user.role === "admin") return true;
+        const perms: string[] = user.permissions || [];
+        if (item.permission === "catalog:read" && perms.includes("catalog:manage")) return true;
+        if (item.permission === "orders:read" && perms.includes("orders:manage")) return true;
+        if (item.permission === "quotes:read" && perms.includes("quotes:manage")) return true;
+        return perms.includes(item.permission);
+    };
+
+    const visibleSections = NAV_SECTIONS.map((section) => ({
+        ...section,
+        items: section.items.filter(hasAccess),
+    })).filter((section) => section.items.length > 0);
 
     const Sidebar = (
         <div className="flex h-full flex-col">
@@ -58,33 +102,50 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     VitalEvo <span className="text-primary">Admin</span>
                 </Link>
             </div>
-            <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
-                {NAV.map(item => {
-                    const active = pathname === item.href;
-                    return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={() => setOpen(false)}
-                            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-                                active
-                                    ? "bg-primary/10 text-primary"
-                                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
-                            }`}
-                        >
-                            <item.icon className="w-4 h-4 shrink-0" />
-                            {item.label}
-                        </Link>
-                    );
-                })}
+            <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+                {visibleSections.map((section) => (
+                    <div key={section.title} className="space-y-1">
+                        <div className="px-3 pb-1 text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                            {section.title}
+                        </div>
+                        <div className="space-y-0.5">
+                            {section.items.map((item) => {
+                                const active = pathname === item.href || (item.href === "/admin/cms" && pathname.startsWith("/admin/cms"));
+                                return (
+                                    <Link
+                                        key={item.href}
+                                        href={item.href}
+                                        onClick={() => setOpen(false)}
+                                        className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                                            active
+                                                ? "bg-primary/10 text-primary font-semibold"
+                                                : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
+                                        }`}
+                                    >
+                                        <item.icon className="w-4 h-4 shrink-0" />
+                                        <span>{item.label}</span>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
             </nav>
-            <div className="p-3 border-t border-gray-100 dark:border-white/5">
-                <div className="px-3 py-2 text-xs text-gray-400">
-                    {user?.firstName || user?.email}
+            <div className="p-3 border-t border-gray-100 dark:border-white/5 space-y-2">
+                <div className="px-3 py-1.5 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                            {user.name || user.email}
+                        </span>
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-primary/10 text-primary shrink-0">
+                            {ROLE_LABELS[user.role] || user.role}
+                        </span>
+                    </div>
+                    <p className="text-[11px] text-gray-400 truncate mt-0.5">{user.email}</p>
                 </div>
                 <button
                     onClick={() => { logout(); router.replace("/login"); }}
-                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500/10 transition-colors"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 transition-colors"
                 >
                     <LogOut className="w-4 h-4" />
                     Terminar Sessão

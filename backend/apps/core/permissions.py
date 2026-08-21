@@ -16,6 +16,8 @@ class HasCapability(BasePermission):
             return False
         if not request.user.is_staff:
             return False
+        if request.user.is_superuser or getattr(request.user, "role", None) == "admin":
+            return True
         if self.capability is None:
             return True
         return request.user.has_capability(self.capability)

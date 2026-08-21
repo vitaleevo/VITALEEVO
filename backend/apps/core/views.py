@@ -25,7 +25,7 @@ ALLOWED_IMAGE_TYPES = {
     "image/svg+xml": ".svg",
     "image/avif": ".avif",
 }
-MAX_UPLOAD_BYTES = 8 * 1024 * 1024
+MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 
 
 class UploadSerializer(serializers.Serializer):
@@ -35,7 +35,7 @@ class UploadSerializer(serializers.Serializer):
         if value.content_type not in ALLOWED_IMAGE_TYPES:
             raise serializers.ValidationError("Formato não suportado (use JPG, PNG, WebP, GIF, SVG ou AVIF).")
         if value.size > MAX_UPLOAD_BYTES:
-            raise serializers.ValidationError("Ficheiro excede 8 MB.")
+            raise serializers.ValidationError("Ficheiro excede 15 MB.")
         return value
 
 
@@ -56,7 +56,7 @@ def health(request):
 @api_view(["POST"])
 @permission_classes([CanUploadMedia])
 def upload_image(request):
-    """POST /media/upload/ — multipart 'file' → {url} (armazenamento local)."""
+    """POST /media/upload/ — multipart 'file' → {url, filename, size}."""
     serializer = UploadSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     uploaded = serializer.validated_data["file"]
@@ -64,7 +64,12 @@ def upload_image(request):
     filename = f"uploads/{uuid.uuid4().hex}{ext}"
     stored = default_storage.save(filename, uploaded)
     url = f"{request.scheme}://{request.get_host()}/media/{stored}"
-    return Response({"url": url})
+    return Response({
+        "url": url,
+        "filename": stored,
+        "size": uploaded.size,
+        "content_type": uploaded.content_type,
+    })
 
 
 class DashboardStatsView(views.APIView):

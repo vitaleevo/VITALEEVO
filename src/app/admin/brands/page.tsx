@@ -20,13 +20,15 @@ const columns: CrudColumn[] = [
     { key: "description", label: "Descrição", render: (b: any) => <span className="line-clamp-1 max-w-xs">{b.description || "—"}</span> },
 ];
 
-export default function AdminBrandsPage() {
+export function AdminBrandsContent() {
     const { token } = useAuth();
     return (
         <CrudPage
             title="Marcas"
             subtitle="Marcas do catálogo"
             itemName="Marca"
+            permission="catalog:read"
+            managePermission="catalog:manage"
             fetcher={() => api.brands.list()}
             columns={columns}
             fields={fields}
@@ -36,4 +38,8 @@ export default function AdminBrandsPage() {
             onDelete={slug => api.brands.remove(slug, token as string)}
         />
     );
+}
+
+export default function AdminBrandsPage() {
+    return <AdminBrandsContent />;
 }

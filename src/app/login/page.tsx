@@ -10,9 +10,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
 export default function LoginPage() {
-    const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
+    const { login, isLoading, error, clearError, isAuthenticated, user } = useAuth();
     const router = useRouter();
 
+    const [accessType, setAccessType] = useState<"client" | "staff">("client");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -20,10 +21,14 @@ export default function LoginPage() {
 
     // Redirect if already authenticated
     useEffect(() => {
-        if (isAuthenticated) {
-            router.push("/");
+        if (isAuthenticated && user) {
+            if (user.isStaff || user.role !== "user") {
+                router.push("/admin");
+            } else {
+                router.push("/conta");
+            }
         }
-    }, [isAuthenticated, router]);
+    }, [isAuthenticated, user, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,9 +41,13 @@ export default function LoginPage() {
         }
 
         try {
-            await login(email, password);
+            const loggedUser = await login(email, password);
             toast.success("Login realizado com sucesso!");
-            router.push("/");
+            if (loggedUser?.isStaff || loggedUser?.role !== "user") {
+                router.push("/admin");
+            } else {
+                router.push("/conta");
+            }
         } catch (err: any) {
             const message = err.message || "Erro ao fazer login";
             setLocalError(message);
@@ -53,16 +62,44 @@ export default function LoginPage() {
             <div className="min-h-screen pt-32 pb-24 bg-gradient-to-br from-gray-50 via-white to-primary/5 dark:from-[#0b1120] dark:via-[#0f172a] dark:to-primary/10">
                 <div className="max-w-md mx-auto px-4">
                     {/* Header */}
-                    <div className="text-center mb-10">
+                    <div className="text-center mb-8">
                         <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
                             <ShieldCheck className="w-10 h-10 text-primary" />
                         </div>
-                        <h1 className="font-display font-black text-3xl md:text-4xl text-gray-900 dark:text-white mb-3">
-                            Bem-vindo de volta
+                        <h1 className="font-display font-black text-3xl md:text-4xl text-gray-900 dark:text-white mb-2">
+                            Entrar na Plataforma
                         </h1>
-                        <p className="text-gray-500 dark:text-gray-400">
-                            Entre com suas credenciais para acessar sua conta
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">
+                            {accessType === "staff"
+                                ? "Painel de administração e gestão de equipas"
+                                : "Aceda às suas encomendas, pedidos e dados pessoais"}
                         </p>
+                    </div>
+
+                    {/* Selector Tabs: Cliente vs Staff */}
+                    <div className="grid grid-cols-2 p-1 bg-gray-100 dark:bg-white/5 rounded-2xl mb-6 border border-gray-200 dark:border-white/10">
+                        <button
+                            type="button"
+                            onClick={() => setAccessType("client")}
+                            className={`py-2.5 text-xs font-bold rounded-xl transition-all ${
+                                accessType === "client"
+                                    ? "bg-white dark:bg-[#151e32] text-primary shadow-sm"
+                                    : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                            }`}
+                        >
+                            Área do Cliente
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setAccessType("staff")}
+                            className={`py-2.5 text-xs font-bold rounded-xl transition-all ${
+                                accessType === "staff"
+                                    ? "bg-white dark:bg-[#151e32] text-primary shadow-sm"
+                                    : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                            }`}
+                        >
+                            Equipa & CMS
+                        </button>
                     </div>
 
                     {/* Form Card */}

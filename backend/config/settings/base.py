@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "apps.commerce",
     "apps.audit",
     "apps.imports",
+    "apps.analytics",
 ]
 
 MIDDLEWARE = [
@@ -89,16 +90,21 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
-# Base de dados: usa DATABASE_URL (Railway fornece automaticamente).
-# Se não existir, cai para SQLite (conveniência local — KISS).
-if env.str("DATABASE_URL", default=""):
+# Base de dados: usa DATABASE_URL (Railway / Postgres em produção).
+# Se não existir, cai para SQLite local (conveniência local para testes — KISS).
+database_url = env.str("DATABASE_URL", default="")
+if database_url:
     DATABASES = {"default": env.db("DATABASE_URL")}
-    DATABASES["default"]["CONN_MAX_AGE"] = 60
+    if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
+        DATABASES["default"]["CONN_MAX_AGE"] = 60
 else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
+            "OPTIONS": {
+                "timeout": 20,
+            },
         }
     }
 
@@ -193,3 +199,4 @@ if not EMAIL_HOST:
 
 # --- URLs públicas do site (usadas em e-mails/notificações) ---
 SITE_URL = env.str("SITE_URL", default="https://vitaleevo.ao")
+APPEND_SLASH = False

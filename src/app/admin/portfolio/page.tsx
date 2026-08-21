@@ -7,7 +7,7 @@ import { api } from "@/shared/utils/apiClient";
 import CrudPage, { CrudField, CrudColumn, badgeColumn, imageColumn } from "@/shared/components/admin/CrudPage";
 import { Loading } from "@/shared/components/admin/ui";
 
-export default function AdminPortfolioPage() {
+export function AdminPortfolioContent() {
     const { token } = useAuth();
     const { data: cats } = useApiQuery<any[]>(null, { deps: [token], enabled: !!token, fetcher: () => api.categories.getByType("portfolio") });
 
@@ -43,6 +43,7 @@ export default function AdminPortfolioPage() {
             title="Portfólio"
             subtitle="Projetos apresentados no site"
             itemName="Projeto"
+            permission="content:manage"
             fetcher={() => api.projects.list({ page_size: 100 }).then(d => d.results)}
             columns={columns}
             fields={fields}
@@ -52,4 +53,8 @@ export default function AdminPortfolioPage() {
             onDelete={slug => api.projects.remove(slug, token as string)}
         />
     );
+}
+
+export default function AdminPortfolioPage() {
+    return <AdminPortfolioContent />;
 }

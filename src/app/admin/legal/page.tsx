@@ -26,13 +26,14 @@ const columns: CrudColumn[] = [
     { key: "updated_at", label: "Atualizado", render: (l: any) => String(l.updatedAt || l.updated_at || "").slice(0, 10) },
 ];
 
-export default function AdminLegalPage() {
+export function AdminLegalContent() {
     const { token } = useAuth();
     return (
         <CrudPage
             title="Documentos Legais"
             subtitle="Políticas e termos do site"
             itemName="Documento"
+            permission="content:manage"
             fetcher={() => api.legal.list()}
             columns={columns}
             fields={fields}
@@ -42,4 +43,8 @@ export default function AdminLegalPage() {
             onDelete={slug => api.legal.remove(slug, token as string)}
         />
     );
+}
+
+export default function AdminLegalPage() {
+    return <AdminLegalContent />;
 }

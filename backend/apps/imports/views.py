@@ -193,3 +193,110 @@ class ProductImportView(views.APIView):
             details={"created": created, "updated": updated, "errors": len(errors)},
         )
         return Response({"created": created, "updated": updated, "errors": errors})
+
+
+class ProductImportTemplateView(views.APIView):
+    """GET /imports/products/template/ — descarrega o ficheiro modelo Excel (.xlsx) oficial."""
+
+    def get_permissions(self):
+        return [HasCapability("catalog:import")]
+
+    def get(self, request):
+        import io
+        from django.http import HttpResponse
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Produtos"
+
+        headers = [
+            "SKU",
+            "Nome",
+            "Preço",
+            "Preço_Antigo",
+            "Stock",
+            "Categoria",
+            "Subcategoria",
+            "Marca",
+            "Descrição",
+            "Imagem",
+            "Estado",
+            "Destaque",
+        ]
+
+        ws.append(headers)
+
+        header_fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+        header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+
+        for col_num in range(1, len(headers) + 1):
+            cell = ws.cell(row=1, column=col_num)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+        sample_rows = [
+            [
+                "INF-DEL-001",
+                "Portátil Dell Inspiron 15 (16GB RAM, 512GB SSD)",
+                450000.00,
+                490000.00,
+                15,
+                "Informática",
+                "Portáteis",
+                "Dell",
+                "Portátil de alto desempenho para escritório e produtividade.",
+                "https://images.unsplash.com/photo-1593642632823-8f785ba67e45",
+                "published",
+                1,
+            ],
+            [
+                "MON-LG-029",
+                "Monitor LG UltraWide 29 IPS Full HD",
+                185000.00,
+                None,
+                8,
+                "Monitores & Displays",
+                "UltraWide",
+                "LG",
+                "Ecrã panorâmico 21:9 para multitarefas avançadas.",
+                "",
+                "published",
+                0,
+            ],
+            [
+                "ACE-LOG-185",
+                "Rato Sem Fios Logitech M185",
+                12500.00,
+                None,
+                40,
+                "Acessórios",
+                "Ratos & Teclados",
+                "Logitech",
+                "Rato sem fios compacto e ergonómico com pilha de longa duração.",
+                "",
+                "published",
+                0,
+            ],
+        ]
+
+        for row in sample_rows:
+            ws.append(row)
+
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or "")) for cell in col)
+            col_letter = col[0].column_letter
+            ws.column_dimensions[col_letter].width = max(max_len + 4, 14)
+
+        buffer = io.BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+
+        response = HttpResponse(
+            buffer.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = 'attachment; filename="modelo_importacao_produtos.xlsx"'
+        return response

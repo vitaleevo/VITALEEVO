@@ -101,7 +101,7 @@ export default function ContaPage() {
     // Set edit form when user loads
     useEffect(() => {
         if (user) {
-            setEditForm({ name: user.name, phone: "" });
+            setEditForm({ name: user.name || "", phone: user.phone || "" });
         }
     }, [user]);
 
@@ -566,18 +566,18 @@ export default function ContaPage() {
                                                     </div>
                                                     <input
                                                         placeholder="Nome do Recebedor"
-                                                        value={addressForm.name}
+                                                        value={addressForm.name ?? ""}
                                                         onChange={e => setAddressForm({ ...addressForm, name: e.target.value })}
                                                         className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-white/5 text-gray-900 dark:text-white outline-none focus:border-primary"
                                                     />
                                                     <input
                                                         placeholder="Telefone"
-                                                        value={addressForm.phone}
+                                                        value={addressForm.phone ?? ""}
                                                         onChange={e => setAddressForm({ ...addressForm, phone: e.target.value })}
                                                         className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-white/5 text-gray-900 dark:text-white outline-none focus:border-primary"
                                                     />
                                                     <select
-                                                        value={addressForm.city}
+                                                        value={addressForm.city ?? "Luanda"}
                                                         onChange={e => setAddressForm({ ...addressForm, city: e.target.value })}
                                                         className="w-full h-12 px-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-white/5 text-gray-900 dark:text-white outline-none focus:border-primary"
                                                     >
@@ -589,7 +589,7 @@ export default function ContaPage() {
                                                     </select>
                                                     <textarea
                                                         placeholder="Endereço Completo (Rua, Bairro, Nº)"
-                                                        value={addressForm.address}
+                                                        value={addressForm.address ?? ""}
                                                         onChange={e => setAddressForm({ ...addressForm, address: e.target.value })}
                                                         className="w-full h-24 p-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-100 dark:border-white/5 text-gray-900 dark:text-white outline-none focus:border-primary resize-none"
                                                     />

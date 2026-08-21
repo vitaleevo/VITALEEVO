@@ -7,8 +7,17 @@ import { useAuth } from "@/shared/providers/AuthProvider";
 import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
 import { AdminHeader, Card, Loading, ErrorBox, Field, TextArea } from "@/shared/components/admin/ui";
+import { PermissionGuard } from "@/shared/components/admin/PermissionGuard";
 
 export default function AdminSettingsPage() {
+    return (
+        <PermissionGuard permission="settings:manage">
+            <AdminSettingsContent />
+        </PermissionGuard>
+    );
+}
+
+export function AdminSettingsContent() {
     const { token } = useAuth();
     const { data: settings, isLoading, error, refetch } = useApiQuery<any>(null, {
         deps: [token],

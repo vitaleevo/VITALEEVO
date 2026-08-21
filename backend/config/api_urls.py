@@ -15,5 +15,6 @@ urlpatterns = [
     path("", include("apps.commerce.urls")),
     path("", include("apps.audit.urls")),
     path("", include("apps.imports.urls")),
+    path("", include("apps.analytics.urls")),
     path("dashboard/", DashboardStatsView.as_view(), name="dashboard-stats"),
 ]

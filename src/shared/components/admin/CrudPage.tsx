@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Plus, Search, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -12,6 +12,8 @@ import {
 } from "./ui";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import RichTextEditor from "@/shared/components/RichTextEditor";
+
+import { PermissionGuard, useCapability } from "./PermissionGuard";
 
 export interface CrudField {
     name: string;
@@ -40,6 +42,8 @@ interface CrudPageProps {
     fields: CrudField[];
     searchKeys: string[];
     keyField?: string;
+    permission?: string;
+    managePermission?: string;
     onCreate?: (form: Record<string, any>) => Promise<unknown>;
     onUpdate?: (key: string, form: Record<string, any>) => Promise<unknown>;
     onDelete?: (key: string) => Promise<unknown>;
@@ -48,10 +52,38 @@ interface CrudPageProps {
 
 /**
  * Página CRUD genérica do admin — lista + pesquisa + modal + exclusão,
- * com um contrato único para todos os domínios.
+ * com um contrato único para todos os domínios e proteção de capacidades.
  */
-export default function CrudPage({ title, subtitle, itemName, fetcher, columns, fields, searchKeys, keyField = "slug", onCreate, onUpdate, onDelete, extra }: CrudPageProps) {
+export default function CrudPage(props: CrudPageProps) {
+    if (props.permission) {
+        return (
+            <PermissionGuard permission={props.permission}>
+                <CrudPageContent {...props} />
+            </PermissionGuard>
+        );
+    }
+    return <CrudPageContent {...props} />;
+}
+
+function CrudPageContent({
+    title,
+    subtitle,
+    itemName,
+    fetcher,
+    columns,
+    fields,
+    searchKeys,
+    keyField = "slug",
+    managePermission,
+    permission,
+    onCreate,
+    onUpdate,
+    onDelete,
+    extra,
+}: CrudPageProps) {
     const { token } = useAuth();
+    const canManage = useCapability(managePermission || (permission?.replace(":read", ":manage") ?? ""));
+
     const { data, isLoading, error, refetch } = useApiQuery<any[]>(null, { deps: [token], enabled: !!token, fetcher });
     const [search, setSearch] = useState("");
     const [editing, setEditing] = useState<any | null>(null);
@@ -75,10 +107,10 @@ export default function CrudPage({ title, subtitle, itemName, fetcher, columns, 
             const key = editing?.[keyField];
             if (key && onUpdate) {
                 await onUpdate(key, form);
-                toast.success(`${itemName} atualizado`);
+                toast.success(`${itemName} atualizado com sucesso`);
             } else if (onCreate) {
                 await onCreate(form);
-                toast.success(`${itemName} criado`);
+                toast.success(`${itemName} criado com sucesso`);
             }
             setIsOpen(false);
             refetch();
@@ -93,7 +125,7 @@ export default function CrudPage({ title, subtitle, itemName, fetcher, columns, 
         if (!token || !deleting || !onDelete) return;
         try {
             await onDelete(deleting[keyField]);
-            toast.success(`${itemName} removido`);
+            toast.success(`${itemName} removido com sucesso`);
             setDeleting(null);
             refetch();
         } catch (err: any) {
@@ -101,16 +133,16 @@ export default function CrudPage({ title, subtitle, itemName, fetcher, columns, 
         }
     };
 
-    if (isLoading) return <Loading />;
+    if (isLoading) return <Loading label={`A carregar ${itemName.toLowerCase()}...`} />;
     if (error) return <ErrorBox message={error} />;
 
     return (
         <div>
             <AdminHeader
                 title={title}
-                subtitle={subtitle ?? `${data?.length ?? 0} registos`}
-                action={onCreate ? (
-                    <button onClick={openNew} className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors">
+                subtitle={subtitle ?? `${data?.length ?? 0} registos no sistema`}
+                action={onCreate && canManage ? (
+                    <button onClick={openNew} className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors shadow-sm">
                         <Plus className="w-4 h-4" /> Novo {itemName}
                     </button>
                 ) : undefined}
@@ -129,28 +161,30 @@ export default function CrudPage({ title, subtitle, itemName, fetcher, columns, 
                 {extra}
             </div>
 
-            <Table headers={[...columns.map(c => c.label), "Ações"]}>
+            <Table headers={canManage ? [...columns.map(c => c.label), "Ações"] : columns.map(c => c.label)}>
                 {filtered.map((row, idx) => (
                     <tr key={row.id ?? row[keyField] ?? idx}>
                         {columns.map(col => (
                             <Td key={col.key}>{col.render ? col.render(row) : row[col.key]}</Td>
                         ))}
-                        <Td>
-                            <div className="flex gap-1">
-                                <button onClick={() => openEdit(row)} className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors">
-                                    <Pencil className="w-4 h-4" />
-                                </button>
-                                {onDelete && (
-                                    <button onClick={() => setDeleting(row)} className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors">
-                                        <Trash2 className="w-4 h-4" />
+                        {canManage && (
+                            <Td>
+                                <div className="flex items-center gap-1">
+                                    <button onClick={() => openEdit(row)} title="Editar" className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors">
+                                        <Pencil className="w-4 h-4" />
                                     </button>
-                                )}
-                            </div>
-                        </Td>
+                                    {onDelete && (
+                                        <button onClick={() => setDeleting(row)} title="Remover" className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            </Td>
+                        )}
                     </tr>
                 ))}
                 {!filtered.length && (
-                    <tr><td colSpan={columns.length + 1}><Empty label={search ? "Sem resultados" : "Sem registos"} /></td></tr>
+                    <tr><td colSpan={columns.length + (canManage ? 1 : 0)}><Empty label={search ? "Sem resultados para os filtros" : "Sem registos adicionados"} /></td></tr>
                 )}
             </Table>
 
@@ -184,43 +218,127 @@ function CrudModal({ isOpen, onClose, editing, fields, itemName, onSave, saving 
     onSave: (form: Record<string, any>) => void;
     saving: boolean;
 }) {
-    const [form, setForm] = useState<Record<string, any>>(() => {
+    const getInitial = () => {
         const initial: Record<string, any> = {};
         for (const f of fields) {
             const value = editing?.[f.name];
             initial[f.name] = value ?? (f.type === "checkbox" ? false : "");
         }
         return initial;
-    });
-    const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
+    };
+
+    const [form, setForm] = useState<Record<string, any>>(getInitial);
+
+    useEffect(() => {
+        if (isOpen) {
+            setForm(getInitial());
+        }
+    }, [isOpen, editing, fields]);
+
+    const handleFieldChange = (fieldName: string, value: any) => {
+        setForm(f => {
+            const next = { ...f, [fieldName]: value };
+            if (!editing && (fieldName === "title" || fieldName === "name") && typeof value === "string") {
+                const hasSlugField = fields.some(field => field.name === "slug");
+                if (hasSlugField) {
+                    const autoSlug = value
+                        .toLowerCase()
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .replace(/[^a-z0-9]+/g, "-")
+                        .replace(/(^-|-$)/g, "");
+                    next.slug = autoSlug;
+                }
+            }
+            return next;
+        });
+    };
+
+    const generateCodeForField = (fieldName: string) => {
+        const year = new Date().getFullYear();
+        const rand = Math.floor(1000 + Math.random() * 9000);
+        if (fieldName === "sku") return `SKU-${rand}`;
+        if (fieldName === "code") return `COD-${year}-${rand}`;
+        return `REF-${rand}`;
+    };
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={`${editing ? "Editar" : "Novo"} ${itemName}`} wide>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {fields.map(f => {
                     const input = (() => {
+                        if (f.name === "slug") {
+                            return (
+                                <div className="flex gap-2">
+                                    <input
+                                        className={inputClass}
+                                        value={form[f.name] ?? ""}
+                                        onChange={e => handleFieldChange(f.name, e.target.value)}
+                                        required={f.required}
+                                        placeholder={f.placeholder || "slug-automatico"}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const source = form.title || form.name || "";
+                                            if (source) {
+                                                const s = source.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+                                                handleFieldChange("slug", s);
+                                            }
+                                        }}
+                                        title="Gerar slug automático a partir do título/nome"
+                                        className="px-3 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-primary/10 text-gray-600 dark:text-gray-300 hover:text-primary transition-colors text-xs font-bold shrink-0"
+                                    >
+                                        Auto
+                                    </button>
+                                </div>
+                            );
+                        }
+
+                        if (f.name === "code" || f.name === "sku") {
+                            return (
+                                <div className="flex gap-2">
+                                    <input
+                                        className={`${inputClass} font-mono`}
+                                        value={form[f.name] ?? ""}
+                                        onChange={e => handleFieldChange(f.name, e.target.value.toUpperCase())}
+                                        required={f.required}
+                                        placeholder={f.placeholder}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleFieldChange(f.name, generateCodeForField(f.name))}
+                                        title="Gerar código automático"
+                                        className="px-3 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary transition-colors text-xs font-bold shrink-0"
+                                    >
+                                        Gerar
+                                    </button>
+                                </div>
+                            );
+                        }
+
                         switch (f.type) {
                             case "textarea":
-                                return <TextArea value={form[f.name]} onChange={e => set(f.name, e.target.value)} required={f.required} placeholder={f.placeholder} />;
+                                return <TextArea value={form[f.name] ?? ""} onChange={e => handleFieldChange(f.name, e.target.value)} required={f.required} placeholder={f.placeholder} />;
                             case "richtext":
-                                return <RichTextEditor value={form[f.name] || ""} onChange={v => set(f.name, v)} />;
+                                return <RichTextEditor value={form[f.name] ?? ""} onChange={v => handleFieldChange(f.name, v)} />;
                             case "select":
                                 return (
-                                    <Select value={form[f.name]} onChange={e => set(f.name, e.target.value)} required={f.required}>
+                                    <Select value={form[f.name] ?? ""} onChange={e => handleFieldChange(f.name, e.target.value)} required={f.required}>
                                         <option value="">—</option>
                                         {(f.options || []).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                                     </Select>
                                 );
                             case "image":
-                                return <ImageUpload value={form[f.name]} onChange={url => set(f.name, url)} />;
+                                return <ImageUpload value={form[f.name] ?? ""} onChange={url => handleFieldChange(f.name, url)} />;
                             case "checkbox":
                                 return (
-                                    <input type="checkbox" checked={Boolean(form[f.name])} onChange={e => set(f.name, e.target.checked)} className="rounded accent-primary" />
+                                    <input type="checkbox" checked={Boolean(form[f.name])} onChange={e => handleFieldChange(f.name, e.target.checked)} className="rounded accent-primary" />
                                 );
                             case "number":
-                                return <input type="number" className={inputClass} value={form[f.name]} onChange={e => set(f.name, e.target.value)} required={f.required} placeholder={f.placeholder} />;
+                                return <input type="number" className={inputClass} value={form[f.name] ?? ""} onChange={e => handleFieldChange(f.name, e.target.value)} required={f.required} placeholder={f.placeholder} />;
                             default:
-                                return <input className={inputClass} value={form[f.name]} onChange={e => set(f.name, e.target.value)} required={f.required} placeholder={f.placeholder} />;
+                                return <input className={inputClass} value={form[f.name] ?? ""} onChange={e => handleFieldChange(f.name, e.target.value)} required={f.required} placeholder={f.placeholder} />;
                         }
                     })();
                     return (

@@ -10,7 +10,7 @@ import { AdminHeader, Card, Loading, ErrorBox, Badge, Table, Td, Empty } from "@
 import { formatCurrency, formatDate } from "@/shared/utils/format";
 
 export default function AdminDashboardPage() {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const { data: stats, isLoading, error } = useApiQuery<any>(null, {
         deps: [token],
         enabled: !!token,
@@ -27,16 +27,28 @@ export default function AdminDashboardPage() {
     const products = stats.products || {};
     const users = stats.users || {};
 
-    const cards = [
-        { label: "Receita (não cancelada)", value: formatCurrency(stats.revenue ?? 0), icon: Banknote, to: "/admin/orders" },
-        { label: "Encomendas", value: String(orders.total ?? 0), icon: ShoppingCart, to: "/admin/orders" },
-        { label: "Cotações", value: String(quotes.total ?? 0), icon: FileText, to: "/admin/quotes" },
-        { label: "Contactos", value: String(contacts.total ?? 0), icon: Inbox, to: "/admin/contacts" },
-        { label: "Subscritores", value: String(stats.newsletterSubscribers ?? 0), icon: Mail, to: "/admin/newsletter" },
-        { label: "Utilizadores", value: String(users.total ?? 0), icon: Users, to: "/admin/users" },
-        { label: "Produtos ativos", value: String(products.active ?? 0), icon: Package, to: "/admin/products" },
-        { label: "Stock baixo (≤5)", value: String(products.lowStock ?? 0), icon: AlertTriangle, to: "/admin/products" },
+    const perms: string[] = user?.permissions || [];
+    const isAdmin = user?.role === "admin";
+
+    const allCards = [
+        { label: "Receita (não cancelada)", value: formatCurrency(stats.revenue ?? 0), icon: Banknote, to: "/admin/orders", perm: "orders:read" },
+        { label: "Encomendas", value: String(orders.total ?? 0), icon: ShoppingCart, to: "/admin/orders", perm: "orders:read" },
+        { label: "Cotações", value: String(quotes.total ?? 0), icon: FileText, to: "/admin/quotes", perm: "quotes:read" },
+        { label: "Contactos", value: String(contacts.total ?? 0), icon: Inbox, to: "/admin/contacts", perm: "contacts:manage" },
+        { label: "Subscritores", value: String(stats.newsletterSubscribers ?? 0), icon: Mail, to: "/admin/newsletter", perm: "contacts:manage" },
+        { label: "Utilizadores", value: String(users.total ?? 0), icon: Users, to: "/admin/users", perm: "users:manage" },
+        { label: "Produtos ativos", value: String(products.active ?? 0), icon: Package, to: "/admin/products", perm: "catalog:read" },
+        { label: "Stock baixo (≤5)", value: String(products.lowStock ?? 0), icon: AlertTriangle, to: "/admin/products", perm: "stock:manage" },
     ];
+
+    const cards = allCards.filter(c => {
+        if (isAdmin) return true;
+        if (!c.perm) return true;
+        if (c.perm === "orders:read" && perms.includes("orders:manage")) return true;
+        if (c.perm === "quotes:read" && perms.includes("quotes:manage")) return true;
+        if (c.perm === "catalog:read" && perms.includes("catalog:manage")) return true;
+        return perms.includes(c.perm);
+    });
 
     const maxRevenue = Math.max(1, ...(stats.monthlyRevenue || []).map((m: any) => m.total));
 

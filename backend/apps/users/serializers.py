@@ -107,15 +107,28 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         return value
 
 
-class AdminUserCreateSerializer(serializers.Serializer):
-    """Criação de utilizador (staff) — cliente ou staff com cargo."""
+class AdminUserCreateSerializer(serializers.ModelSerializer):
+    """Criação de utilizador (staff) — cliente ou staff com cargo e capacidades granulares."""
 
-    email = serializers.EmailField()
     password = serializers.CharField(min_length=8, write_only=True)
-    first_name = serializers.CharField(max_length=80, required=False, allow_blank=True)
-    last_name = serializers.CharField(max_length=80, required=False, allow_blank=True)
-    phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
-    role = serializers.ChoiceField(choices=StaffRole.choices, default=StaffRole.USER)
+    permissions = serializers.ListField(child=serializers.CharField(), required=False, default=list)
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "password",
+            "first_name",
+            "last_name",
+            "phone",
+            "role",
+            "permissions",
+            "is_active",
+            "is_staff",
+            "created_at",
+        ]
+        read_only_fields = ["id", "is_staff", "created_at"]
 
     def validate_email(self, value: str) -> str:
         normalized = normalize_email(value)
@@ -125,17 +138,15 @@ class AdminUserCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data: dict) -> User:
         password = validated_data.pop("password")
-        role = validated_data.get("role", StaffRole.USER)
-        validated_data["is_staff"] = role != StaffRole.USER
         return User.objects.create_user(password=password, **validated_data)
 
 
 class AdminUserUpdateSerializer(serializers.ModelSerializer):
-    """Atualização de um utilizador por staff — nome, telefone, cargo, ativo."""
+    """Atualização de um utilizador por staff — nome, telefone, cargo, capacidades, ativo."""
 
     email = serializers.EmailField(read_only=True)
-    role = serializers.ChoiceField(choices=StaffRole.choices)
-    permissions = serializers.JSONField(read_only=True)
+    role = serializers.ChoiceField(choices=StaffRole.choices, required=False)
+    permissions = serializers.ListField(child=serializers.CharField(), required=False)
     created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
@@ -152,16 +163,13 @@ class AdminUserUpdateSerializer(serializers.ModelSerializer):
             "is_staff",
             "created_at",
         ]
-        read_only_fields = ["id", "email", "permissions", "created_at", "is_staff"]
+        read_only_fields = ["id", "email", "created_at", "is_staff"]
 
     def validate_phone(self, value: str) -> str:
         return validate_phone(value) if value else value
 
     def update(self, instance, validated_data):
-        user = super().update(instance, validated_data)
-        user.is_staff = user.role != StaffRole.USER
-        user.save(update_fields=["is_staff"])
-        return user
+        return super().update(instance, validated_data)
 
 
 class AdminResetPasswordSerializer(serializers.Serializer):

@@ -7,7 +7,7 @@ import { api } from "@/shared/utils/apiClient";
 import CrudPage, { CrudField, CrudColumn, badgeColumn, imageColumn } from "@/shared/components/admin/CrudPage";
 import { Loading } from "@/shared/components/admin/ui";
 
-export default function AdminBlogPage() {
+export function AdminBlogContent() {
     const { token } = useAuth();
     const { data: cats } = useApiQuery<any[]>(null, { deps: [token], enabled: !!token, fetcher: () => api.categories.getByType("blog") });
 
@@ -42,6 +42,7 @@ export default function AdminBlogPage() {
             title="Blog"
             subtitle="Artigos do blog"
             itemName="Artigo"
+            permission="content:manage"
             fetcher={() => api.articles.list({ page_size: 100 }).then(d => d.results)}
             columns={columns}
             fields={fields}
@@ -51,4 +52,8 @@ export default function AdminBlogPage() {
             onDelete={slug => api.articles.remove(slug, token as string)}
         />
     );
+}
+
+export default function AdminBlogPage() {
+    return <AdminBlogContent />;
 }

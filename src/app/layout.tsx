@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/shared/components/ThemeProvider";
 import { CartProvider } from "@/shared/providers/CartProvider";
 import MobileNavigation from "@/shared/components/MobileNavigation";
 import MaintenanceGuard from "@/shared/components/MaintenanceGuard";
+import AnalyticsTracker from "@/shared/components/AnalyticsTracker";
 
 const inter = Inter({
     variable: "--font-inter",
@@ -157,6 +158,7 @@ export default function RootLayout({
                     <CartProvider>
                         <ThemeProvider>
                             <Toaster richColors position="top-right" />
+                            <AnalyticsTracker />
                             <a href="#main-content" className="sr-only fixed left-4 top-4 z-[100] rounded-lg bg-primary px-4 py-2 font-semibold text-white focus:not-sr-only">
                                 Saltar para o conteúdo principal
                             </a>

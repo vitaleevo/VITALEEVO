@@ -31,13 +31,14 @@ const columns: CrudColumn[] = [
     { key: "status", label: "Estado", render: badgeColumn() },
 ];
 
-export default function AdminServicesPage() {
+export function AdminServicesContent() {
     const { token } = useAuth();
     return (
         <CrudPage
             title="Serviços"
             subtitle="Serviços apresentados no site"
             itemName="Serviço"
+            permission="content:manage"
             fetcher={() => api.services.list({ page_size: 100 })}
             columns={columns}
             fields={fields}
@@ -47,4 +48,8 @@ export default function AdminServicesPage() {
             onDelete={slug => api.services.remove(slug, token as string)}
         />
     );
+}
+
+export default function AdminServicesPage() {
+    return <AdminServicesContent />;
 }

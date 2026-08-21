@@ -102,10 +102,28 @@ class TestAdminUsers:
         assert user.is_staff is True
         assert "quotes:manage" in user.permissions
 
-        response = admin_client.patch(f"/api/v1/auth/users/{user.id}/", {"role": "content"}, format="json")
+        response = admin_client.patch(f"/api/v1/auth/users/{user.id}/", {"role": "content", "permissions": ["content:manage", "media:upload"]}, format="json")
         assert response.status_code == 200
         user.refresh_from_db()
         assert "content:manage" in user.permissions
+        assert "media:upload" in user.permissions
+
+    def test_super_admin_can_create_user_with_custom_permissions(self, admin_client):
+        response = admin_client.post(
+            "/api/v1/auth/users/",
+            {
+                "email": "custom_staff@teste.ao",
+                "password": "SenhaForte123!",
+                "role": "operations",
+                "first_name": "Maria",
+                "permissions": ["catalog:manage", "media:upload", "orders:manage"],
+            },
+            format="json",
+        )
+        assert response.status_code == 201
+        user = User.objects.get(email="custom_staff@teste.ao")
+        assert user.is_staff is True
+        assert set(user.permissions) == {"catalog:manage", "media:upload", "orders:manage"}
 
     def test_staff_can_reset_password(self, admin_client, regular_user):
         response = admin_client.post(
@@ -116,3 +134,19 @@ class TestAdminUsers:
         assert response.status_code == 200
         regular_user.refresh_from_db()
         assert regular_user.check_password("NovaSenhaForte456!")
+
+
+class TestMediaUpload:
+    def test_anon_cannot_upload(self, client):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        file = SimpleUploadedFile("test.png", b"\x89PNG\r\n\x1a\n", content_type="image/png")
+        response = client.post("/api/v1/media/upload/", {"file": file}, format="multipart")
+        assert response.status_code == 401
+
+    def test_staff_with_media_upload_can_upload(self, admin_client):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        file = SimpleUploadedFile("test.png", b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR", content_type="image/png")
+        response = admin_client.post("/api/v1/media/upload/", {"file": file}, format="multipart")
+        assert response.status_code == 200
+        assert "url" in response.json()
+        assert response.json()["size"] == len(b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR")

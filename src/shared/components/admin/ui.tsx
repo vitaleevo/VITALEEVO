@@ -2,7 +2,8 @@
 
 import React, { useRef, useState } from "react";
 import Image from "next/image";
-import { Loader2, UploadCloud, X } from "lucide-react";
+import { Loader2, UploadCloud, X, Link as LinkIcon } from "lucide-react";
+import { toast } from "sonner";
 import { api } from "@/shared/utils/apiClient";
 import { useAuth } from "@/shared/providers/AuthProvider";
 
@@ -92,9 +93,10 @@ const STATUS_COLORS: Record<string, string> = {
     rejected: "text-red-500 bg-red-500/10",
 };
 
-export function Badge({ value }: { value: string }) {
-    const color = STATUS_COLORS[value] ?? "text-gray-500 bg-gray-500/10";
-    return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold capitalize ${color}`}>{value.replace(/_/g, " ")}</span>;
+export function Badge({ value }: { value?: string | null }) {
+    const text = value ?? "—";
+    const color = STATUS_COLORS[text] ?? "text-gray-500 bg-gray-500/10";
+    return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold capitalize ${color}`}>{text.replace(/_/g, " ")}</span>;
 }
 
 // ── Estados de carregamento / vazio ──────────────────────────────────────
@@ -144,63 +146,94 @@ export function ImageUpload({ value, onChange, label = "Imagem" }: { value: stri
     const { token } = useAuth();
     const fileRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
+    const [showUrlInput, setShowUrlInput] = useState(false);
 
     const handleFile = async (file: File) => {
-        if (!token) return;
+        if (!token) {
+            toast.error("Sessão expirada. Inicie sessão novamente.");
+            return;
+        }
         setUploading(true);
         try {
-            const { url } = await api.media.upload(file, token);
-            onChange(url);
-        } catch (err) {
+            const res = await api.media.upload(file, token);
+            onChange(res.url);
+            toast.success("Imagem carregada com sucesso");
+        } catch (err: any) {
             console.error("Upload falhou:", err);
+            toast.error(err?.message || "Falha ao carregar imagem. Verifique o formato e tamanho.");
         } finally {
             setUploading(false);
         }
     };
 
     return (
-        <div className="flex items-center gap-4">
-            <div className="relative h-20 w-20 rounded-xl overflow-hidden bg-gray-100 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 shrink-0">
-                {value ? (
-                    <>
-                        <Image src={value} alt="" fill className="object-cover" unoptimized />
+        <div className="space-y-2">
+            <div className="flex items-center gap-4">
+                <div className="relative h-20 w-20 rounded-xl overflow-hidden bg-gray-100 dark:bg-[#0f172a] border border-gray-200 dark:border-white/10 shrink-0">
+                    {value ? (
+                        <>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={value} alt="" className="w-full h-full object-cover" />
+                            <button
+                                type="button"
+                                onClick={() => onChange("")}
+                                className="absolute top-1 right-1 p-0.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors z-10"
+                                title="Remover imagem"
+                            >
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        </>
+                    ) : (
+                        <div className="flex items-center justify-center h-full text-gray-300 dark:text-gray-600">
+                            <UploadCloud className="w-6 h-6" />
+                        </div>
+                    )}
+                </div>
+                <div className="flex-1 space-y-1.5">
+                    <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => {
+                            const f = e.target.files?.[0];
+                            if (f) handleFile(f);
+                            e.target.value = "";
+                        }}
+                    />
+                    <div className="flex flex-wrap items-center gap-2">
                         <button
                             type="button"
-                            onClick={() => onChange("")}
-                            className="absolute top-1 right-1 p-0.5 rounded-full bg-black/60 text-white hover:bg-black/80"
+                            disabled={uploading}
+                            onClick={() => fileRef.current?.click()}
+                            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-white/10 px-4 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
                         >
-                            <X className="w-3.5 h-3.5" />
+                            {uploading ? <Loader2 className="w-4 h-4 animate-spin text-primary" /> : <UploadCloud className="w-4 h-4 text-primary" />}
+                            {uploading ? "A carregar..." : label}
                         </button>
-                    </>
-                ) : (
-                    <div className="flex items-center justify-center h-full text-gray-300">
-                        <UploadCloud className="w-6 h-6" />
+                        <button
+                            type="button"
+                            onClick={() => setShowUrlInput(s => !s)}
+                            className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                        >
+                            <LinkIcon className="w-3.5 h-3.5" />
+                            {showUrlInput ? "Ocultar URL" : "Inserir link direto"}
+                        </button>
                     </div>
-                )}
+                    {value && !showUrlInput && <p className="text-[10px] text-gray-400 break-all">{value}</p>}
+                </div>
             </div>
-            <div className="flex-1">
-                <input
-                    ref={fileRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={e => {
-                        const f = e.target.files?.[0];
-                        if (f) handleFile(f);
-                        e.target.value = "";
-                    }}
-                />
-                <button
-                    type="button"
-                    disabled={uploading}
-                    onClick={() => fileRef.current?.click()}
-                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-white/10 px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-300 hover:border-primary/40 transition-colors disabled:opacity-50"
-                >
-                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
-                    {label}
-                </button>
-                {value && <p className="mt-1 text-[10px] text-gray-400 break-all">{value}</p>}
-            </div>
+            {showUrlInput && (
+                <div className="mt-2">
+                    <input
+                        type="url"
+                        placeholder="https://exemplo.com/imagem.jpg"
+                        value={value || ""}
+                        onChange={e => onChange(e.target.value)}
+                        className={inputClass}
+                    />
+                </div>
+            )}
         </div>
     );
 }

@@ -78,8 +78,18 @@ class User(AbstractBaseUser, PermissionsMixin):
             self.phone = validate_phone(self.phone)
 
     def save(self, *args, **kwargs):
-        # Uma única fonte de verdade: as capacidades derivam do cargo (DRY).
-        self.permissions = get_permissions(self.role)
+        # Se não foram fornecidas capacidades explícitas e o cargo for staff, herda as predefinidas do cargo.
+        if self.permissions is None or (len(self.permissions) == 0 and self.role != StaffRole.USER and self.role != StaffRole.ADMIN):
+            self.permissions = get_permissions(self.role)
+        elif self.role == StaffRole.ADMIN and (not self.permissions or len(self.permissions) == 0):
+            self.permissions = get_permissions(StaffRole.ADMIN)
+
+        # Sincroniza is_staff: qualquer cargo staff ou com capacidades administrativas torna is_staff=True.
+        if self.role != StaffRole.USER or (self.permissions and len(self.permissions) > 0) or self.is_superuser:
+            self.is_staff = True
+        else:
+            self.is_staff = False
+
         super().save(*args, **kwargs)
 
     @property
@@ -88,4 +98,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def has_capability(self, capability: str) -> bool:
         """O utilizador possui uma capacidade específica (ex.: 'content:manage')?"""
-        return capability in self.permissions
+        if self.is_superuser or self.role == StaffRole.ADMIN:
+            return True
+        return capability in (self.permissions or [])

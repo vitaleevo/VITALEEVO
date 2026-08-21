@@ -33,7 +33,7 @@ const nextConfig = {
                             "default-src 'self'",
                             `script-src ${scriptSources}`,
                             `connect-src ${connectSources}`,
-                            "img-src 'self' data: https: blob:",
+                            "img-src 'self' data: https: blob: http://localhost:8100 http://127.0.0.1:8100 http://localhost:8000 http://localhost:8080 http://localhost:3000 http:",
                             "style-src 'self' 'unsafe-inline'",
                             "font-src 'self' data:",
                             "base-uri 'self'",
@@ -47,12 +47,16 @@ const nextConfig = {
     },
     images: {
         remotePatterns: [
+            { protocol: "http", hostname: "localhost" },
+            { protocol: "http", hostname: "127.0.0.1" },
             { protocol: "https", hostname: "images.unsplash.com" },
             { protocol: "https", hostname: "picsum.photos" },
             { protocol: "https", hostname: "lh3.googleusercontent.com" },
+            { protocol: "https", hostname: "*.railway.app" },
         ],
         formats: ["image/avif", "image/webp"],
     },
+    skipTrailingSlashRedirect: true,
 };
 
 export default nextConfig;

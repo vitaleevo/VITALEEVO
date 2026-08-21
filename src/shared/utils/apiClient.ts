@@ -10,7 +10,7 @@
 import type { SiteConfig } from "./api";
 
 export const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8100";
+    process.env.NEXT_PUBLIC_API_URL || (typeof window === "undefined" ? "http://127.0.0.1:8100" : "");
 
 export const AUTH_STORAGE_KEY = "vitaleevo_auth";
 
@@ -78,8 +78,9 @@ export interface RequestOptions {
 
 export async function request<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
     const { method = "GET", body, token, params, auth = false, retried } = options;
-
-    let url = `${API_BASE_URL}/api/v1${path}`;
+    const cleanPath = path.startsWith("/") ? path : `/${path}`;
+    const normalizedPath = cleanPath.replace(/\/+$/, "");
+    let url = `${API_BASE_URL}/api/v1${normalizedPath}`;
     if (params) {
         const qs = new URLSearchParams();
         for (const [key, value] of Object.entries(params)) {
@@ -181,8 +182,8 @@ function withCategoryAliases<T extends Record<string, unknown>>(item: T): T & { 
 export const api = {
     // ── Produtos ─────────────────────────────────────────────────────────
     products: {
-        list: (params: Record<string, unknown> = {}) =>
-            request<Paginated<Record<string, unknown>>>("/catalog/products/", { params }).then(d => {
+        list: (params: Record<string, unknown> = {}, token?: string | null) =>
+            request<Paginated<Record<string, unknown>>>("/catalog/products/", { params, auth: !!token, token }).then(d => {
                 const page = asPaginated<Record<string, unknown>>(d);
                 return {
                     ...page,
@@ -580,6 +581,21 @@ return {
 
     // ── Importação ───────────────────────────────────────────────────────
     imports: {
+        downloadTemplate: async (token: string) => {
+            const res = await fetch(`${API_BASE_URL}/api/v1/imports/products/template/`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) throw new ApiError(res.status, "Falha ao descarregar modelo");
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "modelo_importacao_produtos.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        },
         importProducts: async (file: File, token: string) => {
             const form = new FormData();
             form.append("file", file);
@@ -609,6 +625,35 @@ return {
             request(`/cms/pages/${slug}/`, { method: "DELETE", token, auth: true }),
         publish: (slug: string, token: string) =>
             request(`/cms/pages/${slug}/publish/`, { method: "POST", token, auth: true }),
+    },
+
+    // ── Analytics & Mapa de Calor ────────────────────────────────────────
+    analytics: {
+        track: (data: Record<string, unknown>) =>
+            request<{ ok: boolean }>("/analytics/track/", { method: "POST", body: data }),
+        getOverview: (token: string, period = "30d") =>
+            request<{
+                period: string;
+                totalPageviews: number;
+                uniqueVisitors: number;
+                totalClicks: number;
+                interactionRate: number;
+                devices: { desktop: number; mobile: number; tablet: number };
+                topPages: { path: string; visits: number; uniqueVisitors: number; clicks: number; interactionRate: number }[];
+                topButtons: { text: string; tag: string; path: string; clicks: number; percentage: number }[];
+            }>("/analytics/overview/", { auth: true, token, params: { period } }),
+        getHeatmap: (token: string, path = "/", period = "30d") =>
+            request<{
+                path: string;
+                period: string;
+                totalPageviews: number;
+                uniqueVisitors: number;
+                totalClicks: number;
+                points: { x: number; y: number; count: number; tag: string; text: string }[];
+                elements: { label: string; tag: string; elementId: string; clicks: number; percentage: number }[];
+            }>("/analytics/heatmap/", { auth: true, token, params: { path, period } }),
+        getPages: (token: string) =>
+            request<{ path: string; views: number; uniqueSessions: number; clicks: number }[]>("/analytics/pages/", { auth: true, token }),
     },
 };
 

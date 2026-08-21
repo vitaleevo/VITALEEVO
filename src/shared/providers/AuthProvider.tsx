@@ -25,7 +25,7 @@ interface AuthContextType {
     isLoading: boolean;
     isAuthenticated: boolean;
     isAdmin: boolean;
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<User>;
     register: (email: string, password: string, name: string, phone?: string) => Promise<void>;
     logout: () => void;
     error: string | null;
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const { access, refresh } = await api.auth.login(email, password);
             const profile = await api.auth.me(access);
             setStoredAuth({ token: access, refreshToken: refresh });
-            setUser({
+            const userData: User = {
                 _id: profile.id as string,
                 email: profile.email as string,
                 name: `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim() || (profile.email as string),
@@ -102,7 +102,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 phone: (profile.phone as string | undefined) ?? "",
                 isStaff: Boolean(profile.isStaff),
                 permissions: profile.permissions as string[] | undefined,
-            });
+            };
+            setUser(userData);
+            return userData;
         } catch (err: unknown) {
             const message = getErrorMessage(err);
             setError(message);

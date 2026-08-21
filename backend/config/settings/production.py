@@ -4,7 +4,7 @@ from .base import *  # noqa: F401,F403
 DEBUG = False
 
 assert SECRET_KEY != "dev-only-secret-key-change-me-!1234567890abcdef", "SECRET_KEY é obrigatório em produção"  # noqa: S101
-assert DATABASES["default"]["ENGINE"] != "django.db.backends.sqlite3", "Produção exige PostgreSQL (DATABASE_URL)"  # noqa: S101
+assert DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql", "Produção exige PostgreSQL configurado via DATABASE_URL"  # noqa: S101
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True

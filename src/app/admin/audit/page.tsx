@@ -6,8 +6,17 @@ import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
 import { AdminHeader, Loading, ErrorBox, Empty, Table, Td, Select, inputClass } from "@/shared/components/admin/ui";
 import { formatDate } from "@/shared/utils/format";
+import { PermissionGuard } from "@/shared/components/admin/PermissionGuard";
 
 export default function AdminAuditPage() {
+    return (
+        <PermissionGuard permission="audit:read">
+            <AdminAuditContent />
+        </PermissionGuard>
+    );
+}
+
+export function AdminAuditContent() {
     const { token } = useAuth();
     const { data: page, isLoading, error } = useApiQuery<any>(null, {
         deps: [token],

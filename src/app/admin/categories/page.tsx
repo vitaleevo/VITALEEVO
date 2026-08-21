@@ -23,7 +23,7 @@ const fields: CrudField[] = [
     { name: "order", label: "Ordem", type: "number", optional: true },
 ];
 
-export default function AdminCategoriesPage() {
+export function AdminCategoriesContent() {
     const { token } = useAuth();
     const { data: all } = useApiQuery<any[]>(null, { deps: [token], enabled: !!token, fetcher: () => api.categories.getByType("store") });
 
@@ -45,6 +45,8 @@ export default function AdminCategoriesPage() {
             title="Categorias"
             subtitle="Categorias e subcategorias do catálogo"
             itemName="Categoria"
+            permission="catalog:read"
+            managePermission="catalog:manage"
             fetcher={() => api.categories.getByType("store")}
             columns={columns}
             fields={withParents}
@@ -54,4 +56,8 @@ export default function AdminCategoriesPage() {
             onDelete={slug => api.categories.remove(slug, token as string)}
         />
     );
+}
+
+export default function AdminCategoriesPage() {
+    return <AdminCategoriesContent />;
 }

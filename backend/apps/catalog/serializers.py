@@ -13,6 +13,7 @@ class CategorySerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(),
         allow_null=True,
         required=False,
+        default=None,
     )
 
     class Meta:
@@ -78,6 +79,7 @@ class ProductAdminSerializer(serializers.ModelSerializer):
     """Gestão (staff) — todos os campos, inclui estado e stock."""
 
     slug = serializers.CharField(max_length=220, validators=[validate_slug, UniqueValidator(queryset=Product.objects.all())])
+    image = serializers.CharField(max_length=500, allow_blank=True)
     category = serializers.SlugRelatedField(slug_field="slug", queryset=Category.objects.all())
     subcategory = serializers.SlugRelatedField(
         slug_field="slug",
