@@ -76,15 +76,17 @@ class PasswordResetRequestView(generics.GenericAPIView):
         if user:
             token = default_token_generator.make_token(user)
             link = f"{settings.SITE_URL}/recuperar-senha?token={token}&email={user.email}"
-            send_mail(
-                subject="Reposição de password — VitalEvo",
-                message=f"Olá {user.first_name or 'utilizador'},\n\n"
-                        f"Recebemos um pedido para repor a sua password. Aceda ao link:\n{link}\n\n"
-                        "Se não foi você, ignore este e-mail.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=True,
-            )
+            try:
+                send_mail(
+                    subject="Reposição de password — VitalEvo",
+                    message=f"Olá {user.first_name or 'utilizador'},\n\n"
+                            f"Recebemos um pedido para repor a sua password. Aceda ao link:\n{link}\n\n"
+                            "Se não foi você, ignore este e-mail.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[user.email],
+                )
+            except Exception:
+                pass
         return Response({"detail": "Se o e-mail existir, enviámos um link de reposição."})
 
 

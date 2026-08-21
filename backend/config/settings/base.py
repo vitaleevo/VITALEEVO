@@ -184,18 +184,21 @@ REDIS_URL = env.str("REDIS_URL", default="redis://localhost:6379/0")
 RQ_QUEUES = {"default": {"URL": REDIS_URL}}
 RQ_ASYNC = env.bool("RQ_ASYNC", default=True)
 
-# --- E-mail ---
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = env.str("EMAIL_HOST", default="")
-EMAIL_PORT = env.int("EMAIL_PORT", default=587)
-EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="")
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+# --- E-mail (Django 6.1 MAILERS — EMAIL_* removido em 7.0) ---
+_mail_host = env.str("EMAIL_HOST", default="")
+MAILERS = {
+    "default": {
+        "BACKEND": "django.core.mail.backends.console.EmailBackend"
+        if not _mail_host
+        else "django.core.mail.backends.smtp.EmailBackend",
+        "HOST": _mail_host,
+        "PORT": env.int("EMAIL_PORT", default=587),
+        "USER": env.str("EMAIL_HOST_USER", default=""),
+        "PASSWORD": env.str("EMAIL_HOST_PASSWORD", default=""),
+        "USE_TLS": env.bool("EMAIL_USE_TLS", default=True),
+    }
+}
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="no-reply@vitaleevo.ao")
-
-# Sem SMTP configurado, usa o backend de console — as tarefas nunca falham em prod.
-if not EMAIL_HOST:
-    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # --- URLs públicas do site (usadas em e-mails/notificações) ---
 SITE_URL = env.str("SITE_URL", default="https://vitaleevo.ao")

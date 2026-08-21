@@ -67,7 +67,7 @@ def test_newsletter_broadcast_sends_emails(client, settings):
     admin = make_admin()
     Newsletter.objects.create(email="sub@vitaleevo.ao")
     Newsletter.objects.create(email="inactive@vitaleevo.ao", is_active=False)
-    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+    settings.MAILERS["default"]["BACKEND"] = "django.core.mail.backends.locmem.EmailBackend"  # type: ignore[index]
     client.force_authenticate(admin)
     response = client.post(f"{API}/cms/newsletters/broadcast/", {"subject": "Oferta", "body": "Corpo"}, format="json")
     assert response.status_code == 200

@@ -148,7 +148,10 @@ class NewsletterViewSet(viewsets.ModelViewSet):
             return Response({"detail": "subject e body são obrigatórios."}, status=400)
         emails = list(Newsletter.objects.filter(is_active=True).values_list("email", flat=True))
         for email in emails:
-            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=True)
+            try:
+                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [email])
+            except Exception:
+                continue
         log_audit(
             user=request.user,
             action="newsletter.broadcast",
