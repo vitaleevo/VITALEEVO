@@ -1,13 +1,13 @@
 import React from "react";
 
 export const CONCEPT_IMAGES = {
-    home: "https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1920&q=70",
-    store: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&w=1920&q=70",
-    services: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1920&q=70",
-    portfolio: "https://images.unsplash.com/photo-1589156280159-27698a70f29e?auto=format&fit=crop&w=1920&q=70",
-    blog: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1920&q=70",
-    office: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=70",
-    analytics: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1920&q=70",
+    home: "/images/heros/home.webp",
+    store: "/images/heros/store.webp",
+    services: "/images/heros/services.webp",
+    portfolio: "/images/heros/portfolio.webp",
+    blog: "/images/heros/blog.webp",
+    office: "/images/heros/office.webp",
+    analytics: "/images/heros/analytics.webp",
 } as const;
 
 interface ConceptBackdropProps {
