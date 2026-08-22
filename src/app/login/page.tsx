@@ -13,7 +13,6 @@ export default function LoginPage() {
     const { login, isLoading, error, clearError, isAuthenticated, user } = useAuth();
     const router = useRouter();
 
-    const [accessType, setAccessType] = useState<"client" | "staff">("client");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -67,39 +66,11 @@ export default function LoginPage() {
                             <ShieldCheck className="w-10 h-10 text-primary" />
                         </div>
                         <h1 className="font-display font-black text-3xl md:text-4xl text-gray-900 dark:text-white mb-2">
-                            Entrar na Plataforma
+                            Aceda à sua conta
                         </h1>
                         <p className="text-gray-500 dark:text-gray-400 text-sm">
-                            {accessType === "staff"
-                                ? "Painel de administração e gestão de equipas"
-                                : "Aceda às suas encomendas, pedidos e dados pessoais"}
+                            Aceda às suas encomendas, pedidos e dados pessoais
                         </p>
-                    </div>
-
-                    {/* Selector Tabs: Cliente vs Staff */}
-                    <div className="grid grid-cols-2 p-1 bg-gray-100 dark:bg-white/5 rounded-2xl mb-6 border border-gray-200 dark:border-white/10">
-                        <button
-                            type="button"
-                            onClick={() => setAccessType("client")}
-                            className={`py-2.5 text-xs font-bold rounded-xl transition-all ${
-                                accessType === "client"
-                                    ? "bg-white dark:bg-[#151e32] text-primary shadow-sm"
-                                    : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                            }`}
-                        >
-                            Área do Cliente
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setAccessType("staff")}
-                            className={`py-2.5 text-xs font-bold rounded-xl transition-all ${
-                                accessType === "staff"
-                                    ? "bg-white dark:bg-[#151e32] text-primary shadow-sm"
-                                    : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
-                            }`}
-                        >
-                            Equipa & CMS
-                        </button>
                     </div>
 
                     {/* Form Card */}
