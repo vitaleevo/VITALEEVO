@@ -7,7 +7,7 @@ Objetivo: corrigir os bloqueadores técnicos, publicar o código no GitHub e ope
 ## Estado de execução — 2026-08-23
 
 - Gate 0 de código: concluído (credenciais fixas e exemplos sensíveis removidos; bootstrap e seed endurecidos).
-- Gate 0 operacional: pendente (backup/restauração, revogação dos segredos históricos, rotação do admin real e configuração SMTP).
+- Gate 0 operacional: em curso. Backup/restauração e configuração pública Railway/DNS concluídos; revogação dos segredos históricos, segredo SMTP e rotação do admin real ainda pendentes.
 - PR 1: implementado e validado localmente na branch `codex/production-hardening`.
 - PRs 2–4, staging e produção: pendentes.
 - Decisão de release: **NO-GO** até todos os gates aplicáveis passarem.

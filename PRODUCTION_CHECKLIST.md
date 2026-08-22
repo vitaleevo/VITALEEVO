@@ -1,33 +1,50 @@
 # Checklist de Produção
 
-## Antes do deploy
+## Gate 0 — contenção e credenciais
 
-- Confirmar domínio, NEXT_PUBLIC_SITE_URL e SITE_URL como https://vitaleevo.ao.
-- Configurar no Convex: RESEND_API_KEY, EMAIL_FROM, SITE_URL e VITALEEVO_API_KEYS_ENCRYPTION_KEY.
-- Configurar no host Next.js: NEXT_PUBLIC_CONVEX_URL, CONVEX_URL, RESEND_API_KEY, EMAIL_FROM, CONTACT_EMAIL e NEWSLETTER_EMAIL.
-- Verificar o domínio remetente no Resend. O valor de EMAIL_FROM deve usar esse domínio.
-- Guardar todas as variáveis num cofre de segredos; nunca no Git.
+- Confirmar backup PostgreSQL restaurável e respetivo checksum fora do repositório.
+- Revogar as chaves históricas do Resend e do Convex depois de instalar as substitutas necessárias.
+- Rotacionar a password do administrador real e invalidar todos os refresh tokens anteriores.
+- Confirmar que nenhuma credencial real existe no código, histórico ativo, logs ou ficheiros de exemplo.
+- Manter produção bloqueada enquanto qualquer item acima estiver pendente.
 
-## Publicação
+## Railway — backend Django
 
-1. Executar npm run typecheck, npm run lint e npm run build:app.
-2. Publicar as functions do Convex com npx convex deploy.
-3. Publicar a aplicação Next.js.
-4. No painel /admin/ai, migrar as chaves antigas depois de configurar a chave de cifragem.
-5. Confirmar que cada chave de IA aparece apenas mascarada no painel.
+- `DJANGO_SETTINGS_MODULE=config.settings.production`.
+- `DATABASE_URL` e `REDIS_URL` referenciam os serviços privados corretos.
+- `ALLOWED_HOSTS=api.vitaleevo.ao` (os domínios Railway são adicionados pela aplicação).
+- `CORS_ALLOWED_ORIGINS=https://vitaleevo.ao,https://www.vitaleevo.ao`.
+- `CSRF_TRUSTED_ORIGINS=https://api.vitaleevo.ao,https://vitaleevo.ao,https://www.vitaleevo.ao`.
+- `SITE_URL=https://vitaleevo.ao`.
+- SMTP configurado com host, porta, utilizador, password e remetente verificado.
+- Domínio `api.vitaleevo.ao` verificado, certificado emitido e apontado ao serviço web.
+- `/api/v1/health/live/` responde 200; `/api/v1/health/ready/` confirma PostgreSQL e Redis.
+- Migrações são executadas uma vez no processo de release; API e worker usam serviços separados.
+
+## Vercel — frontend Next.js
+
+- `NEXT_PUBLIC_API_URL=https://api.vitaleevo.ao`.
+- `NEXT_PUBLIC_SITE_URL=https://vitaleevo.ao` e `SITE_URL=https://vitaleevo.ao`.
+- Produção não contém variáveis internas de PostgreSQL, Redis, Railway, Elasticsearch ou Convex.
+- `RESEND_API_KEY` permanece apenas enquanto a server action de contacto ainda enviar diretamente pelo Next.js; remover quando o envio for centralizado no Django.
+- Fazer redeploy controlado depois de alterar variáveis e somente após os gates aplicáveis.
+- Confirmar `vitaleevo.ao` como domínio principal e redirecionamento de `www`.
+
+## GitHub e publicação
+
+1. Trabalhar em branch `codex/*`; não corrigir diretamente em `main`.
+2. Executar lint, typecheck, build, checks Django, migrações e testes.
+3. Exigir PR e checks verdes antes do merge.
+4. Publicar primeiro em staging/preview integrado e executar a matriz de autenticação.
+5. Fazer merge/deploy de produção somente com decisão explícita GO.
 
 ## Verificação pós-deploy
 
-- Testar recuperação de senha e confirmar que nenhum token aparece no browser.
-- Testar login, registo e alteração de senha.
-- Abrir um produto destacado e confirmar a rota /store/<id>.
-- Testar formulário de contacto, newsletter e checkout com e-mails de teste.
-- Confirmar as páginas de artigos e portfólio com conteúdo HTML existente.
-- Rever o console do navegador, sitemap e robots.txt.
-
-## Operação
-
-- Rodar dependabot ou npm audit em ambiente com acesso à internet.
-- Criar backup/exportação regular dos dados Convex.
-- Monitorizar falhas de e-mail e de APIs de IA.
-- Rodar a rotação de chaves de IA pelo painel e remover chaves antigas quando necessário.
+- Home, catálogo e páginas públicas carregam sem erros de console.
+- Cadastro, login, refresh, logout, alteração e recuperação de password funcionam.
+- Cliente não acede a rotas administrativas.
+- Perfis de staff recebem apenas as capabilities autorizadas.
+- Super admin abre o painel da aplicação e o Django Admin.
+- Formulários de contacto, newsletter, cotações e e-mails usam dados de teste controlados.
+- Logs não expõem tokens, passwords, chaves ou dados pessoais desnecessários.
+- Monitorização cobre frontend, liveness/readiness, erros 5xx, fila RQ e falhas de e-mail.

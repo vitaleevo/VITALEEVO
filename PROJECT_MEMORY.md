@@ -2,7 +2,25 @@
 
 ## Estado Atual
 
-O frontend Next.js continua publicado na Vercel em `https://vitaleevo.ao`; o backend Django/DRF está ligado no Railway a PostgreSQL e Redis. O hardening de código do Gate 0 e o PR 1 de segurança/autenticação foram implementados na branch `codex/production-hardening` e publicados no draft PR GitHub #1. A produção continua bloqueada até concluir as ações operacionais do Gate 0 e a homologação integrada descrita em `PRODUCTION_IMPLEMENTATION_PLAN.md`.
+O frontend Next.js continua publicado na Vercel em `https://vitaleevo.ao`; o backend Django/DRF está ligado no Railway a PostgreSQL e Redis. O hardening de código do Gate 0 e o PR 1 de segurança/autenticação foram implementados na branch `codex/production-hardening` e publicados no draft PR GitHub #1. O backup restaurável e a configuração pública do Railway/DNS foram concluídos; a produção continua bloqueada até revogar os segredos históricos, configurar o segredo SMTP, rotacionar o administrador real e concluir a homologação integrada descrita em `PRODUCTION_IMPLEMENTATION_PLAN.md`.
+
+## Checkpoint operacional do Gate 0 — 2026-08-23
+
+- Criado dump PostgreSQL de produção fora do repositório, protegido com permissão `600` e acompanhado de manifesto SHA-256.
+- Validada a estrutura do dump com `pg_restore --list` e executada uma restauração integral em PostgreSQL 18 descartável; a tabela `django_migrations` foi confirmada.
+- Configuradas no Railway, sem disparar deploy, as variáveis públicas `SITE_URL`, `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS`, `CSRF_TRUSTED_ORIGINS`, `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_USE_TLS` e `DEFAULT_FROM_EMAIL`.
+- Criado o domínio personalizado `api.vitaleevo.ao` no serviço web Railway; os registos CNAME e TXT de verificação foram adicionados ao DNS administrado pela Vercel. O Railway confirmou a propriedade e emitiu um certificado TLS válido; resolvers locais ainda podem servir temporariamente o antigo wildcard da Vercel durante a propagação.
+- O domínio Railway nativo responde 200 em `/api/v1/health/`.
+- O banco de produção contém exatamente um administrador ativo, staff e superutilizador. A password ainda não foi rotacionada para evitar bloqueio antes de SMTP/recuperação estarem operacionais.
+- Resend e Convex exigem autenticação do proprietário no browser. Nenhuma chave foi criada ou revogada sem confirmação explícita no momento da ação.
+- A credencial do PostgreSQL deve ser rotacionada depois de estabilizar o deploy, porque o túnel operacional a expôs à sessão privada de execução.
+
+Estado do projeto:
+
+- Fase/trilha atual: Gate 0 operacional parcialmente concluído; draft PR #1 permanece sem merge e sem deploy.
+- Sólido agora: backup restaurável, saúde do backend no domínio Railway nativo, variáveis públicas preparadas e DNS do subdomínio da API configurado.
+- Falta imediato: autenticar Resend/Convex, criar a chave Resend substituta, configurar `EMAIL_HOST_PASSWORD`, revogar as chaves antigas, rotacionar admin/tokens e PostgreSQL, aguardar a propagação DNS local e validar a API pelo domínio oficial.
+- Decisão de release: **NO-GO** até concluir estes itens e a matriz de autenticação.
 
 ## Última etapa concluída: Gate 0 de código e PR 1 de segurança/autenticação — 2026-08-23
 
