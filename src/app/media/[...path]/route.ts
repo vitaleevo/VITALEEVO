@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const DJANGO_MEDIA_BASE = 'http://127.0.0.1:8100/media';
+const DJANGO_MEDIA_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8100').replace(/\/$/, '') + '/media';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
     const { path } = await params;
