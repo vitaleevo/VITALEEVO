@@ -12,7 +12,7 @@ async function proxyRequest(req: NextRequest, { params }: { params: Promise<{ pa
     const headers: Record<string, string> = {};
     req.headers.forEach((value, key) => {
         const k = key.toLowerCase();
-        if (k !== "host" && k !== "connection" && k !== "content-length") {
+        if (k !== "host" && k !== "connection" && k !== "content-length" && k !== "content-encoding" && k !== "accept-encoding") {
             headers[key] = value;
         }
     });
@@ -38,7 +38,10 @@ async function proxyRequest(req: NextRequest, { params }: { params: Promise<{ pa
 
         const resHeaders: Record<string, string> = {};
         response.headers.forEach((value, key) => {
-            resHeaders[key] = value;
+            const k = key.toLowerCase();
+            if (k !== "content-encoding" && k !== "content-length" && k !== "transfer-encoding") {
+                resHeaders[key] = value;
+            }
         });
 
         const data = await response.arrayBuffer();
