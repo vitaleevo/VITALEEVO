@@ -22,6 +22,8 @@ Foi feito:
 - Corrigido o refresh concorrente no frontend, persistência de refresh rotativo, sincronização do `AuthProvider`, logout e armazenamento de token de cotação apenas na sessão.
 - Atualizados Next.js/dependências de produção, removidas dependências vulneráveis não utilizadas e alinhado `eslint-config-next`.
 - Corrigida a configuração do ESLint para ignorar ambientes/artefactos gerados sem ocultar erros do código-fonte.
+- Corrigido o GitHub Actions: frontend executa lint/typecheck/build e backend executa `pip check`, checks Django, validação de migrações e os 91 testes.
+- Removidas da Vercel as cópias desnecessárias de segredos/variáveis internas do Railway, PostgreSQL, Redis e Elasticsearch, além das variáveis legadas Convex sem uso; os valores do backend permanecem apenas no Railway.
 
 Arquivos principais:
 
@@ -48,12 +50,12 @@ cd backend && ../.venv/bin/python -m pip check
 git diff --check
 ```
 
-Resultado: 91 testes backend passaram; lint passou com 0 erros e 84 avisos legados; typecheck e build Next.js 16.3.2 passaram com 44 páginas; audit reportou 0 vulnerabilidades de produção; não existem migrações não geradas nem dependências Python quebradas. Login inválido, reset de password e sucesso de cotação sem token também foram validados no browser local sem erros de console. O commit técnico `dbe184a` foi enviado ao GitHub e o draft PR #1 foi aberto sem merge/deploy.
+Resultado: 91 testes backend passaram; lint passou com 0 erros e 84 avisos legados; typecheck e build Next.js 16.3.2 passaram com 44 páginas; audit reportou 0 vulnerabilidades de produção; não existem migrações não geradas nem dependências Python quebradas. Login inválido, reset de password e sucesso de cotação sem token também foram validados no browser local sem erros de console. O draft PR #1 foi aberto sem merge/deploy e todos os checks GitHub/Vercel passaram. O preview responde nas páginas, mas o proxy da API retorna 502 por decisão de isolamento: `NEXT_PUBLIC_API_URL` permanece apenas em Production até existir backend de staging.
 
 Estado do projeto:
 
 - Fase/trilha atual: draft PR #1 publicado e aguardando conclusão operacional do Gate 0 antes de revisão/merge.
-- Sólido agora: código sem credenciais fixas, autenticação JWT revogável, cotações públicas sem PII, uploads/proxies/healthchecks endurecidos e build/testes verdes.
+- Sólido agora: código sem credenciais fixas, autenticação JWT revogável, cotações públicas sem PII, uploads/proxies/healthchecks endurecidos, Vercel sem segredos internos do backend e CI frontend/backend verde.
 - Falta imediato: criar backup restaurável do PostgreSQL Railway; revogar as duas chaves encontradas no histórico; rotacionar a password do administrador real; configurar SMTP/SITE_URL/CSRF no Railway; só depois coordenar limpeza do histórico.
 - Distância do fim: PR 1 está tecnicamente pronto, mas produção continua **NO-GO** até ações operacionais, PRs 2–4, staging e matriz completa de logins/admin.
 
