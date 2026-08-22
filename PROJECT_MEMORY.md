@@ -2,7 +2,7 @@
 
 ## Estado Atual
 
-O frontend Next.js continua publicado na Vercel em `https://vitaleevo.ao`; o backend Django/DRF está ligado no Railway a PostgreSQL e Redis. O hardening de código do Gate 0 e o PR 1 de segurança/autenticação foram implementados na branch `codex/production-hardening`. A produção continua bloqueada até concluir as ações operacionais do Gate 0 e a homologação integrada descrita em `PRODUCTION_IMPLEMENTATION_PLAN.md`.
+O frontend Next.js continua publicado na Vercel em `https://vitaleevo.ao`; o backend Django/DRF está ligado no Railway a PostgreSQL e Redis. O hardening de código do Gate 0 e o PR 1 de segurança/autenticação foram implementados na branch `codex/production-hardening` e publicados no draft PR GitHub #1. A produção continua bloqueada até concluir as ações operacionais do Gate 0 e a homologação integrada descrita em `PRODUCTION_IMPLEMENTATION_PLAN.md`.
 
 ## Última etapa concluída: Gate 0 de código e PR 1 de segurança/autenticação — 2026-08-23
 
@@ -48,11 +48,11 @@ cd backend && ../.venv/bin/python -m pip check
 git diff --check
 ```
 
-Resultado: 91 testes backend passaram; lint passou com 0 erros e 84 avisos legados; typecheck e build Next.js 16.3.2 passaram com 44 páginas; audit reportou 0 vulnerabilidades de produção; não existem migrações não geradas nem dependências Python quebradas. Login inválido, reset de password e sucesso de cotação sem token também foram validados no browser local sem erros de console.
+Resultado: 91 testes backend passaram; lint passou com 0 erros e 84 avisos legados; typecheck e build Next.js 16.3.2 passaram com 44 páginas; audit reportou 0 vulnerabilidades de produção; não existem migrações não geradas nem dependências Python quebradas. Login inválido, reset de password e sucesso de cotação sem token também foram validados no browser local sem erros de console. O commit técnico `dbe184a` foi enviado ao GitHub e o draft PR #1 foi aberto sem merge/deploy.
 
 Estado do projeto:
 
-- Fase/trilha atual: PR 1 implementado e validado localmente; preparação do commit/PR e conclusão operacional do Gate 0.
+- Fase/trilha atual: draft PR #1 publicado e aguardando conclusão operacional do Gate 0 antes de revisão/merge.
 - Sólido agora: código sem credenciais fixas, autenticação JWT revogável, cotações públicas sem PII, uploads/proxies/healthchecks endurecidos e build/testes verdes.
 - Falta imediato: criar backup restaurável do PostgreSQL Railway; revogar as duas chaves encontradas no histórico; rotacionar a password do administrador real; configurar SMTP/SITE_URL/CSRF no Railway; só depois coordenar limpeza do histórico.
 - Distância do fim: PR 1 está tecnicamente pronto, mas produção continua **NO-GO** até ações operacionais, PRs 2–4, staging e matriz completa de logins/admin.
