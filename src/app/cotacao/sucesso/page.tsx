@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useApiQuery } from "@/shared/hooks/useApiQuery";
-import { api } from "@/shared/utils/apiClient";
+import { api, getQuoteAccessToken } from "@/shared/utils/apiClient";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import {
     CheckCircle2, MessageSquare, ShoppingBag, Home, RefreshCw, AlertCircle,
@@ -12,11 +13,16 @@ import {
 export default function CotacaoSucessoPage() {
     const searchParams = useSearchParams();
     const ref = searchParams.get("ref") || "";
+    const [accessToken, setAccessToken] = useState<string | null>(null);
+
+    useEffect(() => {
+        setAccessToken(ref ? getQuoteAccessToken(ref) : null);
+    }, [ref]);
 
     const { data, isLoading } = useApiQuery<any>(null, {
-        deps: [ref],
-        enabled: !!ref,
-        fetcher: () => api.quotes.getByPublicId(ref),
+        deps: [ref, accessToken],
+        enabled: !!ref && !!accessToken,
+        fetcher: () => api.quotes.getByPublicId(ref, accessToken || ""),
     });
 
     const quote = data ?? null;
@@ -45,7 +51,7 @@ export default function CotacaoSucessoPage() {
                         melhor proposta. Enviámos também uma confirmação para o seu e-mail.
                     </p>
 
-                    {isLoading ? (
+                    {accessToken && isLoading ? (
                         <div className="flex justify-center p-8">
                             <RefreshCw className="w-8 h-8 text-primary animate-spin" />
                         </div>
@@ -61,11 +67,7 @@ export default function CotacaoSucessoPage() {
                             </div>
                             <div className="flex justify-between mb-3">
                                 <span className="text-sm text-gray-500">Itens:</span>
-                                <span className="font-bold text-gray-900 dark:text-white">{quote.items?.length || 0}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-sm text-gray-500">Contacto:</span>
-                                <span className="font-bold text-gray-900 dark:text-white">{quote.phone}</span>
+                                <span className="font-bold text-gray-900 dark:text-white">{quote.itemCount || 0}</span>
                             </div>
                             <div className="grid grid-cols-1 gap-3 mt-6">
                                 <button
@@ -77,10 +79,15 @@ export default function CotacaoSucessoPage() {
                                 </button>
                             </div>
                         </div>
-                    ) : (
+                    ) : accessToken ? (
                         <div className="p-4 bg-red-50 dark:bg-red-900/10 rounded-xl mb-8 border border-red-100 dark:border-red-900/20 text-red-600 flex items-center gap-2 justify-center">
                             <AlertCircle className="w-5 h-5" />
                             <span className="text-sm font-medium">Não conseguimos carregar os dados do pedido.</span>
+                        </div>
+                    ) : (
+                        <div className="bg-white dark:bg-[#151e32] p-6 rounded-2xl border border-gray-100 dark:border-white/5 mb-8 shadow-xl">
+                            <span className="text-sm text-gray-500">Referência do pedido</span>
+                            <p className="font-bold text-gray-900 dark:text-white mt-2">{ref}</p>
                         </div>
                     )}
 

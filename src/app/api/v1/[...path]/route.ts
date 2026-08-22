@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const DJANGO_API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8100').replace(/\/$/, '') + '/api/v1';
+const REQUEST_TIMEOUT_MS = 10_000;
+const MAX_REQUEST_BYTES = 16 * 1024 * 1024;
+const MAX_RESPONSE_BYTES = 10 * 1024 * 1024;
+const REQUEST_HEADERS = new Set(['accept', 'authorization', 'content-type', 'if-none-match', 'x-request-id']);
+const RESPONSE_HEADERS = new Set([
+    'cache-control', 'content-disposition', 'content-type', 'etag', 'last-modified', 'retry-after', 'x-request-id',
+]);
 
 async function proxyRequest(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
     const { path } = await params;
@@ -11,21 +18,20 @@ async function proxyRequest(req: NextRequest, { params }: { params: Promise<{ pa
 
     const headers: Record<string, string> = {};
     req.headers.forEach((value, key) => {
-        const k = key.toLowerCase();
-        if (k !== "host" && k !== "connection" && k !== "content-length" && k !== "content-encoding" && k !== "accept-encoding") {
+        if (REQUEST_HEADERS.has(key.toLowerCase())) {
             headers[key] = value;
         }
     });
 
-    let body: any = undefined;
+    let body: ArrayBuffer | undefined;
     if (req.method !== "GET" && req.method !== "HEAD") {
-        try {
-            const text = await req.text();
-            if (text) {
-                body = text;
-            }
-        } catch {
-            body = undefined;
+        const declaredLength = Number(req.headers.get('content-length') || 0);
+        if (declaredLength > MAX_REQUEST_BYTES) {
+            return NextResponse.json({ error: 'Pedido demasiado grande.' }, { status: 413 });
+        }
+        body = await req.arrayBuffer();
+        if (body.byteLength > MAX_REQUEST_BYTES) {
+            return NextResponse.json({ error: 'Pedido demasiado grande.' }, { status: 413 });
         }
     }
 
@@ -34,25 +40,33 @@ async function proxyRequest(req: NextRequest, { params }: { params: Promise<{ pa
             method: req.method,
             headers,
             body,
+            signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
         });
+
+        const declaredLength = Number(response.headers.get('content-length') || 0);
+        if (declaredLength > MAX_RESPONSE_BYTES) {
+            return NextResponse.json({ error: 'Resposta do backend demasiado grande.' }, { status: 502 });
+        }
 
         const resHeaders: Record<string, string> = {};
         response.headers.forEach((value, key) => {
-            const k = key.toLowerCase();
-            if (k !== "content-encoding" && k !== "content-length" && k !== "transfer-encoding") {
+            if (RESPONSE_HEADERS.has(key.toLowerCase())) {
                 resHeaders[key] = value;
             }
         });
 
         const data = await response.arrayBuffer();
+        if (data.byteLength > MAX_RESPONSE_BYTES) {
+            return NextResponse.json({ error: 'Resposta do backend demasiado grande.' }, { status: 502 });
+        }
         return new NextResponse(data, {
             status: response.status,
             statusText: response.statusText,
             headers: resHeaders,
         });
-    } catch (err: any) {
+    } catch {
         return NextResponse.json(
-            { error: 'Erro de ligacao ao backend interno', details: err?.message },
+            { error: 'Backend temporariamente indisponível.' },
             { status: 502 }
         );
     }

@@ -5,7 +5,6 @@ import { api } from "@/shared/utils/apiClient";
 import { useRouter, useSearchParams } from "next/navigation";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import { Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, CheckCircle } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import Link from "next/link";
 import { getErrorMessage } from "@/shared/utils/error-handler";
@@ -14,7 +13,7 @@ function RecuperarSenhaContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get("token");
-    const email = searchParams.get("email");
+    const uid = searchParams.get("uid");
 
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -23,11 +22,11 @@ function RecuperarSenhaContent() {
     const [isSuccess, setIsSuccess] = useState(false);
 
     useEffect(() => {
-        if (!token) {
+        if (!token || !uid) {
             toast.error("Token de recuperação ausente");
             router.push("/login");
         }
-    }, [token, router]);
+    }, [token, uid, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,7 +41,7 @@ function RecuperarSenhaContent() {
             return;
         }
 
-        if (!token || !email) {
+        if (!token || !uid) {
             toast.error("Token de recuperação ausente");
             router.push("/login");
             return;
@@ -50,7 +49,7 @@ function RecuperarSenhaContent() {
 
         setIsLoading(true);
         try {
-            await api.auth.resetPassword(email, token, password);
+            await api.auth.resetPassword(uid, token, password);
             setIsSuccess(true);
             toast.success("Senha redefinida com sucesso!");
 
@@ -87,21 +86,24 @@ function RecuperarSenhaContent() {
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="new-password" className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                     Nova Senha
                 </label>
                 <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
+                        id="new-password"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full h-14 pl-12 pr-12 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:border-primary outline-none transition-all"
                         placeholder="••••••••"
+                        autoComplete="new-password"
                         required
                     />
                     <button
                         type="button"
+                        aria-label={showPassword ? "Ocultar password" : "Mostrar password"}
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
                     >
@@ -111,17 +113,19 @@ function RecuperarSenhaContent() {
             </div>
 
             <div>
-                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="confirm-password" className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                     Confirmar Nova Senha
                 </label>
                 <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
+                        id="confirm-password"
                         type={showPassword ? "text" : "password"}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         className="w-full h-14 pl-12 pr-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:border-primary outline-none transition-all"
                         placeholder="••••••••"
+                        autoComplete="new-password"
                         required
                     />
                 </div>

@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -13,11 +13,13 @@ from apps.core.permissions import HasCapability
 from .models import QuoteRequest, QuoteStatus
 from .serializers import (
     QuoteCreateSerializer,
+    QuotePublicAccessSerializer,
+    QuotePublicStatusSerializer,
     QuoteProposalSerializer,
     QuoteReadSerializer,
     QuoteStatusSerializer,
 )
-from .services import create_quote_request, update_quote_status
+from .services import create_quote_request, public_access_token_matches, update_quote_status
 
 User = get_user_model()
 
@@ -44,21 +46,40 @@ class QuoteCreateView(CreateAPIView):
             actor=request.user if request.user.is_authenticated else None,
             ip_address=request.META.get("REMOTE_ADDR"),
         )
-        return Response({"public_id": quote.public_id, "status": quote.status}, status=status.HTTP_201_CREATED)
+        response = Response(
+            {
+                "public_id": quote.public_id,
+                "status": quote.status,
+                "access_token": quote.public_access_token,
+                "item_count": quote.items.count(),
+            },
+            status=status.HTTP_201_CREATED,
+        )
+        response["Cache-Control"] = "no-store"
+        return response
 
 
-class QuotePublicView(CreateAPIView):
-    """GET /quotes/{public_id}/ — consulta pública do estado da cotação pelo código."""
+class QuotePublicStatusView(GenericAPIView):
+    """POST /quotes/status/ — consulta com referência e token de capacidade."""
 
     permission_classes = [AllowAny]
-    serializer_class = QuoteReadSerializer
+    serializer_class = QuotePublicAccessSerializer
+    throttle_scope = "quote_status"
 
-    def get(self, request, public_id, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         try:
-            quote = QuoteRequest.objects.prefetch_related("items").get(public_id=public_id)
+            quote = QuoteRequest.objects.prefetch_related("items").get(
+                public_id=serializer.validated_data["public_id"]
+            )
         except QuoteRequest.DoesNotExist:
             return Response({"detail": "Cotação não encontrada."}, status=status.HTTP_404_NOT_FOUND)
-        return Response(QuoteReadSerializer(quote).data)
+        if not public_access_token_matches(quote, serializer.validated_data["access_token"]):
+            return Response({"detail": "Cotação não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+        response = Response(QuotePublicStatusSerializer(quote).data)
+        response["Cache-Control"] = "no-store"
+        return response
 
 
 class QuoteViewSet(viewsets.ModelViewSet):

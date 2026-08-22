@@ -24,6 +24,7 @@ _allowed_hosts = env("ALLOWED_HOSTS")
 for _domain in (
     env.str("RAILWAY_PUBLIC_DOMAIN", default=""),
     env.str("RAILWAY_PRIVATE_DOMAIN", default=""),
+    "healthcheck.railway.app",
 ):
     if _domain:
         _allowed_hosts.append(_domain)
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     # Terceiros
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "django_filters",
     "drf_spectacular",
@@ -58,7 +60,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "apps.core.middleware.HealthCheckMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -152,14 +153,25 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.ScopedRateThrottle"],
-    "DEFAULT_THROTTLE_RATES": {"auth": "10/min", "quotes": "60/min", "writes": "120/min"},
+    "DEFAULT_THROTTLE_RATES": {
+        "auth_login": "10/min",
+        "auth_refresh": "30/min",
+        "auth_register": "5/hour",
+        "auth_logout": "30/min",
+        "auth_password_reset": "5/hour",
+        "auth_password_reset_confirm": "10/hour",
+        "quotes": "60/min",
+        "quote_status": "20/min",
+        "writes": "120/min",
+    },
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
+    "CHECK_REVOKE_TOKEN": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_FIELD": "id",
 }
@@ -178,6 +190,10 @@ CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS", default=[
     "https://www.vitaleevo.ao",
 ])
 CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=["https://api.vitaleevo.ao"],
+)
 
 # --- Redis / fila de tarefas (django-rq — KISS: sem Celery) ---
 REDIS_URL = env.str("REDIS_URL", default="redis://localhost:6379/0")
@@ -199,6 +215,7 @@ MAILERS = {
     }
 }
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="no-reply@vitaleevo.ao")
+PASSWORD_RESET_TIMEOUT = env.int("PASSWORD_RESET_TIMEOUT", default=900)
 
 # --- URLs públicas do site (usadas em e-mails/notificações) ---
 SITE_URL = env.str("SITE_URL", default="https://vitaleevo.ao")

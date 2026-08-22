@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { api } from "@/shared/utils/apiClient";
 import FeatureLayout from "@/shared/components/FeatureLayout";
-import { Mail, Loader2, ArrowRight, ShieldCheck, CheckCircle, AlertCircle } from "lucide-react";
+import { Mail, Loader2, ArrowRight, ShieldCheck, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -78,17 +78,19 @@ export default function EsqueciSenhaPage() {
                             ) : (
                                 <form onSubmit={handleSubmit} className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                        <label htmlFor="recovery-email" className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                                             E-mail
                                         </label>
                                         <div className="relative">
                                             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                             <input
+                                                id="recovery-email"
                                                 type="email"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 className="w-full h-14 pl-12 pr-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                                                 placeholder="seu@email.com"
+                                                autoComplete="email"
                                                 required
                                             />
                                         </div>

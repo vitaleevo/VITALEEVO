@@ -1,11 +1,12 @@
 """Endpoints utilitários do core."""
 import uuid
+from pathlib import Path
 
-from django.conf import settings
+import django_rq
 from django.contrib.auth import get_user_model
 from django.core.files.storage import default_storage
 from django.db import connection
-from django.db.models import DecimalField, Sum, Value
+from django.db.models import DecimalField, Sum
 from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
 from rest_framework import serializers, status, views
@@ -22,35 +23,79 @@ ALLOWED_IMAGE_TYPES = {
     "image/png": ".png",
     "image/webp": ".webp",
     "image/gif": ".gif",
-    "image/svg+xml": ".svg",
     "image/avif": ".avif",
 }
+ALLOWED_IMAGE_EXTENSIONS = {
+    "image/jpeg": {".jpg", ".jpeg"},
+    "image/png": {".png"},
+    "image/webp": {".webp"},
+    "image/gif": {".gif"},
+    "image/avif": {".avif"},
+}
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+
+
+def detect_image_content_type(header: bytes) -> str | None:
+    if header.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if header.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if header.startswith((b"GIF87a", b"GIF89a")):
+        return "image/gif"
+    if len(header) >= 12 and header[:4] == b"RIFF" and header[8:12] == b"WEBP":
+        return "image/webp"
+    if len(header) >= 12 and header[4:8] == b"ftyp" and header[8:12] in {b"avif", b"avis"}:
+        return "image/avif"
+    return None
 
 
 class UploadSerializer(serializers.Serializer):
     file = serializers.FileField()
 
     def validate_file(self, value):
-        if value.content_type not in ALLOWED_IMAGE_TYPES:
-            raise serializers.ValidationError("Formato não suportado (use JPG, PNG, WebP, GIF, SVG ou AVIF).")
         if value.size > MAX_UPLOAD_BYTES:
             raise serializers.ValidationError("Ficheiro excede 15 MB.")
+        header = value.read(32)
+        value.seek(0)
+        detected_type = detect_image_content_type(header)
+        if detected_type is None:
+            raise serializers.ValidationError("Conteúdo inválido (use JPG, PNG, WebP, GIF ou AVIF).")
+        extension = Path(value.name).suffix.lower()
+        if extension not in ALLOWED_IMAGE_EXTENSIONS[detected_type]:
+            raise serializers.ValidationError("A extensão não corresponde ao conteúdo do ficheiro.")
+        value.detected_content_type = detected_type
         return value
 
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
-def health(request):
-    """Health check — usado pelo Railway para validar a disponibilidade."""
-    db_ok = True
+def health_live(request):
+    """Liveness: confirma apenas que o processo Django responde."""
+    return Response({"status": "ok"})
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def health_ready(request):
+    """Readiness: confirma PostgreSQL e Redis antes de receber tráfego."""
+    dependencies = {"db": False, "redis": False}
     try:
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
-    except Exception:  # noqa: BLE001 — health check deve responder sempre
-        db_ok = False
+        dependencies["db"] = True
+    except Exception:  # noqa: BLE001 — readiness converte falhas em 503
+        pass
 
-    return Response({"status": "ok" if db_ok else "degraded", "db": db_ok})
+    try:
+        dependencies["redis"] = bool(django_rq.get_connection("default").ping())
+    except Exception:  # noqa: BLE001 — readiness converte falhas em 503
+        pass
+
+    is_ready = all(dependencies.values())
+    return Response(
+        {"status": "ok" if is_ready else "unavailable", "dependencies": dependencies},
+        status=status.HTTP_200_OK if is_ready else status.HTTP_503_SERVICE_UNAVAILABLE,
+    )
 
 
 @api_view(["POST"])
@@ -60,15 +105,16 @@ def upload_image(request):
     serializer = UploadSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     uploaded = serializer.validated_data["file"]
-    ext = ALLOWED_IMAGE_TYPES[uploaded.content_type]
+    content_type = uploaded.detected_content_type
+    ext = ALLOWED_IMAGE_TYPES[content_type]
     filename = f"uploads/{uuid.uuid4().hex}{ext}"
     stored = default_storage.save(filename, uploaded)
-    url = f"{request.scheme}://{request.get_host()}/media/{stored}"
+    url = request.build_absolute_uri(default_storage.url(stored))
     return Response({
         "url": url,
         "filename": stored,
         "size": uploaded.size,
-        "content_type": uploaded.content_type,
+        "content_type": content_type,
     })
 
 

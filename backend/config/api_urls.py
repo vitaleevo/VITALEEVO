@@ -1,10 +1,12 @@
 """Contrato da API v1 — router de cada domínio registado aqui."""
 from django.urls import include, path
 
-from apps.core.views import DashboardStatsView, health, upload_image
+from apps.core.views import DashboardStatsView, health_live, health_ready, upload_image
 
 urlpatterns = [
-    path("health/", health, name="health"),
+    path("health/", health_ready, name="health"),
+    path("health/live/", health_live, name="health-live"),
+    path("health/ready/", health_ready, name="health-ready"),
     path("media/upload/", upload_image, name="media-upload"),
     path("", include("apps.users.urls")),
     path("", include("apps.catalog.urls")),

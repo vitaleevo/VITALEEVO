@@ -1,6 +1,12 @@
 """Testes de conta — perfil, password e gestão de utilizadores por staff."""
 import pytest
+from django.core.management import call_command
+from django.core.management.base import CommandError
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from rest_framework.test import APIClient
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.users.models import User
 
@@ -57,7 +63,9 @@ class TestPasswordReset:
         response = client.post("/api/v1/auth/password-reset/", {"email": "cliente@teste.ao"}, format="json")
         assert response.status_code == 200
         assert len(mailoutbox) == 1
-        assert "/recuperar-senha?token=" in mailoutbox[0].body
+        assert "/recuperar-senha?uid=" in mailoutbox[0].body
+        assert "&token=" in mailoutbox[0].body
+        assert "email=cliente" not in mailoutbox[0].body
 
     def test_request_reset_unknown_email_no_email(self, client, mailoutbox):
         response = client.post("/api/v1/auth/password-reset/", {"email": "naoexiste@teste.ao"}, format="json")
@@ -69,9 +77,10 @@ class TestPasswordReset:
         from django.contrib.auth.tokens import default_token_generator
 
         token = default_token_generator.make_token(regular_user)
+        uid = urlsafe_base64_encode(force_bytes(regular_user.pk))
         response = client.post(
             "/api/v1/auth/password-reset/confirm/",
-            {"email": "cliente@teste.ao", "token": token, "password": "NovaSenhaForte456!"},
+            {"uid": uid, "token": token, "password": "NovaSenhaForte456!"},
             format="json",
         )
         assert response.status_code == 200
@@ -81,7 +90,7 @@ class TestPasswordReset:
     def test_confirm_reset_invalid_token(self, client, regular_user):
         response = client.post(
             "/api/v1/auth/password-reset/confirm/",
-            {"email": "cliente@teste.ao", "token": "token-invalido", "password": "NovaSenhaForte456!"},
+            {"uid": "invalido", "token": "token-invalido", "password": "NovaSenhaForte456!"},
             format="json",
         )
         assert response.status_code == 400
@@ -150,3 +159,52 @@ class TestMediaUpload:
         assert response.status_code == 200
         assert "url" in response.json()
         assert response.json()["size"] == len(b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR")
+
+    def test_svg_is_rejected(self, admin_client):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        file = SimpleUploadedFile(
+            "attack.svg",
+            b'<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+            content_type="image/svg+xml",
+        )
+        response = admin_client.post("/api/v1/media/upload/", {"file": file}, format="multipart")
+        assert response.status_code == 400
+
+    def test_spoofed_png_is_rejected(self, admin_client):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        file = SimpleUploadedFile("attack.png", b"not-a-real-image", content_type="image/png")
+        response = admin_client.post("/api/v1/media/upload/", {"file": file}, format="multipart")
+        assert response.status_code == 400
+
+
+class TestEnsureAdminCommand:
+    def test_requires_explicit_email(self):
+        with pytest.raises(CommandError):
+            call_command("ensure_admin")
+
+    def test_creates_admin_and_preserves_password_without_rotation(self):
+        call_command("ensure_admin", email="secure-admin@teste.ao", password="SenhaForte123!")
+        user = User.objects.get(email="secure-admin@teste.ao")
+        assert user.is_superuser is True
+        assert user.check_password("SenhaForte123!")
+
+        call_command("ensure_admin", email=user.email, password="OutraSenha456!")
+        user.refresh_from_db()
+        assert user.check_password("SenhaForte123!")
+
+    def test_rotates_existing_password_only_when_requested(self):
+        user = User.objects.create_user(email="rotate-admin@teste.ao", password="SenhaForte123!")
+        RefreshToken.for_user(user)
+        call_command(
+            "ensure_admin",
+            email=user.email,
+            password="OutraSenha456!",
+            rotate_password=True,
+        )
+        user.refresh_from_db()
+        assert user.is_superuser is True
+        assert user.check_password("OutraSenha456!")
+        outstanding = OutstandingToken.objects.get(user=user)
+        assert BlacklistedToken.objects.filter(token=outstanding).exists()

@@ -4,6 +4,7 @@ Uso: python manage.py seed
 """
 import os
 
+from django.contrib.auth.password_validation import validate_password
 from django.core.management.base import BaseCommand
 
 from apps.catalog.models import Brand, Category, Product
@@ -144,13 +145,22 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("Seed concluído."))
 
     def create_superuser(self) -> None:
-        email = os.environ.get("SEED_ADMIN_EMAIL", "admin@vitaleevo.ao")
-        password = os.environ.get("SEED_ADMIN_PASSWORD", "Admin123!")
-        if not User.objects.filter(email=email).exists():
-            User.objects.create_superuser(email=email, password=password)
-            self.stdout.write(f"Superuser criado: {email}")
-        else:
-            self.stdout.write("Superuser já existe.")
+        email = os.environ.get("SEED_ADMIN_EMAIL", "").strip().lower()
+        password = os.environ.get("SEED_ADMIN_PASSWORD", "")
+        if not email or not password:
+            self.stdout.write(
+                self.style.WARNING(
+                    "Superuser não criado: defina SEED_ADMIN_EMAIL e "
+                    "SEED_ADMIN_PASSWORD explicitamente."
+                )
+            )
+            return
+        if User.objects.filter(email=email).exists():
+            self.stdout.write("Superuser já existe; password preservada.")
+            return
+        validate_password(password)
+        User.objects.create_superuser(email=email, password=password)
+        self.stdout.write(f"Superuser criado: {email}")
 
     def create_catalog(self) -> None:
         created_categories = 0

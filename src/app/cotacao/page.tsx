@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { api } from "@/shared/utils/apiClient";
+import { api, storeQuoteAccessToken } from "@/shared/utils/apiClient";
 import { useCart } from "@/shared/providers/CartProvider";
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import {
@@ -52,6 +52,7 @@ export default function CotacaoPage() {
             });
 
             clearCart();
+            storeQuoteAccessToken(result.publicId, result.accessToken);
             router.push(`/cotacao/sucesso?ref=${result.publicId}`);
         } catch (err: any) {
             setError(err?.message || "Não foi possível enviar o pedido. Tente novamente.");

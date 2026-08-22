@@ -13,6 +13,13 @@ export const API_BASE_URL =
     process.env.NEXT_PUBLIC_API_URL || (typeof window === "undefined" ? "http://127.0.0.1:8100" : "");
 
 export const AUTH_STORAGE_KEY = "vitaleevo_auth";
+export const AUTH_UPDATED_EVENT = "vitaleevo:auth-updated";
+const QUOTE_ACCESS_PREFIX = "vitaleevo_quote_access:";
+
+export interface StoredAuth {
+    token: string;
+    refreshToken?: string;
+}
 
 export class ApiError extends Error {
     status: number;
@@ -26,7 +33,7 @@ export class ApiError extends Error {
     }
 }
 
-export function getStoredAuth(): { token: string; refreshToken?: string } | null {
+export function getStoredAuth(): StoredAuth | null {
     try {
         const raw = sessionStorage.getItem(AUTH_STORAGE_KEY);
         if (!raw) return null;
@@ -38,11 +45,19 @@ export function getStoredAuth(): { token: string; refreshToken?: string } | null
     }
 }
 
-export function setStoredAuth(auth: { token: string; refreshToken?: string }) {
+function notifyAuthUpdated(auth: StoredAuth | null) {
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent(AUTH_UPDATED_EVENT, { detail: auth }));
+    }
+}
+
+export function setStoredAuth(auth: StoredAuth) {
     try {
         const raw = sessionStorage.getItem(AUTH_STORAGE_KEY);
         const parsed = raw ? JSON.parse(raw) : {};
-        sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ ...parsed, ...auth }));
+        const updated = { ...parsed, ...auth } as StoredAuth;
+        sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updated));
+        notifyAuthUpdated(updated);
     } catch {
         // storage indisponível — ignora
     }
@@ -51,8 +66,57 @@ export function setStoredAuth(auth: { token: string; refreshToken?: string }) {
 export function clearStoredAuth() {
     try {
         sessionStorage.removeItem(AUTH_STORAGE_KEY);
+        notifyAuthUpdated(null);
     } catch {
         // ignora
+    }
+}
+
+export function storeQuoteAccessToken(publicId: string, accessToken: string) {
+    try {
+        sessionStorage.setItem(`${QUOTE_ACCESS_PREFIX}${publicId}`, accessToken);
+    } catch {
+        // A referência continua visível mesmo quando o storage está indisponível.
+    }
+}
+
+export function getQuoteAccessToken(publicId: string): string | null {
+    try {
+        return sessionStorage.getItem(`${QUOTE_ACCESS_PREFIX}${publicId}`);
+    } catch {
+        return null;
+    }
+}
+
+let refreshPromise: Promise<StoredAuth> | null = null;
+
+async function refreshStoredAuth(): Promise<StoredAuth> {
+    if (refreshPromise) return refreshPromise;
+
+    refreshPromise = (async () => {
+        const stored = getStoredAuth();
+        if (!stored?.refreshToken) throw new Error("Refresh token ausente");
+
+        const response = await fetch(`${API_BASE_URL}/api/v1/auth/refresh/`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh: stored.refreshToken }),
+        });
+        if (!response.ok) throw new Error("Não foi possível renovar a sessão");
+
+        const data = await response.json() as { access: string; refresh?: string };
+        const updated = {
+            token: data.access,
+            refreshToken: data.refresh ?? stored.refreshToken,
+        };
+        setStoredAuth(updated);
+        return updated;
+    })();
+
+    try {
+        return await refreshPromise;
+    } finally {
+        refreshPromise = null;
     }
 }
 
@@ -111,23 +175,11 @@ export async function request<T = unknown>(path: string, options: RequestOptions
 
     // Renovação automática do token (uma tentativa)
     if (response.status === 401 && !retried && (auth || token)) {
-        const stored = getStoredAuth();
-        if (stored?.refreshToken) {
-            try {
-                const refreshRes = await fetch(`${API_BASE_URL}/api/v1/auth/refresh/`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ refresh: stored.refreshToken }),
-                });
-                if (refreshRes.ok) {
-                    const { access } = await refreshRes.json();
-                    setStoredAuth({ token: access, refreshToken: stored.refreshToken });
-                    return request<T>(path, { ...options, retried: true });
-                }
-                clearStoredAuth();
-            } catch {
-                // refresh falhou — segue com o erro original
-            }
+        try {
+            const refreshed = await refreshStoredAuth();
+            return request<T>(path, { ...options, token: refreshed.token, retried: true });
+        } catch {
+            clearStoredAuth();
         }
     }
 
@@ -369,11 +421,15 @@ return {
     // ── Cotações ─────────────────────────────────────────────────────────
     quotes: {
         create: (body: Record<string, unknown>) =>
-            request<{ public_id: string; status: string }>("/quotes/", { method: "POST", body }).then(d => ({
-                publicId: d.public_id,
-                status: d.status,
-            })),
-        getByPublicId: (publicId: string) => request<Record<string, unknown>>(`/quotes/${publicId}/`),
+            request<{ publicId: string; status: string; accessToken: string; itemCount: number }>(
+                "/quotes/",
+                { method: "POST", body },
+            ),
+        getByPublicId: (publicId: string, accessToken: string) =>
+            request<Record<string, unknown>>("/quotes/status/", {
+                method: "POST",
+                body: { public_id: publicId, access_token: accessToken },
+            }),
         list: (token: string, params: Record<string, unknown> = {}) =>
             request<Paginated<Record<string, unknown>>>("/quotes/manage/", { auth: true, token, params }).then(d => asPaginated<Record<string, unknown>>(d)),
         getStats: (token: string) => request("/quotes/manage/stats/", { auth: true, token }),
@@ -418,9 +474,10 @@ return {
             request("/auth/me/", { method: "PATCH", body, token, auth: true }),
         changePassword: (oldPassword: string, newPassword: string, token: string) =>
             request("/auth/change-password/", { method: "POST", body: { old_password: oldPassword, new_password: newPassword }, token, auth: true }),
+        logout: (refresh: string) => request<void>("/auth/logout/", { method: "POST", body: { refresh } }),
         requestPasswordReset: (email: string) => request("/auth/password-reset/", { method: "POST", body: { email } }),
-        resetPassword: (email: string, token: string, password: string) =>
-            request("/auth/password-reset/confirm/", { method: "POST", body: { email, token, password } }),
+        resetPassword: (uid: string, token: string, password: string) =>
+            request("/auth/password-reset/confirm/", { method: "POST", body: { uid, token, password } }),
     },
 
     // ── Conta (comércio) ─────────────────────────────────────────────────

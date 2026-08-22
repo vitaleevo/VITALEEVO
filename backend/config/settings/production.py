@@ -1,10 +1,22 @@
 """Ambiente de produção: hardening, segredos obrigatórios via variáveis de ambiente."""
+from django.core.exceptions import ImproperlyConfigured
+
 from .base import *  # noqa: F401,F403
 
 DEBUG = False
 
-assert SECRET_KEY != "dev-only-secret-key-change-me-!1234567890abcdef", "SECRET_KEY é obrigatório em produção"  # noqa: S101
-assert DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql", "Produção exige PostgreSQL configurado via DATABASE_URL"  # noqa: S101
+if SECRET_KEY == "dev-only-secret-key-change-me-!1234567890abcdef":
+    raise ImproperlyConfigured("SECRET_KEY é obrigatório em produção")
+if DATABASES["default"]["ENGINE"] != "django.db.backends.postgresql":
+    raise ImproperlyConfigured("Produção exige PostgreSQL configurado via DATABASE_URL")
+_default_mailer = MAILERS["default"]  # noqa: F405
+if (
+    _default_mailer["BACKEND"] == "django.core.mail.backends.console.EmailBackend"
+    or not _default_mailer["HOST"]
+    or not _default_mailer["USER"]
+    or not _default_mailer["PASSWORD"]
+):
+    raise ImproperlyConfigured("SMTP é obrigatório em produção")
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True

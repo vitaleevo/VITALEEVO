@@ -2,7 +2,7 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .views import QuoteCreateView, QuotePublicView, QuoteViewSet
+from .views import QuoteCreateView, QuotePublicStatusView, QuoteViewSet
 
 router = DefaultRouter()
 router.register("quotes/manage", QuoteViewSet, basename="quote")
@@ -10,5 +10,5 @@ router.register("quotes/manage", QuoteViewSet, basename="quote")
 urlpatterns = [
     *router.urls,
     path("quotes/", QuoteCreateView.as_view(), name="quote-create"),
-    path("quotes/<str:public_id>/", QuotePublicView.as_view(), name="quote-public"),
+    path("quotes/status/", QuotePublicStatusView.as_view(), name="quote-public-status"),
 ]

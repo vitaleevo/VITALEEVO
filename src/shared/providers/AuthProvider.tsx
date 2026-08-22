@@ -1,7 +1,15 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { api, AUTH_STORAGE_KEY, clearStoredAuth, getStoredAuth, setStoredAuth } from "../utils/apiClient";
+import {
+    api,
+    AUTH_STORAGE_KEY,
+    AUTH_UPDATED_EVENT,
+    clearStoredAuth,
+    getStoredAuth,
+    setStoredAuth,
+    type StoredAuth,
+} from "../utils/apiClient";
 import { getErrorMessage } from "../utils/error-handler";
 
 interface User {
@@ -50,6 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         api.auth
             .me(stored.token)
             .then(profile => {
+                const currentAuth = getStoredAuth() ?? stored;
                 setUser({
                     _id: profile.id as string,
                     email: profile.email as string,
@@ -57,8 +66,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     firstName: profile.firstName as string | undefined,
                     lastName: profile.lastName as string | undefined,
                     role: profile.role as string,
-                    token: stored.token,
-                    refreshToken: stored.refreshToken,
+                    token: currentAuth.token,
+                    refreshToken: currentAuth.refreshToken,
                     phone: (profile.phone as string | undefined) ?? "",
                     isStaff: Boolean(profile.isStaff),
                     permissions: profile.permissions as string[] | undefined,
@@ -69,6 +78,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(null);
             })
             .finally(() => setIsLoading(false));
+    }, []);
+
+    useEffect(() => {
+        const handleAuthUpdated = (event: Event) => {
+            const auth = (event as CustomEvent<StoredAuth | null>).detail;
+            if (!auth) {
+                setUser(null);
+                return;
+            }
+            setUser(current => current ? {
+                ...current,
+                token: auth.token,
+                refreshToken: auth.refreshToken,
+            } : current);
+        };
+        window.addEventListener(AUTH_UPDATED_EVENT, handleAuthUpdated);
+        return () => window.removeEventListener(AUTH_UPDATED_EVENT, handleAuthUpdated);
     }, []);
 
     // Persistência da sessão (tab atual)
@@ -140,6 +166,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const logout = () => {
+        const refreshToken = user?.refreshToken ?? getStoredAuth()?.refreshToken;
+        if (refreshToken) {
+            void api.auth.logout(refreshToken).catch(() => undefined);
+        }
         setUser(null);
         clearStoredAuth();
     };

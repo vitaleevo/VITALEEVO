@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     LayoutDashboard,
     Newspaper,
@@ -227,20 +227,20 @@ export default function AdminCMSHubPage() {
     ], [stats, statsLoading]);
 
     // Filtrar abas com base nas permissões do utilizador
-    const hasPermission = (permission?: string) => {
+    const hasPermission = useCallback((permission?: string) => {
         if (!permission) return true;
         if (user?.role === "admin" || (user as any)?.isSuperuser) return true;
         const perms: string[] = user?.permissions || [];
         if (permission === "catalog:read" && perms.includes("catalog:manage")) return true;
         return perms.includes(permission);
-    };
+    }, [user]);
 
     const permittedGroups = useMemo(() => {
         return TAB_GROUPS.map(group => ({
             ...group,
             items: group.items.filter(item => hasPermission(item.permission)),
         })).filter(group => group.items.length > 0);
-    }, [TAB_GROUPS, user]);
+    }, [TAB_GROUPS, hasPermission]);
 
     const allPermittedItems = useMemo(() => {
         return permittedGroups.flatMap(g => g.items);
