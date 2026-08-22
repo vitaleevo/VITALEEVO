@@ -50,12 +50,12 @@ cd backend && ../.venv/bin/python -m pip check
 git diff --check
 ```
 
-Resultado: 91 testes backend passaram; lint passou com 0 erros e 84 avisos legados; typecheck e build Next.js 16.3.2 passaram com 44 páginas; audit reportou 0 vulnerabilidades de produção; não existem migrações não geradas nem dependências Python quebradas. Login inválido, reset de password e sucesso de cotação sem token também foram validados no browser local sem erros de console. O draft PR #1 foi aberto sem merge/deploy e todos os checks GitHub/Vercel passaram. O preview responde nas páginas, mas o proxy da API retorna 502 por decisão de isolamento: `NEXT_PUBLIC_API_URL` permanece apenas em Production até existir backend de staging.
+Resultado: 91 testes backend passaram; lint passou com 0 erros e 84 avisos legados; typecheck e build Next.js 16.3.2 passaram com 44 páginas; audit reportou 0 vulnerabilidades de produção; não existem migrações não geradas nem dependências Python quebradas. Login inválido, reset de password e sucesso de cotação sem token também foram validados no browser local sem erros de console. O draft PR #1 foi aberto sem merge/deploy e todos os checks GitHub/Vercel passaram. O preview responde nas páginas, mas o proxy da API retorna 502 por decisão de isolamento: `NEXT_PUBLIC_API_URL` permanece apenas em Production até existir backend de staging. A configuração atual da Vercel está limpa; o deployment de produção anterior pode conservar o snapshot antigo até as chaves serem rotacionadas e ocorrer um novo deploy controlado.
 
 Estado do projeto:
 
 - Fase/trilha atual: draft PR #1 publicado e aguardando conclusão operacional do Gate 0 antes de revisão/merge.
-- Sólido agora: código sem credenciais fixas, autenticação JWT revogável, cotações públicas sem PII, uploads/proxies/healthchecks endurecidos, Vercel sem segredos internos do backend e CI frontend/backend verde.
+- Sólido agora: código sem credenciais fixas, autenticação JWT revogável, cotações públicas sem PII, uploads/proxies/healthchecks endurecidos, configuração da Vercel sem segredos internos do backend e CI frontend/backend verde.
 - Falta imediato: criar backup restaurável do PostgreSQL Railway; revogar as duas chaves encontradas no histórico; rotacionar a password do administrador real; configurar SMTP/SITE_URL/CSRF no Railway; só depois coordenar limpeza do histórico.
 - Distância do fim: PR 1 está tecnicamente pronto, mas produção continua **NO-GO** até ações operacionais, PRs 2–4, staging e matriz completa de logins/admin.
 
