@@ -21,6 +21,22 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ["id", "name", "slug", "type", "parent", "description", "order"]
         read_only_fields = ["id"]
 
+    def validate(self, attrs):
+        instance = self.instance
+        parent = attrs.get("parent", getattr(instance, "parent", None))
+        category_type = attrs.get("type", getattr(instance, "type", "store"))
+        if parent:
+            if instance and parent.pk == instance.pk:
+                raise serializers.ValidationError({"parent": "Uma categoria não pode ser pai de si própria."})
+            if parent.type != category_type:
+                raise serializers.ValidationError({"parent": "A categoria pai deve ter o mesmo tipo."})
+            ancestor = parent
+            while ancestor is not None:
+                if instance and ancestor.pk == instance.pk:
+                    raise serializers.ValidationError({"parent": "A hierarquia de categorias não pode conter ciclos."})
+                ancestor = ancestor.parent
+        return attrs
+
 
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
@@ -122,6 +138,26 @@ class ProductAdminSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+    def validate_sku(self, value: str) -> str:
+        sku = value.strip().upper()
+        if not sku:
+            return ""
+        queryset = Product.objects.filter(sku__iexact=sku)
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+        if queryset.exists():
+            raise serializers.ValidationError("Já existe um produto com este SKU.")
+        return sku
+
+    def validate(self, attrs):
+        category = attrs.get("category", getattr(self.instance, "category", None))
+        subcategory = attrs.get("subcategory", getattr(self.instance, "subcategory", None))
+        if subcategory and (not category or subcategory.parent_id != category.id):
+            raise serializers.ValidationError(
+                {"subcategory": "A subcategoria deve pertencer à categoria selecionada."}
+            )
+        return attrs
 
 
 class StockAdjustSerializer(serializers.Serializer):

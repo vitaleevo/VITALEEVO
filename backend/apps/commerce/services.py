@@ -6,7 +6,7 @@ from django.db.models import F
 from rest_framework.exceptions import ValidationError
 
 from apps.audit.helpers import log_audit
-from apps.catalog.models import Product
+from apps.catalog.models import InventoryMovement, InventoryMovementType, Product
 
 from .models import Notification, NotificationType, Order, OrderItem, OrderStatus
 
@@ -53,27 +53,64 @@ def create_order(*, user, items, shipping_address, guest_email="", guest_name=""
             OrderItem.objects.create(
                 order=order, product=prod, name=prod.name, price=prod.price, quantity=item["quantity"], image=prod.image
             )
+            InventoryMovement.objects.create(
+                product=prod,
+                actor=user if user and user.is_authenticated else None,
+                type=InventoryMovementType.RESERVED,
+                quantity=-item["quantity"],
+                note=f"Reserva da encomenda {order.order_number}",
+            )
 
         if order.user:
-            notify_order(order.user, order, "Encomenda criada", f"A sua encomenda {order.order_number} foi recebida e está pendente.")
+            notify_order(
+                order.user,
+                order,
+                "Encomenda criada",
+                f"A sua encomenda {order.order_number} foi recebida e está pendente.",
+            )
         return order
 
 
+@transaction.atomic
 def update_order_status(order: Order, new_status: str, actor=None) -> Order:
     """Muda o estado da encomenda e notifica o cliente."""
-    order.status = new_status
-    order.save(update_fields=["status", "updated_at"])
+    locked_order = Order.objects.select_for_update().get(pk=order.pk)
+    previous_status = locked_order.status
+    if previous_status == OrderStatus.CANCELLED and new_status != OrderStatus.CANCELLED:
+        raise ValidationError({"status": "Uma encomenda cancelada não pode ser reaberta."})
+
+    if new_status == OrderStatus.CANCELLED and previous_status != OrderStatus.CANCELLED:
+        for item in locked_order.items.select_related("product"):
+            if not item.product_id:
+                continue
+            Product.objects.filter(pk=item.product_id).update(stock=F("stock") + item.quantity)
+            InventoryMovement.objects.create(
+                product_id=item.product_id,
+                actor=actor,
+                type=InventoryMovementType.RELEASED,
+                quantity=item.quantity,
+                note=f"Cancelamento da encomenda {locked_order.order_number}",
+            )
+
+    locked_order.status = new_status
+    locked_order.save(update_fields=["status", "updated_at"])
     log_audit(
         user=actor,
         action=f"order.status.{new_status}",
         resource_type="order",
-        resource_id=str(order.id),
-        details={"order_number": order.order_number},
+        resource_id=str(locked_order.id),
+        details={"order_number": locked_order.order_number, "previous_status": previous_status},
     )
-    if order.user:
+    if locked_order.user:
         labels = dict(OrderStatus.choices)
-        notify_order(order.user, order, f"Encomenda {labels[new_status].lower()}", f"A encomenda {order.order_number} mudou para {labels[new_status].lower()}.")
-    return order
+        notify_order(
+            locked_order.user,
+            locked_order,
+            f"Encomenda {labels[new_status].lower()}",
+            f"A encomenda {locked_order.order_number} mudou para {labels[new_status].lower()}.",
+        )
+    order.status = locked_order.status
+    return locked_order
 
 
 def notify_order(user, order: Order, title: str, message: str) -> Notification:

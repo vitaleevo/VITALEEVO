@@ -1,6 +1,7 @@
 """Regras de negócio do catálogo — SOLID: views chamam serviços, nunca ORM cru."""
 from django.db import transaction
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 
 from apps.audit.helpers import log_audit
 
@@ -16,11 +17,18 @@ def adjust_stock(*, product: Product, quantity: int, actor, movement_type: str, 
     if quantity == 0:
         raise ValueError("Quantidade não pode ser zero")
 
-    product.stock = max(0, product.stock + quantity)
-    product.save(update_fields=["stock", "updated_at"])
+    locked_product = Product.objects.select_for_update().get(pk=product.pk)
+    new_stock = locked_product.stock + quantity
+    if new_stock < 0:
+        raise ValidationError(
+            {"quantity": f"Stock insuficiente (disponível {locked_product.stock})."}
+        )
+
+    locked_product.stock = new_stock
+    locked_product.save(update_fields=["stock", "updated_at"])
 
     InventoryMovement.objects.create(
-        product=product,
+        product=locked_product,
         actor=actor,
         type=movement_type,
         quantity=quantity,
@@ -31,11 +39,12 @@ def adjust_stock(*, product: Product, quantity: int, actor, movement_type: str, 
         user=actor,
         action=f"stock.{movement_type}",
         resource_type="product",
-        resource_id=str(product.id),
-        details={"quantity": quantity, "note": note, "new_stock": product.stock},
+        resource_id=str(locked_product.id),
+        details={"quantity": quantity, "note": note, "new_stock": new_stock},
     )
 
-    return product.stock
+    product.stock = new_stock
+    return new_stock
 
 
 def publish_product(product: Product, actor) -> None:

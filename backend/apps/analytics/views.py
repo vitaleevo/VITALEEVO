@@ -3,13 +3,15 @@ from datetime import timedelta
 from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.core.permissions import HasAnyCapability
 from .models import ClickEvent, PageView
-from .serializers import TrackBatchSerializer
+from .serializers import TrackBatchSerializer, TrackEventSerializer
+
+VALID_PERIODS = {"today", "7d", "30d", "all"}
 
 
 def get_date_filter(period: str):
@@ -27,81 +29,67 @@ class AnalyticsTrackView(APIView):
     """Endpoint público para ingestão leve e assíncrona de eventos analíticos."""
 
     permission_classes = [AllowAny]
+    throttle_scope = "analytics_track"
 
     def post(self, request):
-        data = request.data
         user = request.user if request.user.is_authenticated else None
 
-        # 1. Suporte a payload estruturado em lote (batch)
-        if "session_id" in data and ("pageview" in data or "clicks" in data):
-            session_id = str(data.get("session_id", ""))[:80]
-            path = str(data.get("path", "/"))[:255]
+        if "pageview" in request.data or "clicks" in request.data:
+            serializer = TrackBatchSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            data = serializer.validated_data
+            session_id = data["session_id"]
+            path = data["path"]
 
             # Inserir PageView se enviado
-            if "pageview" in data and data["pageview"]:
+            if data.get("pageview"):
                 pv_data = data["pageview"]
                 PageView.objects.create(
                     path=path,
                     session_id=session_id,
-                    referrer=str(pv_data.get("referrer", ""))[:500],
-                    device_type=str(pv_data.get("device_type", "desktop"))[:20],
-                    browser=str(pv_data.get("browser", ""))[:80],
-                    screen_resolution=str(pv_data.get("screen_resolution", ""))[:30],
+                    **pv_data,
                     user=user,
                 )
 
             # Inserir múltiplos cliques em lote
-            clicks = data.get("clicks", [])
-            click_objs = []
-            for c in clicks:
-                if not isinstance(c, dict):
-                    continue
-                click_objs.append(
-                    ClickEvent(
-                        path=str(c.get("path", path))[:255],
-                        session_id=session_id,
-                        element_tag=str(c.get("element_tag", "button"))[:40],
-                        element_id=str(c.get("element_id", ""))[:120],
-                        element_text=str(c.get("element_text", ""))[:255],
-                        element_selector=str(c.get("element_selector", ""))[:255],
-                        x_percent=float(c.get("x_percent", 0.0) or 0.0),
-                        y_percent=float(c.get("y_percent", 0.0) or 0.0),
-                        viewport_width=int(c.get("viewport_width", 1920) or 1920),
-                        viewport_height=int(c.get("viewport_height", 1080) or 1080),
-                    )
-                )
+            click_objs = [
+                ClickEvent(path=c.pop("path", path), session_id=session_id, **c)
+                for c in data.get("clicks", [])
+            ]
             if click_objs:
                 ClickEvent.objects.bulk_create(click_objs)
 
             return Response({"ok": True, "tracked": {"pageview": bool(data.get("pageview")), "clicks": len(click_objs)}})
 
-        # 2. Suporte a evento único: type = "pageview" ou "click"
-        event_type = data.get("type", "pageview")
-        path = str(data.get("path", "/"))[:255]
-        session_id = str(data.get("session_id", "anon"))[:80]
+        serializer = TrackEventSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        event_type = data.pop("type")
+        path = data.pop("path")
+        session_id = data.pop("session_id")
 
         if event_type == "pageview":
             PageView.objects.create(
                 path=path,
                 session_id=session_id,
-                referrer=str(data.get("referrer", ""))[:500],
-                device_type=str(data.get("device_type", "desktop"))[:20],
-                browser=str(data.get("browser", ""))[:80],
-                screen_resolution=str(data.get("screen_resolution", ""))[:30],
+                referrer=data["referrer"],
+                device_type=data["device_type"],
+                browser=data["browser"],
+                screen_resolution=data["screen_resolution"],
                 user=user,
             )
-        elif event_type == "click":
+        else:
             ClickEvent.objects.create(
                 path=path,
                 session_id=session_id,
-                element_tag=str(data.get("element_tag", "button"))[:40],
-                element_id=str(data.get("element_id", ""))[:120],
-                element_text=str(data.get("element_text", ""))[:255],
-                element_selector=str(data.get("element_selector", ""))[:255],
-                x_percent=float(data.get("x_percent", 0.0) or 0.0),
-                y_percent=float(data.get("y_percent", 0.0) or 0.0),
-                viewport_width=int(data.get("viewport_width", 1920) or 1920),
-                viewport_height=int(data.get("viewport_height", 1080) or 1080),
+                element_tag=data["element_tag"],
+                element_id=data["element_id"],
+                element_text=data["element_text"],
+                element_selector=data["element_selector"],
+                x_percent=data["x_percent"],
+                y_percent=data["y_percent"],
+                viewport_width=data["viewport_width"],
+                viewport_height=data["viewport_height"],
             )
 
         return Response({"ok": True})
@@ -120,6 +108,8 @@ class AnalyticsOverviewView(APIView):
 
     def get(self, request):
         period = request.query_params.get("period", "30d")
+        if period not in VALID_PERIODS:
+            return Response({"detail": "Período inválido."}, status=status.HTTP_400_BAD_REQUEST)
         date_q = get_date_filter(period)
 
         pv_qs = PageView.objects.filter(date_q)
@@ -143,9 +133,13 @@ class AnalyticsOverviewView(APIView):
             unique_visitors=Count("session_id", distinct=True)
         ).order_by("-visits")[:10]
 
+        clicks_by_path = {
+            row["path"]: row["clicks"]
+            for row in click_qs.values("path").annotate(clicks=Count("id"))
+        }
         top_pages = []
         for p in top_pages_raw:
-            path_clicks = click_qs.filter(path=p["path"]).count()
+            path_clicks = clicks_by_path.get(p["path"], 0)
             top_pages.append({
                 "path": p["path"],
                 "visits": p["visits"],
@@ -194,6 +188,8 @@ class AnalyticsHeatmapView(APIView):
     def get(self, request):
         path = request.query_params.get("path", "/")
         period = request.query_params.get("period", "30d")
+        if period not in VALID_PERIODS:
+            return Response({"detail": "Período inválido."}, status=status.HTTP_400_BAD_REQUEST)
         date_q = get_date_filter(period)
 
         clicks = ClickEvent.objects.filter(date_q, path=path)
@@ -205,7 +201,7 @@ class AnalyticsHeatmapView(APIView):
 
         # Agrupar pontos de calor por coordenadas percentuais (grau de resolução 0.5% ou 1.0%)
         # Para desenhar o heatmap visual
-        points_raw = clicks.values("x_percent", "y_percent", "element_tag", "element_text")
+        points_raw = clicks.values("x_percent", "y_percent", "element_tag", "element_text")[:5000]
         point_clusters = {}
         for pt in points_raw:
             # arredondar para criar aglomerados visuais de calor
@@ -268,14 +264,17 @@ class AnalyticsPagesListView(APIView):
             unique_sessions=Count("session_id", distinct=True)
         ).order_by("-views")
 
+        clicks_by_path = {
+            row["path"]: row["clicks"]
+            for row in ClickEvent.objects.values("path").annotate(clicks=Count("id"))
+        }
         result = []
         for p in pages:
-            clicks_count = ClickEvent.objects.filter(path=p["path"]).count()
             result.append({
                 "path": p["path"],
                 "views": p["views"],
                 "unique_sessions": p["unique_sessions"],
-                "clicks": clicks_count,
+                "clicks": clicks_by_path.get(p["path"], 0),
             })
 
         # Se vazio, fornecer ao menos rotas padrão para pré-visualização

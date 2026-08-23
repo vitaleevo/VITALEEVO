@@ -56,6 +56,20 @@ class ClickEvent(models.Model):
             models.Index(fields=["path", "created_at"]),
             models.Index(fields=["element_text", "path"]),
         ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(x_percent__gte=0.0, x_percent__lte=100.0),
+                name="analytics_click_x_percent_range",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(y_percent__gte=0.0, y_percent__lte=100.0),
+                name="analytics_click_y_percent_range",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(viewport_width__gte=1, viewport_height__gte=1),
+                name="analytics_click_viewport_positive",
+            ),
+        ]
 
     def __str__(self):
         label = self.element_text or self.element_id or self.element_tag

@@ -2,8 +2,10 @@
 
 Espelha convex/schema.ts (products, categories, brands, inventoryMovements).
 """
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models.functions import Lower
 
 from apps.core.models import BaseModel
 from apps.core.validators import validate_slug
@@ -39,7 +41,28 @@ class Category(BaseModel):
         verbose_name_plural = "categorias"
         constraints = [
             models.UniqueConstraint(fields=["parent", "name"], name="unique_child_name_per_parent"),
+            models.CheckConstraint(
+                condition=~models.Q(id=models.F("parent_id")),
+                name="category_cannot_parent_itself",
+            ),
         ]
+
+    def clean(self):
+        super().clean()
+        if not self.parent_id:
+            return
+        if self.parent_id == self.id:
+            raise ValidationError({"parent": "Uma categoria não pode ser pai de si própria."})
+        if self.parent and self.parent.type != self.type:
+            raise ValidationError({"parent": "A categoria pai deve ter o mesmo tipo."})
+
+        ancestor = self.parent
+        visited = {self.id}
+        while ancestor is not None:
+            if ancestor.id in visited:
+                raise ValidationError({"parent": "A hierarquia de categorias não pode conter ciclos."})
+            visited.add(ancestor.id)
+            ancestor = ancestor.parent
 
     def __str__(self):
         return f"{self.name} ({self.type})"
@@ -93,6 +116,22 @@ class Product(BaseModel):
         verbose_name = "produto"
         verbose_name_plural = "produtos"
         indexes = [models.Index(fields=["category", "status"])]
+        constraints = [
+            models.UniqueConstraint(
+                Lower("sku"),
+                condition=~models.Q(sku=""),
+                name="catalog_product_sku_ci_unique",
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.subcategory_id and self.subcategory.parent_id != self.category_id:
+            raise ValidationError({"subcategory": "A subcategoria deve pertencer à categoria selecionada."})
+
+    def save(self, *args, **kwargs):
+        self.sku = self.sku.strip().upper()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -107,7 +146,13 @@ class InventoryMovementType(models.TextChoices):
 
 class InventoryMovement(BaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="movements")
-    actor = models.ForeignKey("users.User", on_delete=models.PROTECT, related_name="inventory_movements")
+    actor = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="inventory_movements",
+    )
     type = models.CharField(max_length=20, choices=InventoryMovementType.choices)
     quantity = models.IntegerField()
     note = models.CharField(max_length=255, blank=True)

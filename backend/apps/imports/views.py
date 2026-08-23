@@ -129,7 +129,7 @@ class ProductImportView(views.APIView):
                 name = str(raw[mapped["name"]]).strip() if "name" in mapped else ""
                 if not name:
                     raise ValueError("nome em falta")
-                sku = str(raw[mapped["sku"]]).strip() if "sku" in mapped else ""
+                sku = str(raw[mapped["sku"]]).strip().upper() if "sku" in mapped else ""
                 price = _parse_decimal(raw[mapped["price"]]) if "price" in mapped else None
                 if price is None or price < 0:
                     raise ValueError("preço inválido")
@@ -151,7 +151,7 @@ class ProductImportView(views.APIView):
                 image = str(raw[mapped["image"]]).strip() if "image" in mapped and raw[mapped["image"]] else DEFAULT_PRODUCT_IMAGE
                 description = str(raw[mapped["description"]] or "").strip() if "description" in mapped else ""
 
-                product = Product.objects.filter(sku=sku).first() if sku else None
+                product = Product.objects.filter(sku__iexact=sku).first() if sku else None
                 if product:
                     product.name = name
                     product.description = description
