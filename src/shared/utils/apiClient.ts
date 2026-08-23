@@ -143,7 +143,7 @@ export interface RequestOptions {
 export async function request<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
     const { method = "GET", body, token, params, auth = false, retried } = options;
     const cleanPath = path.startsWith("/") ? path : `/${path}`;
-    const normalizedPath = cleanPath.replace(/\/+$/, "");
+    const normalizedPath = cleanPath.endsWith("/") ? cleanPath : `${cleanPath}/`;
     let url = `${API_BASE_URL}/api/v1${normalizedPath}`;
     if (params) {
         const qs = new URLSearchParams();
