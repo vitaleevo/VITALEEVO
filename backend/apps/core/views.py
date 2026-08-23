@@ -38,6 +38,7 @@ ALLOWED_IMAGE_EXTENSIONS = {
     "image/avif": {".avif"},
 }
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+HEALTHY_WORKER_STATES = {"started", "idle", "busy"}
 
 
 def detect_image_content_type(header: bytes) -> str | None:
@@ -109,11 +110,15 @@ def health_worker(request):
     """Confirma que existe um worker RQ com heartbeat recente."""
     try:
         connection = django_rq.get_connection("default")
+        now = timezone.now()
         workers = Worker.all(connection=connection)
         active = [
             worker
             for worker in workers
-            if worker.last_heartbeat and timezone.now() - worker.last_heartbeat <= timedelta(seconds=90)
+            if worker.last_heartbeat
+            and worker.get_state() in HEALTHY_WORKER_STATES
+            and now - worker.last_heartbeat
+            <= timedelta(seconds=max(int(worker.worker_ttl or 0), 90) + 30)
         ]
     except Exception:  # noqa: BLE001 — healthcheck converte falhas em 503
         health_logger.warning("dependency_unavailable", extra={"dependency": "rq_worker"}, exc_info=True)

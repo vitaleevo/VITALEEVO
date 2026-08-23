@@ -49,6 +49,10 @@ def test_invalid_request_id_is_replaced(client):
 
 class ActiveWorker:
     last_heartbeat = timezone.now()
+    worker_ttl = 420
+
+    def get_state(self):
+        return "idle"
 
 
 def test_worker_health_requires_recent_worker(client, monkeypatch):
@@ -62,6 +66,18 @@ def test_worker_health_requires_recent_worker(client, monkeypatch):
 def test_worker_health_returns_503_without_workers(client, monkeypatch):
     monkeypatch.setattr("apps.core.views.django_rq.get_connection", lambda _name: HealthyRedis())
     monkeypatch.setattr("apps.core.views.Worker.all", lambda connection: [])
+    response = client.get("/api/v1/health/worker/")
+    assert response.status_code == 503
+    assert response.json() == {"status": "unavailable", "active_workers": 0}
+
+
+class StaleWorker(ActiveWorker):
+    last_heartbeat = timezone.now() - timezone.timedelta(minutes=10)
+
+
+def test_worker_health_rejects_expired_registration(client, monkeypatch):
+    monkeypatch.setattr("apps.core.views.django_rq.get_connection", lambda _name: HealthyRedis())
+    monkeypatch.setattr("apps.core.views.Worker.all", lambda connection: [StaleWorker()])
     response = client.get("/api/v1/health/worker/")
     assert response.status_code == 503
     assert response.json() == {"status": "unavailable", "active_workers": 0}
