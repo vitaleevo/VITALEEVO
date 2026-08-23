@@ -12,11 +12,12 @@ if DATABASES["default"]["ENGINE"] != "django.db.backends.postgresql":
 if not USE_S3_STORAGE:  # noqa: F405
     raise ImproperlyConfigured("Produção exige Railway Bucket/S3 para media persistente")
 _default_mailer = MAILERS["default"]  # noqa: F405
+_mail_opts_prod = _default_mailer.get("OPTIONS", {})  # noqa: F405
 if (
     _default_mailer["BACKEND"] == "django.core.mail.backends.console.EmailBackend"
-    or not _default_mailer["HOST"]
-    or not _default_mailer["USER"]
-    or not _default_mailer["PASSWORD"]
+    or not _mail_opts_prod.get("host")
+    or not _mail_opts_prod.get("username")
+    or not _mail_opts_prod.get("password")
 ):
     raise ImproperlyConfigured("SMTP é obrigatório em produção")
 

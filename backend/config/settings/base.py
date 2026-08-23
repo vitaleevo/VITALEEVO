@@ -228,16 +228,23 @@ RQ_ASYNC = env.bool("RQ_ASYNC", default=True)
 
 # --- E-mail (Django 6.1 MAILERS — EMAIL_* removido em 7.0) ---
 _mail_host = env.str("EMAIL_HOST", default="")
+_mail_opts = (
+    {}
+    if not _mail_host
+    else {
+        "host": _mail_host,
+        "port": env.int("EMAIL_PORT", default=587),
+        "username": env.str("EMAIL_HOST_USER", default=""),
+        "password": env.str("EMAIL_HOST_PASSWORD", default=""),
+        "use_tls": env.bool("EMAIL_USE_TLS", default=True),
+    }
+)
 MAILERS = {
     "default": {
         "BACKEND": "django.core.mail.backends.console.EmailBackend"
         if not _mail_host
         else "django.core.mail.backends.smtp.EmailBackend",
-        "HOST": _mail_host,
-        "PORT": env.int("EMAIL_PORT", default=587),
-        "USER": env.str("EMAIL_HOST_USER", default=""),
-        "PASSWORD": env.str("EMAIL_HOST_PASSWORD", default=""),
-        "USE_TLS": env.bool("EMAIL_USE_TLS", default=True),
+        "OPTIONS": _mail_opts,
     }
 }
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="no-reply@vitaleevo.ao")
