@@ -8,8 +8,10 @@ Objetivo: corrigir os bloqueadores técnicos, publicar o código no GitHub e ope
 
 - Gate 0 de código: concluído (credenciais fixas e exemplos sensíveis removidos; bootstrap e seed endurecidos).
 - Gate 0 operacional: em curso. Backup/restauração e configuração pública Railway/DNS concluídos; revogação dos segredos históricos, segredo SMTP e rotação do admin real ainda pendentes.
-- PR 1: implementado e validado localmente na branch `codex/production-hardening`.
-- PRs 2–4, staging e produção: pendentes.
+- PR 1: implementado e validado na branch `codex/production-hardening`.
+- PR 2: implementado, validado e publicado na branch `codex/data-cms-analytics` (`296d519`).
+- PR 3: implementado, validado e publicado na branch `codex/frontend-admin-logins` (`18c8a7d`).
+- PR 4, revisão/merge, staging e produção: pendentes.
 - Decisão de release: **NO-GO** até todos os gates aplicáveis passarem.
 
 ## Resultado final esperado

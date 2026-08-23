@@ -11,7 +11,6 @@ import Link from "next/link";
 import {
     User,
     Package,
-    Settings,
     LogOut,
     Edit,
     Save,
@@ -19,7 +18,6 @@ import {
     ShoppingBag,
     Calendar,
     MapPin,
-    Phone,
     Mail,
     Lock,
     Eye,
@@ -31,11 +29,9 @@ import {
     Trash2,
     Home,
     Briefcase,
-    MoreVertical,
     Star,
     Heart,
     Bell,
-    BellIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/shared/utils/error-handler";
@@ -46,7 +42,7 @@ export default function ContaPage() {
     const router = useRouter();
 
     // Queries — API Django
-    const { data: orders, refetch: refetchOrders } = useApiQuery<any[]>(null, {
+    const { data: orders } = useApiQuery<any[]>(null, {
         deps: [token],
         enabled: !!token,
         fetcher: () => api.orders.getByUser(token!),
@@ -146,8 +142,8 @@ export default function ContaPage() {
             return;
         }
 
-        if (passwordForm.new.length < 6) {
-            setMessage({ type: "error", text: "A nova senha deve ter pelo menos 6 caracteres" });
+        if (passwordForm.new.length < 8) {
+            setMessage({ type: "error", text: "A nova senha deve ter pelo menos 8 caracteres" });
             return;
         }
 
@@ -158,6 +154,8 @@ export default function ContaPage() {
             toast.success("Senha alterada com sucesso!");
             setMessage({ type: "success", text: "Senha alterada com sucesso!" });
             setPasswordForm({ current: "", new: "", confirm: "" });
+            logout();
+            router.replace("/login");
         } catch (err: any) {
             const errorMsg = getErrorMessage(err);
             toast.error(errorMsg);
@@ -248,7 +246,7 @@ export default function ContaPage() {
 
                     {/* Message */}
                     {message && (
-                        <div className={`mb-6 p-4 rounded-xl text-sm font-medium flex items-center gap-2 ${message.type === "success"
+                        <div role={message.type === "error" ? "alert" : "status"} aria-live="polite" className={`mb-6 p-4 rounded-xl text-sm font-medium flex items-center gap-2 ${message.type === "success"
                             ? "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-100 dark:border-green-900/30"
                             : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-900/30"
                             }`}>
@@ -271,7 +269,7 @@ export default function ContaPage() {
                                 </div>
 
                                 {/* Tabs */}
-                                <nav className="space-y-2">
+                                <nav aria-label="Secções da conta" className="space-y-2">
                                     {tabs.map((tab) => (
                                         <button
                                             key={tab.id}
@@ -279,6 +277,7 @@ export default function ContaPage() {
                                                 setActiveTab(tab.id as any);
                                                 setMessage(null);
                                             }}
+                                            aria-current={activeTab === tab.id ? "page" : undefined}
                                             className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl font-medium transition-all ${activeTab === tab.id
                                                 ? "bg-primary/10 text-primary"
                                                 : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5"
@@ -716,6 +715,10 @@ export default function ContaPage() {
                                                         <img
                                                             src={item.product.image}
                                                             alt={item.product.name}
+                                                            loading="lazy"
+                                                            decoding="async"
+                                                            width={640}
+                                                            height={360}
                                                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                                         />
                                                     </Link>

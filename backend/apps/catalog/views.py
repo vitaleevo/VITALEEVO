@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from apps.core.permissions import HasCapability
+from apps.core.permissions import HasCapability, user_has_capability
 
 from .models import Brand, Category, InventoryMovement, Product
 from .serializers import (
@@ -59,17 +59,17 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Product.objects.select_related("category", "subcategory", "brand")
-        if self.action in {"list", "retrieve"} and not self.request.user.is_staff:
+        if self.action in {"list", "retrieve"} and not user_has_capability(self.request.user, "catalog:read"):
             qs = qs.filter(is_active=True, status="published")
         return qs
 
     def get_serializer_class(self):
         if self.action in {"list"}:
-            if self.request.user.is_staff:
+            if user_has_capability(self.request.user, "catalog:read"):
                 return ProductAdminSerializer
             return ProductListSerializer
         if self.action in {"retrieve"}:
-            if self.request.user.is_staff:
+            if user_has_capability(self.request.user, "catalog:read"):
                 return ProductAdminSerializer
             return ProductDetailSerializer
         return ProductAdminSerializer

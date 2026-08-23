@@ -2,7 +2,7 @@
 
 ## Estado Atual
 
-O frontend Next.js continua publicado na Vercel em `https://vitaleevo.ao`; o backend Django/DRF está ligado no Railway a PostgreSQL e Redis. O hardening de código do Gate 0 e o PR 1 de segurança/autenticação foram implementados na branch `codex/production-hardening` e publicados no draft PR GitHub #1. O backup restaurável e a configuração pública do Railway/DNS foram concluídos; a produção continua bloqueada até revogar os segredos históricos, configurar o segredo SMTP, rotacionar o administrador real e concluir a homologação integrada descrita em `PRODUCTION_IMPLEMENTATION_PLAN.md`.
+O frontend Next.js continua publicado na Vercel em `https://vitaleevo.ao`; o backend Django/DRF está ligado no Railway a PostgreSQL e Redis. Os PRs 1–3 estão implementados em branches empilhadas e publicados no GitHub: `codex/production-hardening`, `codex/data-cms-analytics` (`296d519`) e `codex/frontend-admin-logins` (`18c8a7d`). O backup restaurável e a configuração pública do Railway/DNS foram concluídos; a produção continua bloqueada até revogar os segredos históricos, configurar o segredo SMTP, rotacionar o administrador real, revisar/mesclar os PRs em sequência e concluir a homologação integrada descrita em `PRODUCTION_IMPLEMENTATION_PLAN.md`.
 
 ## Checkpoint operacional do Gate 0 — 2026-08-23
 
@@ -21,6 +21,53 @@ Estado do projeto:
 - Sólido agora: backup restaurável, saúde do backend no domínio Railway nativo, variáveis públicas preparadas e DNS do subdomínio da API configurado.
 - Falta imediato: autenticar Resend/Convex, criar a chave Resend substituta, configurar `EMAIL_HOST_PASSWORD`, revogar as chaves antigas, rotacionar admin/tokens e PostgreSQL, aguardar a propagação DNS local e validar a API pelo domínio oficial.
 - Decisão de release: **NO-GO** até concluir estes itens e a matriz de autenticação.
+
+## Última etapa concluída: PR 2 e PR 3 — dados, CMS, analytics, frontend e logins — 2026-08-23
+
+Objetivo: concluir a integridade transacional do catálogo/CMS/analytics e garantir que cliente, comercial, conteúdo, operações e super admin só acedem aos módulos permitidos.
+
+Foi feito no PR 2 (`codex/data-cms-analytics`, commit `296d519`):
+
+- Stock atómico com bloqueio de linha, rejeição de saldo negativo e movimentos consistentes para reserva/libertação.
+- SKU não vazio único sem diferença de maiúsculas, limpeza de duplicados, validação de subcategoria e proteção contra ciclos de categorias.
+- Newsletter assinada, broadcasts persistidos e executados por RQ com retentativas/contadores; contacto e e-mail centralizados no Django.
+- Configurações públicas limitadas a `site_config`; analytics validado, limitado, paginado e com retenção/limpeza.
+- Migrações de dados e testes para os contratos anteriores.
+
+Foi feito no PR 3 (`codex/frontend-admin-logins`, commit `18c8a7d`):
+
+- Camada única de capabilities no frontend e proteção real de cada rota administrativa, além da visibilidade do menu.
+- Dashboard backend/frontend filtrado por capability; rascunhos, configurações privadas e encomendas deixaram de ser visíveis a staff sem autorização.
+- Operações recebeu `orders:read` e `orders:manage`, incluindo migração segura das contas existentes.
+- Cliente é direcionado para `/conta`; staff para `/admin`; alteração de password encerra a sessão; detalhe de encomenda redireciona utilizador não autenticado.
+- Django Admin validado para superuser; links de cancelamento da newsletter usam token assinado sem e-mail na URL.
+- Consentimento explícito antes de analytics/GA, melhorias de foco, labels, estados acessíveis, dimensões e carregamento diferido de imagens críticas.
+- Vitest/Testing Library e Playwright adicionados com matriz para cliente, comercial, conteúdo, operações e admin.
+
+Verificação executada:
+
+```bash
+cd backend && ../.venv/bin/python -m pytest
+cd backend && ../.venv/bin/python manage.py makemigrations --check --dry-run
+cd backend && ../.venv/bin/python manage.py check
+cd backend && ../.venv/bin/python -m pip check
+npm run test
+npm run typecheck
+npm run lint
+npm run build:app
+npx playwright test --workers=1
+npm audit --omit=dev --ignore-scripts
+git diff --check
+```
+
+Resultado: 116 testes backend, 8 testes frontend e 5 percursos Playwright passaram; build Next.js com 44 rotas, typecheck, checks Django, migrações e `pip check` passaram; lint ficou em 0 erros e 80 avisos legados; dependências de produção têm 0 vulnerabilidades reportadas.
+
+Estado do projeto:
+
+- Fase/trilha atual: PRs 1–3 implementados e branches publicadas; ainda não mesclados nem implantados.
+- Ordem de revisão/merge: `main` ← PR 1 ← PR 2 ← PR 3, preservando a dependência entre as branches empilhadas.
+- Falta imediato: concluir Gate 0 operacional, revisar/mesclar a sequência, executar migrações num staging restaurável e homologar Vercel + Railway + worker RQ + SMTP.
+- Decisão de release: **NO-GO** até o Gate 0 externo, staging e homologação integrada passarem.
 
 ## Última etapa concluída: Gate 0 de código e PR 1 de segurança/autenticação — 2026-08-23
 
@@ -79,9 +126,9 @@ Estado do projeto:
 
 ## Próximo passo recomendado
 
-Concluir o Gate 0 operacional no Railway e nos fornecedores de segredos, publicar/revisar o PR 1 e então iniciar o PR 2 de integridade de dados, CMS e analytics.
+Revisar e mesclar sequencialmente os PRs 1–3, concluir o Gate 0 operacional e executar a homologação de staging antes de qualquer deploy de produção.
 
-AVISO: O proximo passo e criar/implementar a conclusao operacional do Gate 0, revisar o PR 1 e iniciar o PR 2 de integridade de dados, CMS e analytics. Antes de iniciar, leia `PROJECT_MEMORY.md` para continuar exatamente de onde o projeto parou, entender o que ja foi feito e integrar a solucao com o sistema atual sem reler todo o repositorio.
+AVISO: O proximo passo e criar/implementar a revisao e merge sequencial dos PRs 1-3, concluir o Gate 0 operacional e homologar staging. Antes de iniciar, leia `PROJECT_MEMORY.md` para continuar exatamente de onde o projeto parou, entender o que ja foi feito e integrar a solucao com o sistema atual sem reler todo o repositorio.
 
 ## Histórico anterior — publicação Convex (desatualizado)
 

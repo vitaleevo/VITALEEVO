@@ -2,12 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
-import { Banknote, ShoppingCart, FileText, Inbox, Mail, Users, Package, AlertTriangle, ArrowRight } from "lucide-react";
+import { Banknote, ShoppingCart, FileText, Inbox, Mail, Users, Package, AlertTriangle, ArrowRight, Newspaper } from "lucide-react";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
 import { AdminHeader, Card, Loading, ErrorBox, Badge, Table, Td, Empty } from "@/shared/components/admin/ui";
 import { formatCurrency, formatDate } from "@/shared/utils/format";
+import { hasCapability } from "@/shared/auth/capabilities";
 
 export default function AdminDashboardPage() {
     const { token, user } = useAuth();
@@ -26,9 +27,9 @@ export default function AdminDashboardPage() {
     const contacts = stats.contacts || {};
     const products = stats.products || {};
     const users = stats.users || {};
-
-    const perms: string[] = user?.permissions || [];
-    const isAdmin = user?.role === "admin";
+    const canOrders = hasCapability(user, "orders:read");
+    const canQuotes = hasCapability(user, "quotes:read");
+    const canContacts = hasCapability(user, "contacts:manage");
 
     const allCards = [
         { label: "Receita (não cancelada)", value: formatCurrency(stats.revenue ?? 0), icon: Banknote, to: "/admin/orders", perm: "orders:read" },
@@ -39,15 +40,12 @@ export default function AdminDashboardPage() {
         { label: "Utilizadores", value: String(users.total ?? 0), icon: Users, to: "/admin/users", perm: "users:manage" },
         { label: "Produtos ativos", value: String(products.active ?? 0), icon: Package, to: "/admin/products", perm: "catalog:read" },
         { label: "Stock baixo (≤5)", value: String(products.lowStock ?? 0), icon: AlertTriangle, to: "/admin/products", perm: "stock:manage" },
+        { label: "Conteúdo do site", value: "Gerir", icon: Newspaper, to: "/admin/cms", perm: "content:manage" },
     ];
 
     const cards = allCards.filter(c => {
-        if (isAdmin) return true;
         if (!c.perm) return true;
-        if (c.perm === "orders:read" && perms.includes("orders:manage")) return true;
-        if (c.perm === "quotes:read" && perms.includes("quotes:manage")) return true;
-        if (c.perm === "catalog:read" && perms.includes("catalog:manage")) return true;
-        return perms.includes(c.perm);
+        return hasCapability(user, c.perm);
     });
 
     const maxRevenue = Math.max(1, ...(stats.monthlyRevenue || []).map((m: any) => m.total));
@@ -73,7 +71,7 @@ export default function AdminDashboardPage() {
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                 {/* Receita mensal */}
-                <Card className="p-6 xl:col-span-1">
+                {canOrders && <Card className="p-6 xl:col-span-1">
                     <h3 className="font-bold text-gray-900 dark:text-white mb-4">Receita Mensal (6 meses)</h3>
                     {stats.monthlyRevenue?.length ? (
                         <div className="flex items-end gap-2 h-40">
@@ -91,10 +89,10 @@ export default function AdminDashboardPage() {
                     ) : (
                         <Empty label="Sem receita registada" />
                     )}
-                </Card>
+                </Card>}
 
                 {/* Encomendas recentes */}
-                <Card className="xl:col-span-2 overflow-hidden">
+                {canOrders && <Card className="xl:col-span-2 overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
                         <h3 className="font-bold text-gray-900 dark:text-white">Encomendas Recentes</h3>
                         <Link href="/admin/orders" className="text-xs font-bold text-primary hover:underline">Ver todas</Link>
@@ -124,10 +122,10 @@ export default function AdminDashboardPage() {
                             </tbody>
                         </table>
                     </div>
-                </Card>
+                </Card>}
 
                 {/* Cotações recentes */}
-                <Card className="xl:col-span-2 overflow-hidden">
+                {canQuotes && <Card className="xl:col-span-2 overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
                         <h3 className="font-bold text-gray-900 dark:text-white">Cotações Recentes</h3>
                         <Link href="/admin/quotes" className="text-xs font-bold text-primary hover:underline">Ver todas</Link>
@@ -146,10 +144,10 @@ export default function AdminDashboardPage() {
                             <tr><td colSpan={5}><Empty /></td></tr>
                         )}
                     </Table>
-                </Card>
+                </Card>}
 
                 {/* Contactos recentes */}
-                <Card className="overflow-hidden">
+                {canContacts && <Card className="overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
                         <h3 className="font-bold text-gray-900 dark:text-white">Contactos Recentes</h3>
                         <Link href="/admin/contacts" className="text-xs font-bold text-primary hover:underline">Ver todos</Link>
@@ -163,7 +161,7 @@ export default function AdminDashboardPage() {
                         ))}
                         {!(stats.recent?.contacts || []).length && <Empty />}
                     </div>
-                </Card>
+                </Card>}
             </div>
         </div>
     );

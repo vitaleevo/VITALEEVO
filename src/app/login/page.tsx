@@ -78,6 +78,9 @@ export default function LoginPage() {
                         <AnimatePresence mode="wait">
                             {displayError && (
                                 <motion.div
+                                    id="login-error"
+                                    role="alert"
+                                    aria-live="assertive"
                                     initial={{ opacity: 0, y: -20, height: 0 }}
                                     animate={{ opacity: 1, y: 0, height: "auto" }}
                                     exit={{ opacity: 0, y: -20, height: 0 }}
@@ -113,6 +116,9 @@ export default function LoginPage() {
                                         className="w-full h-14 pl-12 pr-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                                         placeholder="seu@email.com"
                                         autoComplete="email"
+                                        required
+                                        aria-invalid={Boolean(displayError)}
+                                        aria-describedby={displayError ? "login-error" : undefined}
                                     />
                                 </div>
                             </div>
@@ -131,6 +137,9 @@ export default function LoginPage() {
                                         className="w-full h-14 pl-12 pr-12 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                                         placeholder="••••••••"
                                         autoComplete="current-password"
+                                        required
+                                        aria-invalid={Boolean(displayError)}
+                                        aria-describedby={displayError ? "login-error" : undefined}
                                     />
                                     <button
                                         type="button"
@@ -154,7 +163,7 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full h-14 bg-primary hover:bg-primary-dark disabled:bg-primary/50 text-white rounded-xl font-bold text-lg shadow-lg shadow-primary/25 transition-all flex items-center justify-center gap-2 group"
+                                className="w-full h-14 bg-primary hover:bg-primary-dark disabled:bg-primary/50 text-white rounded-xl font-bold text-lg shadow-lg shadow-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all flex items-center justify-center gap-2 group"
                             >
                                 {isLoading ? (
                                     <>

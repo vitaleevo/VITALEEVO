@@ -51,7 +51,7 @@ def create_unsubscribe_token(email: str) -> str:
 
 def build_unsubscribe_url(email: str) -> str:
     query = urlencode({"token": create_unsubscribe_token(email)})
-    return f"{settings.SITE_URL.rstrip('/')}/newsletter/cancelar?{query}"
+    return f"{settings.SITE_URL.rstrip('/')}/unsubscribe?{query}"
 
 
 def unsubscribe_with_token(token: str) -> bool:

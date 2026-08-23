@@ -409,13 +409,13 @@ return {
     },
     newsletter: {
         subscribe: (email: string) => request("/cms/newsletters/", { method: "POST", body: { email } }),
-        unsubscribe: (email: string) => request("/cms/newsletters/unsubscribe/", { method: "POST", body: { email } }),
+        unsubscribe: (token: string) => request("/cms/newsletters/unsubscribe/", { method: "POST", body: { token } }),
         list: (token: string) =>
             request<Paginated<Record<string, unknown>>>("/cms/newsletters/", { auth: true, token }).then(d => asPaginated<Record<string, unknown>>(d).results),
         remove: (id: string, token: string) =>
             request(`/cms/newsletters/${id}/`, { method: "DELETE", token, auth: true }),
         broadcast: (subject: string, body: string, token: string) =>
-            request<{ sent: number }>("/cms/newsletters/broadcast/", { method: "POST", body: { subject, body }, token, auth: true }),
+            request<{ id: string; status: string; totalRecipients: number }>("/cms/newsletters/broadcast/", { method: "POST", body: { subject, body }, token, auth: true }),
     },
 
     // ── Cotações ─────────────────────────────────────────────────────────

@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/shared/providers/AuthProvider";
+import { hasCapability } from "@/shared/auth/capabilities";
 
 interface PermissionGuardProps {
     permission?: string;
@@ -13,14 +14,32 @@ interface PermissionGuardProps {
     fallback?: React.ReactNode;
 }
 
+export function AccessDenied({ role, requirement }: { role?: string; requirement?: string }) {
+    return (
+        <div className="min-h-[55vh] flex items-center justify-center p-4">
+            <div className="max-w-md w-full text-center p-8 rounded-3xl bg-white dark:bg-[#151e32] border border-gray-100 dark:border-white/5 shadow-xl">
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-4">
+                    <ShieldAlert aria-hidden="true" className="w-8 h-8" />
+                </div>
+                <h2 className="font-display font-bold text-xl text-gray-900 dark:text-white mb-2">
+                    Acesso Restrito
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                    A sua conta ({role || "colaborador"}) não possui acesso a este módulo{requirement ? ` (${requirement})` : ""}.
+                </p>
+                <Link
+                    href="/admin"
+                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors"
+                >
+                    <ArrowLeft aria-hidden="true" className="w-4 h-4" /> Voltar ao Painel Principal
+                </Link>
+            </div>
+        </div>
+    );
+}
+
 export function hasUserCapability(user: any, capability: string): boolean {
-    if (!user) return false;
-    if (user.role === "admin" || user.isSuperuser) return true;
-    const perms: string[] = user.permissions || [];
-    if (capability === "catalog:read" && perms.includes("catalog:manage")) return true;
-    if (capability === "orders:read" && perms.includes("orders:manage")) return true;
-    if (capability === "quotes:read" && perms.includes("quotes:manage")) return true;
-    return perms.includes(capability);
+    return hasCapability(user, capability);
 }
 
 export function useCapability(capability: string): boolean {
@@ -57,25 +76,5 @@ export function PermissionGuard({
         return <>{fallback}</>;
     }
 
-    return (
-        <div className="min-h-[55vh] flex items-center justify-center p-4">
-            <div className="max-w-md w-full text-center p-8 rounded-3xl bg-white dark:bg-[#151e32] border border-gray-100 dark:border-white/5 shadow-xl">
-                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-4">
-                    <ShieldAlert className="w-8 h-8" />
-                </div>
-                <h2 className="font-display font-bold text-xl text-gray-900 dark:text-white mb-2">
-                    Acesso Restrito
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
-                    A sua conta ({user?.role || "colaborador"}) não possui a permissão necessária ({permission || permissions?.join(", ")}) para visualizar ou gerir este módulo.
-                </p>
-                <Link
-                    href="/admin"
-                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-dark transition-colors"
-                >
-                    <ArrowLeft className="w-4 h-4" /> Voltar ao Painel Principal
-                </Link>
-            </div>
-        </div>
-    );
+    return <AccessDenied role={user?.role} requirement={permission || permissions?.join(", ")} />;
 }
