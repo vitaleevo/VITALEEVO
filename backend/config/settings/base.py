@@ -99,6 +99,15 @@ if database_url:
     DATABASES = {"default": env.db("DATABASE_URL")}
     if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
         DATABASES["default"]["CONN_MAX_AGE"] = 60
+        DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
+    # Fase 2: read replica para 100k (se DATABASE_REPLICA_URL estiver definida)
+    replica_url = env.str("DATABASE_REPLICA_URL", default="")
+    if replica_url:
+        DATABASES["replica"] = env.db("DATABASE_REPLICA_URL")
+        if DATABASES["replica"]["ENGINE"] == "django.db.backends.postgresql":
+            DATABASES["replica"]["CONN_MAX_AGE"] = 60
+            DATABASES["replica"]["CONN_HEALTH_CHECKS"] = True
+        DATABASE_ROUTERS = ["config.routers.ReplicaRouter"]
 else:
     DATABASES = {
         "default": {
