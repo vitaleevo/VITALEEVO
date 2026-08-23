@@ -97,6 +97,8 @@ jobs:
         run: python manage.py makemigrations --check --dry-run
       - name: Aplicar migrações numa base PostgreSQL limpa
         run: python manage.py migrate --noinput
+      - name: Gerar manifesto de estáticos do Django Admin
+        run: python manage.py collectstatic --noinput
       - name: Validar contrato OpenAPI
         run: python manage.py spectacular --file /tmp/openapi.yml --validate
       - name: Testes backend
