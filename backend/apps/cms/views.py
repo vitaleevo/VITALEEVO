@@ -1,5 +1,8 @@
 """Endpoints do CMS — leitura pública no site; gestão com content:manage / settings:manage."""
+from django.core.cache import cache
 from django.db import transaction
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView, ListCreateAPIView
@@ -198,6 +201,8 @@ class NewsletterBroadcastViewSet(viewsets.ReadOnlyModelViewSet):
         return [HasCapability("contacts:manage")]
 
 
+@method_decorator(cache_page(10), name="list")
+@method_decorator(cache_page(10), name="retrieve")
 class SettingViewSet(viewsets.ModelViewSet):
     """Configurações do site (ex.: site_config) — leitura pública, gestão com settings:manage."""
 
@@ -214,4 +219,16 @@ class SettingViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in {"list", "retrieve"}:
             return [AllowAny()]
+
+    def perform_create(self, serializer):
+        cache.clear()
+        return super().perform_create(serializer)
+
+    def perform_update(self, serializer):
+        cache.clear()
+        return super().perform_update(serializer)
+
+    def perform_destroy(self, instance):
+        cache.clear()
+        return super().perform_destroy(instance)
         return [HasCapability("settings:manage")]

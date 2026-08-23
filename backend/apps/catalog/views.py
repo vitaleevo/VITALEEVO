@@ -1,5 +1,8 @@
 """Endpoints do catálogo — leitura pública na loja, gestão com capacidade catalog:manage."""
+from django.core.cache import cache
 from django.db.models import Q
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -20,6 +23,8 @@ from .serializers import (
 from .services import adjust_stock
 
 
+@method_decorator(cache_page(10), name="list")
+@method_decorator(cache_page(10), name="retrieve")
 class CategoryViewSet(viewsets.ModelViewSet):
     """Categorias — públicas para leitura; gestão com catalog:manage."""
 
@@ -34,7 +39,21 @@ class CategoryViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return [HasCapability("catalog:manage")]
 
+    def perform_create(self, serializer):
+        cache.clear()
+        return super().perform_create(serializer)
 
+    def perform_update(self, serializer):
+        cache.clear()
+        return super().perform_update(serializer)
+
+    def perform_destroy(self, instance):
+        cache.clear()
+        return super().perform_destroy(instance)
+
+
+@method_decorator(cache_page(10), name="list")
+@method_decorator(cache_page(10), name="retrieve")
 class BrandViewSet(viewsets.ModelViewSet):
     """Marcas — públicas para leitura; gestão com catalog:manage."""
 
@@ -48,7 +67,21 @@ class BrandViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return [HasCapability("catalog:manage")]
 
+    def perform_create(self, serializer):
+        cache.clear()
+        return super().perform_create(serializer)
 
+    def perform_update(self, serializer):
+        cache.clear()
+        return super().perform_update(serializer)
+
+    def perform_destroy(self, instance):
+        cache.clear()
+        return super().perform_destroy(instance)
+
+
+@method_decorator(cache_page(10), name="list")
+@method_decorator(cache_page(10), name="retrieve")
 class ProductViewSet(viewsets.ModelViewSet):
     """Produtos — loja pública (só publicados); gestão completa com catalog:manage."""
 
@@ -80,11 +113,20 @@ class ProductViewSet(viewsets.ModelViewSet):
         return [HasCapability("catalog:manage")]
 
     def perform_create(self, serializer):
+        cache.clear()
         product = serializer.save()
         from .services import publish_product  # import local para evitar ciclo
 
         if product.status == "published":
             publish_product(product, self.request.user)
+
+    def perform_update(self, serializer):
+        cache.clear()
+        return super().perform_update(serializer)
+
+    def perform_destroy(self, instance):
+        cache.clear()
+        return super().perform_destroy(instance)
 
     @action(detail=True, methods=["post"], permission_classes=[HasCapability("stock:manage")])
     def adjust_stock(self, request, slug=None):
@@ -99,6 +141,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             movement_type="adjustment",
             note=serializer.validated_data["note"],
         )
+        cache.clear()
         return Response({"stock": new_stock}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])
