@@ -11,6 +11,9 @@ interface ApiQueryOptions {
     fetcher?: () => Promise<unknown>;
     /** Dependências do fetcher — sem elas o efeito não recorre a cada render. */
     deps?: unknown[];
+    /** Fase 1: cache em IndexedDB/localStorage com SWR */
+    cacheKey?: string;
+    cacheTTL?: number;
 }
 
 interface ApiQueryState<T> {
@@ -25,7 +28,7 @@ interface ApiQueryState<T> {
  * { data, isLoading, error, refetch } com o mesmo contrato de uso.
  */
 export function useApiQuery<T = unknown>(path: string | null, options: ApiQueryOptions = {}): ApiQueryState<T> {
-    const { enabled = true, params, token, fetcher, deps = [] } = options;
+    const { enabled = true, params, token, fetcher, deps = [], cacheKey, cacheTTL = 10000 } = options;
     const [data, setData] = useState<T | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(!!path && enabled);
     const [error, setError] = useState<string | null>(null);
@@ -40,7 +43,23 @@ export function useApiQuery<T = unknown>(path: string | null, options: ApiQueryO
             return;
         }
         const controller = new AbortController();
-        setIsLoading(true);
+        // Fase 1: tenta cache local primeiro (SWR)
+        if (cacheKey && typeof window !== "undefined") {
+            try {
+                const raw = localStorage.getItem(`vitaleevo_cache:${cacheKey}`);
+                if (raw) {
+                    const { value, ts } = JSON.parse(raw);
+                    if (Date.now() - ts < cacheTTL) {
+                        setData(value as T);
+                        setIsLoading(false);
+                    } else if (value) {
+                        setData(value as T);
+                        setIsLoading(false);
+                    }
+                }
+            } catch {}
+        }
+        if (!data) setIsLoading(true);
         setError(null);
 
         // Fase 1: jitter 0-500ms para evitar thundering herd em 100k concurrent
@@ -58,10 +77,16 @@ export function useApiQuery<T = unknown>(path: string | null, options: ApiQueryO
             if (!controller.signal.aborted) {
                 setData(result as T);
                 setIsLoading(false);
+                if (cacheKey && typeof window !== "undefined") {
+                    try {
+                        localStorage.setItem(`vitaleevo_cache:${cacheKey}`, JSON.stringify({ value: result, ts: Date.now() }));
+                    } catch {}
+                }
             }
         }).catch(err => {
             if (!controller.signal.aborted) {
-                setData(null);
+                // Se tem cache, mantém, senão mostra erro
+                if (!data) setData(null);
                 setError(err instanceof Error ? err.message : "Erro ao carregar dados");
                 setIsLoading(false);
             }

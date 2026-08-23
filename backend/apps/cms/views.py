@@ -5,7 +5,7 @@ from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Max
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_control, cache_page
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView, ListCreateAPIView
@@ -204,6 +204,7 @@ class NewsletterBroadcastViewSet(viewsets.ReadOnlyModelViewSet):
         return [HasCapability("contacts:manage")]
 
 
+@method_decorator(cache_control(max_age=10, stale_while_revalidate=30, public=True), name="list")
 @method_decorator(cache_page(10), name="list")
 @method_decorator(cache_page(10), name="retrieve")
 class SettingViewSet(viewsets.ModelViewSet):

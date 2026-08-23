@@ -28,9 +28,9 @@ import ConceptBackdrop, { CONCEPT_IMAGES } from '@/shared/components/ConceptBack
 const PAGE_SIZE = 9;
 
 const Store: React.FC = () => {
-    const { data: products } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.products.list({ page_size: 100 }).then(d => d.results) });
-    const { data: dbCategories } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.categories.getByType("store") });
-    const { data: dbBrands } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.brands.list() });
+    const { data: products } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.products.list({ page_size: 100 }).then(d => d.results), cacheKey: "store:products", cacheTTL: 10000 });
+    const { data: dbCategories } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.categories.getByType("store"), cacheKey: "store:categories", cacheTTL: 10000 });
+    const { data: dbBrands } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.brands.list(), cacheKey: "store:brands", cacheTTL: 10000 });
     const { addItem, totalItems } = useCart();
 
     // Filters State

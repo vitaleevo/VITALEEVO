@@ -4,7 +4,7 @@ import hashlib
 from django.core.cache import cache
 from django.db.models import Max, Q
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
+from django.views.decorators.cache import cache_control, cache_page
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -25,6 +25,7 @@ from .serializers import (
 from .services import adjust_stock
 
 
+@method_decorator(cache_control(max_age=10, stale_while_revalidate=30, public=True), name="list")
 @method_decorator(cache_page(10), name="list")
 @method_decorator(cache_page(10), name="retrieve")
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -63,6 +64,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return super().perform_destroy(instance)
 
 
+@method_decorator(cache_control(max_age=10, stale_while_revalidate=30, public=True), name="list")
 @method_decorator(cache_page(10), name="list")
 @method_decorator(cache_page(10), name="retrieve")
 class BrandViewSet(viewsets.ModelViewSet):
@@ -100,6 +102,7 @@ class BrandViewSet(viewsets.ModelViewSet):
         return super().perform_destroy(instance)
 
 
+@method_decorator(cache_control(max_age=10, stale_while_revalidate=30, public=True), name="list")
 @method_decorator(cache_page(10), name="list")
 @method_decorator(cache_page(10), name="retrieve")
 class ProductViewSet(viewsets.ModelViewSet):
