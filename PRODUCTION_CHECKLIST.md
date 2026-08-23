@@ -21,7 +21,7 @@
 - Domínio `api.vitaleevo.ao` verificado, certificado emitido e apontado ao serviço web.
 - `/api/v1/health/live/` responde 200; `/api/v1/health/ready/` confirma PostgreSQL e Redis; `/api/v1/health/worker/` confirma heartbeat RQ.
 - Migrações são executadas uma vez no processo de release; API e worker usam serviços separados.
-- Root Directory dos serviços é `/backend`; API, worker e cron usam respetivamente `/backend/railway.json`, `/backend/railway.worker.json` e `/backend/railway.cron.json`.
+- Root Directory dos serviços é `/backend`; API, worker e cron usam respetivamente `/railway.json`, `/railway.worker.json` e `/railway.cron.json` (as cópias em `/backend` suportam serviços cujo source root seja o próprio backend).
 
 ## Vercel — frontend Next.js
 
