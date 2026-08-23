@@ -226,6 +226,15 @@ REDIS_URL = env.str("REDIS_URL", default="redis://localhost:6379/0")
 RQ_QUEUES = {"default": {"URL": REDIS_URL}}
 RQ_ASYNC = env.bool("RQ_ASYNC", default=True)
 
+# --- Cache distribuído (Redis) — Fase 1: throttling e cache partilhado entre instâncias ---
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": REDIS_URL,
+        "OPTIONS": {"db": 1},
+    }
+}
+
 # --- E-mail (Django 6.1 MAILERS — EMAIL_* removido em 7.0) ---
 _mail_host = env.str("EMAIL_HOST", default="")
 _mail_opts = (

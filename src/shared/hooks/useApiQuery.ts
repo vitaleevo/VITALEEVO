@@ -43,9 +43,16 @@ export function useApiQuery<T = unknown>(path: string | null, options: ApiQueryO
         setIsLoading(true);
         setError(null);
 
-        const run = fetcherRef.current
-            ? fetcherRef.current()
-            : request<T>(path as string, { params, auth: !!token, token });
+        // Fase 1: jitter 0-500ms para evitar thundering herd em 100k concurrent
+        const jitter = Math.random() * 500;
+        const run = new Promise<T>((resolve, reject) => {
+            setTimeout(() => {
+                const p = fetcherRef.current
+                    ? fetcherRef.current() as Promise<T>
+                    : request<T>(path as string, { params, auth: !!token, token });
+                p.then(resolve).catch(reject);
+            }, jitter);
+        });
 
         run.then(result => {
             if (!controller.signal.aborted) {

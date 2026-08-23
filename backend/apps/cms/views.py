@@ -1,6 +1,9 @@
 """Endpoints do CMS — leitura pública no site; gestão com content:manage / settings:manage."""
+import hashlib
+
 from django.core.cache import cache
 from django.db import transaction
+from django.db.models import Max
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import status, viewsets
@@ -219,6 +222,16 @@ class SettingViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in {"list", "retrieve"}:
             return [AllowAny()]
+        return [HasCapability("settings:manage")]
+
+    def list(self, request, *args, **kwargs):
+        qs = self.filter_queryset(self.get_queryset())
+        etag = hashlib.md5(f"{qs.count()}-{qs.aggregate(Max('updated_at'))['updated_at__max']}".encode()).hexdigest()
+        if request.headers.get("If-None-Match") == f'W/"{etag}"':
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+        response = super().list(request, *args, **kwargs)
+        response["ETag"] = f'W/"{etag}"'
+        return response
 
     def perform_create(self, serializer):
         cache.clear()
@@ -231,4 +244,3 @@ class SettingViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         cache.clear()
         return super().perform_destroy(instance)
-        return [HasCapability("settings:manage")]

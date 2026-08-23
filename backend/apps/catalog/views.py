@@ -1,6 +1,8 @@
 """Endpoints do catálogo — leitura pública na loja, gestão com capacidade catalog:manage."""
+import hashlib
+
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Max, Q
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import status, viewsets
@@ -39,6 +41,15 @@ class CategoryViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return [HasCapability("catalog:manage")]
 
+    def list(self, request, *args, **kwargs):
+        qs = self.filter_queryset(self.get_queryset())
+        etag = hashlib.md5(f"{qs.count()}-{qs.aggregate(Max('updated_at'))['updated_at__max']}".encode()).hexdigest()
+        if request.headers.get("If-None-Match") == f'W/"{etag}"':
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+        response = super().list(request, *args, **kwargs)
+        response["ETag"] = f'W/"{etag}"'
+        return response
+
     def perform_create(self, serializer):
         cache.clear()
         return super().perform_create(serializer)
@@ -66,6 +77,15 @@ class BrandViewSet(viewsets.ModelViewSet):
         if self.action in {"list", "retrieve"}:
             return [AllowAny()]
         return [HasCapability("catalog:manage")]
+
+    def list(self, request, *args, **kwargs):
+        qs = self.filter_queryset(self.get_queryset())
+        etag = hashlib.md5(f"{qs.count()}-{qs.aggregate(Max('updated_at'))['updated_at__max']}".encode()).hexdigest()
+        if request.headers.get("If-None-Match") == f'W/"{etag}"':
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+        response = super().list(request, *args, **kwargs)
+        response["ETag"] = f'W/"{etag}"'
+        return response
 
     def perform_create(self, serializer):
         cache.clear()
@@ -111,6 +131,15 @@ class ProductViewSet(viewsets.ModelViewSet):
         if self.action in {"list", "retrieve"}:
             return [AllowAny()]
         return [HasCapability("catalog:manage")]
+
+    def list(self, request, *args, **kwargs):
+        qs = self.filter_queryset(self.get_queryset())
+        etag = hashlib.md5(f"{qs.count()}-{qs.aggregate(Max('updated_at'))['updated_at__max']}".encode()).hexdigest()
+        if request.headers.get("If-None-Match") == f'W/"{etag}"':
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+        response = super().list(request, *args, **kwargs)
+        response["ETag"] = f'W/"{etag}"'
+        return response
 
     def perform_create(self, serializer):
         cache.clear()
