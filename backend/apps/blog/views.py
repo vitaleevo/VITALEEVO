@@ -2,7 +2,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
 
-from apps.core.permissions import HasCapability
+from apps.core.permissions import HasCapability, user_has_capability
 
 from .models import Article
 from .serializers import ArticleAdminSerializer, ArticleSerializer
@@ -18,12 +18,12 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Article.objects.select_related("category")
-        if self.action in {"list", "retrieve"} and not self.request.user.is_staff:
+        if self.action in {"list", "retrieve"} and not user_has_capability(self.request.user, "content:manage"):
             qs = qs.filter(is_active=True, is_published=True)
         return qs
 
     def get_serializer_class(self):
-        if self.action in {"list", "retrieve"} and not self.request.user.is_staff:
+        if self.action in {"list", "retrieve"} and not user_has_capability(self.request.user, "content:manage"):
             return ArticleSerializer
         return ArticleAdminSerializer
 

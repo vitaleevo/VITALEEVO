@@ -27,18 +27,24 @@ import {
 } from "lucide-react";
 import { formatDate, formatCurrency } from "@/shared/utils/format";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function OrderDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const { user, isAuthenticated, isLoading: authLoading, token } = useAuth();
+    const { isAuthenticated, isLoading: authLoading, token } = useAuth();
     const { addItem } = useCart();
 
     const [isRepeating, setIsRepeating] = useState(false);
     const [copiedField, setCopiedField] = useState<string | null>(null);
 
     const orderId = params.id as string;
+
+    useEffect(() => {
+        if (!authLoading && !isAuthenticated) {
+            router.replace("/login");
+        }
+    }, [authLoading, isAuthenticated, router]);
     const { data: order, isLoading: orderLoading } = useApiQuery<any>(null, {
         deps: [token, orderId],
         enabled: !!token,
@@ -362,7 +368,15 @@ export default function OrderDetailPage() {
                                     {order.items.map((item: any) => (
                                         <div key={item.productId} className="py-6 first:pt-0 last:pb-0 flex gap-6">
                                             <div className="w-20 h-20 bg-gray-50 dark:bg-black/20 rounded-2xl overflow-hidden shrink-0 border border-gray-100 dark:border-white/5">
-                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                                                <img
+                                                    src={item.image}
+                                                    alt={item.name}
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    width={80}
+                                                    height={80}
+                                                    className="w-full h-full object-cover"
+                                                />
                                             </div>
                                             <div className="flex-1 min-w-0 flex flex-col justify-center">
                                                 <div className="flex justify-between items-start mb-1">
@@ -423,7 +437,7 @@ export default function OrderDetailPage() {
                                             {order.shippingAddress.reference && (
                                                 <div className="mt-3 bg-gray-50 dark:bg-white/5 p-3 rounded-xl">
                                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Referência</p>
-                                                    <p className="text-xs text-gray-600 dark:text-gray-400 italic">"{order.shippingAddress.reference}"</p>
+                                                    <p className="text-xs text-gray-600 dark:text-gray-400 italic">&ldquo;{order.shippingAddress.reference}&rdquo;</p>
                                                 </div>
                                             )}
                                         </div>
@@ -453,7 +467,7 @@ export default function OrderDetailPage() {
                                     {order.notes && (
                                         <div className="pt-4 border-t border-gray-100 dark:border-white/5 text-sm">
                                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Observações</p>
-                                            <p className="text-gray-600 dark:text-gray-400 italic">"{order.notes}"</p>
+                                            <p className="text-gray-600 dark:text-gray-400 italic">&ldquo;{order.notes}&rdquo;</p>
                                         </div>
                                     )}
                                 </div>
@@ -483,5 +497,3 @@ export default function OrderDetailPage() {
         </FeatureLayout>
     );
 }
-
-

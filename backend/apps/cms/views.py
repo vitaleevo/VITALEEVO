@@ -6,7 +6,7 @@ from rest_framework.generics import CreateAPIView, ListCreateAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from apps.core.permissions import HasCapability
+from apps.core.permissions import HasCapability, user_has_capability
 
 from .models import ContactMessage, LegalDocument, Newsletter, NewsletterBroadcast, Service, Setting, SitePage
 from .serializers import (
@@ -43,12 +43,12 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Service.objects.all()
-        if self.action in {"list", "retrieve"} and not self.request.user.is_staff:
+        if self.action in {"list", "retrieve"} and not user_has_capability(self.request.user, "content:manage"):
             return qs.filter(is_active=True, status="published")
         return qs
 
     def get_serializer_class(self):
-        if self.action in {"list", "retrieve"} and not self.request.user.is_staff:
+        if self.action in {"list", "retrieve"} and not user_has_capability(self.request.user, "content:manage"):
             return ServiceSerializer
         return ServiceAdminSerializer
 
@@ -67,7 +67,7 @@ class LegalDocumentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = LegalDocument.objects.all()
-        if self.action in {"list", "retrieve"} and not self.request.user.is_staff:
+        if self.action in {"list", "retrieve"} and not user_has_capability(self.request.user, "content:manage"):
             return qs.filter(status="published")
         return qs
 
@@ -85,7 +85,7 @@ class SitePageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = SitePage.objects.prefetch_related("blocks").all()
-        if self.action in {"list", "retrieve"} and not self.request.user.is_staff:
+        if self.action in {"list", "retrieve"} and not user_has_capability(self.request.user, "content:manage"):
             return qs.filter(status="published")
         return qs
 
@@ -207,7 +207,7 @@ class SettingViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = Setting.objects.order_by("key")
         user = self.request.user
-        if not user or not user.is_authenticated or not user.is_staff:
+        if not user_has_capability(user, "settings:manage"):
             return queryset.filter(key__in=PUBLIC_SETTING_KEYS)
         return queryset
 

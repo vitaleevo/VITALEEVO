@@ -17,7 +17,6 @@ import {
     ShieldCheck,
     Settings,
     UserCircle,
-    ChevronRight,
     Sparkles,
     FileSpreadsheet,
     ArrowRight,
@@ -25,6 +24,7 @@ import {
     Flame,
 } from "lucide-react";
 import { useAuth } from "@/shared/providers/AuthProvider";
+import { hasCapability } from "@/shared/auth/capabilities";
 import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
 import { AdminHeader, Card, Loading } from "@/shared/components/admin/ui";
@@ -228,11 +228,7 @@ export default function AdminCMSHubPage() {
 
     // Filtrar abas com base nas permissões do utilizador
     const hasPermission = useCallback((permission?: string) => {
-        if (!permission) return true;
-        if (user?.role === "admin" || (user as any)?.isSuperuser) return true;
-        const perms: string[] = user?.permissions || [];
-        if (permission === "catalog:read" && perms.includes("catalog:manage")) return true;
-        return perms.includes(permission);
+        return !permission || hasCapability(user, permission);
     }, [user]);
 
     const permittedGroups = useMemo(() => {

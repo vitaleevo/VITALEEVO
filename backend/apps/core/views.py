@@ -129,37 +129,32 @@ class DashboardStatsView(views.APIView):
         from apps.commerce.models import Order, OrderStatus
         from apps.quotes.models import QuoteRequest, QuoteStatus
 
-        revenue = (
-            Order.objects.exclude(status=OrderStatus.CANCELLED)
-            .aggregate(total=Coalesce(Sum("total"), 0, output_field=DecimalField()))
-            ["total"]
-        )
-        six_months_ago = timezone.now() - timezone.timedelta(days=180)
-        monthly_revenue = list(
-            Order.objects.exclude(status=OrderStatus.CANCELLED)
-            .filter(created_at__gte=six_months_ago)
-            .annotate(month=TruncMonth("created_at"))
-            .values("month")
-            .annotate(total=Coalesce(Sum("total"), 0, output_field=DecimalField()))
-            .order_by("month")
-            .values("month", "total")
-        )
-        recent_orders = list(
-            Order.objects.select_related("user")
-            .order_by("-created_at")[:5]
-            .values("order_number", "status", "total", "created_at", "guest_email")
-        )
-        recent_quotes = list(
-            QuoteRequest.objects.order_by("-created_at")[:5].values(
-                "public_id", "status", "name", "email", "phone", "created_at"
-            )
-        )
-        recent_contacts = list(
-            ContactMessage.objects.order_by("-created_at")[:5].values("name", "email", "subject", "is_read", "created_at")
-        )
+        user = request.user
+        can_orders = user.has_capability("orders:read") or user.has_capability("orders:manage")
+        can_quotes = user.has_capability("quotes:read") or user.has_capability("quotes:manage")
+        can_contacts = user.has_capability("contacts:manage")
+        can_users = user.has_capability("users:manage")
+        can_catalog = user.has_capability("catalog:read") or user.has_capability("catalog:manage")
 
-        return Response(
-            {
+        payload = {"recent": {}}
+
+        if can_orders:
+            revenue = (
+                Order.objects.exclude(status=OrderStatus.CANCELLED)
+                .aggregate(total=Coalesce(Sum("total"), 0, output_field=DecimalField()))
+                ["total"]
+            )
+            six_months_ago = timezone.now() - timezone.timedelta(days=180)
+            monthly_revenue = list(
+                Order.objects.exclude(status=OrderStatus.CANCELLED)
+                .filter(created_at__gte=six_months_ago)
+                .annotate(month=TruncMonth("created_at"))
+                .values("month")
+                .annotate(total=Coalesce(Sum("total"), 0, output_field=DecimalField()))
+                .order_by("month")
+                .values("month", "total")
+            )
+            payload.update({
                 "revenue": float(revenue),
                 "orders": {
                     "total": Order.objects.count(),
@@ -168,31 +163,59 @@ class DashboardStatsView(views.APIView):
                         for value in OrderStatus.values
                     },
                 },
-                "quotes": {
-                    "total": QuoteRequest.objects.count(),
-                    "by_status": {
-                        value: QuoteRequest.objects.filter(status=value).count()
-                        for value in QuoteStatus.values
-                    },
-                    "overdue_follow_ups": QuoteRequest.objects.filter(
-                        status=QuoteStatus.NEW, next_follow_up_at__lt=timezone.now()
-                    ).count(),
+                "monthly_revenue": [
+                    {"month": row["month"].strftime("%Y-%m") if row["month"] else "", "total": float(row["total"])}
+                    for row in monthly_revenue
+                ],
+            })
+            payload["recent"]["orders"] = list(
+                Order.objects.order_by("-created_at")[:5].values(
+                    "order_number", "status", "total", "created_at", "guest_email"
+                )
+            )
+
+        if can_quotes:
+            payload["quotes"] = {
+                "total": QuoteRequest.objects.count(),
+                "by_status": {
+                    value: QuoteRequest.objects.filter(status=value).count()
+                    for value in QuoteStatus.values
                 },
+                "overdue_follow_ups": QuoteRequest.objects.filter(
+                    status=QuoteStatus.NEW, next_follow_up_at__lt=timezone.now()
+                ).count(),
+            }
+            payload["recent"]["quotes"] = list(
+                QuoteRequest.objects.order_by("-created_at")[:5].values(
+                    "public_id", "status", "name", "email", "phone", "created_at"
+                )
+            )
+
+        if can_contacts:
+            payload.update({
                 "contacts": {
                     "total": ContactMessage.objects.count(),
                     "unread": ContactMessage.objects.filter(is_read=False).count(),
                 },
                 "newsletter_subscribers": Newsletter.objects.filter(is_active=True).count(),
-                "users": {"total": User.objects.count(), "staff": User.objects.filter(is_staff=True).count()},
-                "products": {
-                    "total": Product.objects.count(),
-                    "active": Product.objects.filter(is_active=True).count(),
-                    "low_stock": Product.objects.filter(is_active=True, stock__lte=5).count(),
-                },
-                "monthly_revenue": [
-                    {"month": row["month"].strftime("%Y-%m") if row["month"] else "", "total": float(row["total"])}
-                    for row in monthly_revenue
-                ],
-                "recent": {"orders": recent_orders, "quotes": recent_quotes, "contacts": recent_contacts},
+            })
+            payload["recent"]["contacts"] = list(
+                ContactMessage.objects.order_by("-created_at")[:5].values(
+                    "name", "email", "subject", "is_read", "created_at"
+                )
+            )
+
+        if can_users:
+            payload["users"] = {
+                "total": User.objects.count(),
+                "staff": User.objects.filter(is_staff=True).count(),
             }
-        )
+
+        if can_catalog:
+            payload["products"] = {
+                "total": Product.objects.count(),
+                "active": Product.objects.filter(is_active=True).count(),
+                "low_stock": Product.objects.filter(is_active=True, stock__lte=5).count(),
+            }
+
+        return Response(payload)

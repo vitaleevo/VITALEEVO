@@ -1,7 +1,6 @@
 import type { Metadata, Viewport, ResolvingMetadata } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import { Suspense } from "react";
-import Script from "next/script";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { SITE_CONTACT } from "@/shared/utils/contact";
@@ -10,7 +9,7 @@ import { ThemeProvider } from "@/shared/components/ThemeProvider";
 import { CartProvider } from "@/shared/providers/CartProvider";
 import MobileNavigation from "@/shared/components/MobileNavigation";
 import MaintenanceGuard from "@/shared/components/MaintenanceGuard";
-import AnalyticsTracker from "@/shared/components/AnalyticsTracker";
+import AnalyticsConsent from "@/shared/components/AnalyticsConsent";
 
 const inter = Inter({
     variable: "--font-inter",
@@ -158,7 +157,7 @@ export default function RootLayout({
                     <CartProvider>
                         <ThemeProvider>
                             <Toaster richColors position="top-right" />
-                            <AnalyticsTracker />
+                            <AnalyticsConsent googleAnalyticsId={process.env.NEXT_PUBLIC_GA_ID} />
                             <a href="#main-content" className="sr-only fixed left-4 top-4 z-[100] rounded-lg bg-primary px-4 py-2 font-semibold text-white focus:not-sr-only">
                                 Saltar para o conteúdo principal
                             </a>
@@ -177,22 +176,6 @@ export default function RootLayout({
                         </ThemeProvider>
                     </CartProvider>
                 </AuthProvider>
-                {process.env.NEXT_PUBLIC_GA_ID && (
-                    <>
-                        <Script
-                            src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
-                            strategy="afterInteractive"
-                        />
-                        <Script id="ga4-init" strategy="afterInteractive">
-                            {`
-                                window.dataLayer = window.dataLayer || [];
-                                function gtag(){dataLayer.push(arguments);}
-                                gtag('js', new Date());
-                                gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}', { anonymize_ip: true });
-                            `}
-                        </Script>
-                    </>
-                )}
             </body>
         </html>
     );

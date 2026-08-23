@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { API_BASE_URL } from "@/shared/utils/apiClient";
 
@@ -35,7 +35,7 @@ export default function AnalyticsTracker() {
     const flushTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Função para enviar os cliques acumulados para a API
-    const flushClicks = () => {
+    const flushClicks = useCallback(() => {
         if (pendingClicksRef.current.length === 0) return;
         const clicksToSend = [...pendingClicksRef.current];
         pendingClicksRef.current = [];
@@ -60,7 +60,7 @@ export default function AnalyticsTracker() {
                 keepalive: true,
             }).catch(() => {});
         }
-    };
+    }, [pathname]);
 
     // 1. Rastrear Pageview em cada mudança de rota (exceto /admin)
     useEffect(() => {
@@ -86,7 +86,7 @@ export default function AnalyticsTracker() {
                 screen_resolution: screenRes,
             }),
         }).catch(() => {});
-    }, [pathname]);
+    }, [flushClicks, pathname]);
 
     // 2. Rastrear cliques em botões, links e elementos com coordenadas (X, Y)
     useEffect(() => {
@@ -150,7 +150,7 @@ export default function AnalyticsTracker() {
             if (flushTimerRef.current) clearTimeout(flushTimerRef.current);
             flushClicks();
         };
-    }, [pathname]);
+    }, [flushClicks, pathname]);
 
     return null;
 }

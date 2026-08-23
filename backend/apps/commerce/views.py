@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from apps.core.permissions import HasCapability
+from apps.core.permissions import HasCapability, user_has_capability
 
 from .models import Address, CartItem, Notification, Order, WishlistItem
 from .serializers import (
@@ -182,9 +182,10 @@ class OrderViewSet(viewsets.ViewSet):
         token = request.query_params.get("access_token", "")
         user_owns = request.user.is_authenticated and order.user == request.user
         guest_owns = bool(order.guest_email and order.guest_email.lower() == getattr(request.user, "email", "").lower())
-        if not (user_owns or guest_owns or order.access_token == token or request.user.is_staff):
+        can_read_orders = user_has_capability(request.user, "orders:read")
+        if not (user_owns or guest_owns or order.access_token == token or can_read_orders):
             return Response({"detail": "Acesso não autorizado"}, status=status.HTTP_403_FORBIDDEN)
-        serializer = OrderAdminSerializer if request.user.is_staff else OrderReadSerializer
+        serializer = OrderAdminSerializer if can_read_orders else OrderReadSerializer
         return Response(serializer(order).data)
 
     @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
@@ -201,7 +202,7 @@ class OrderViewSet(viewsets.ViewSet):
             return Response({"detail": "Encomenda não encontrada"}, status=status.HTTP_404_NOT_FOUND)
         user_owns = order.user == request.user
         guest_owns = bool(order.guest_email and order.guest_email.lower() == request.user.email.lower())
-        if not (user_owns or guest_owns or order.access_token == token or request.user.is_staff):
+        if not (user_owns or guest_owns or order.access_token == token or user_has_capability(request.user, "orders:read")):
             return Response({"detail": "Acesso não autorizado"}, status=status.HTTP_403_FORBIDDEN)
         return Response(OrderReadSerializer(order).data)
 

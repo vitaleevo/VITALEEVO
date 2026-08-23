@@ -4,23 +4,23 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { api } from '@/shared/utils/apiClient';
 import Link from 'next/link';
-import { MailX, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 
 function UnsubscribeContent() {
     const searchParams = useSearchParams();
-    const email = searchParams.get('email');
+    const token = searchParams.get('token');
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
     useEffect(() => {
         const performUnsubscribe = async () => {
-            if (!email) {
+            if (!token) {
                 setStatus('error');
                 return;
             }
 
             try {
-                await api.newsletter.unsubscribe(email);
+                await api.newsletter.unsubscribe(token);
                 setStatus('success');
             } catch (error) {
                 console.error("Unsubscribe error:", error);
@@ -29,7 +29,7 @@ function UnsubscribeContent() {
         };
 
         performUnsubscribe();
-    }, [email]);
+    }, [token]);
 
     return (
         <div className="min-h-[60vh] flex items-center justify-center px-4">
@@ -49,7 +49,7 @@ function UnsubscribeContent() {
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Subscrição cancelada</h1>
                         <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
-                            O seu e-mail <strong>{email}</strong> foi removido com sucesso. Lamentamos vê-lo partir, mas respeitamos a sua privacidade.
+                            O seu endereço foi removido da newsletter. Lamentamos vê-lo partir, mas respeitamos a sua privacidade.
                         </p>
                         <div className="pt-6">
                             <Link href="/" className="inline-flex items-center justify-center px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all">

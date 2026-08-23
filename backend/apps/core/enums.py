@@ -35,7 +35,15 @@ ROLE_PERMISSIONS = {
     StaffRole.ADMIN: PERMISSIONS,
     StaffRole.COMMERCIAL: ["quotes:read", "quotes:manage", "contacts:manage", "media:upload"],
     StaffRole.CONTENT: ["content:manage", "content:import", "media:upload"],
-    StaffRole.OPERATIONS: ["catalog:read", "catalog:manage", "stock:manage", "quotes:read", "media:upload"],
+    StaffRole.OPERATIONS: [
+        "catalog:read",
+        "catalog:manage",
+        "stock:manage",
+        "quotes:read",
+        "orders:read",
+        "orders:manage",
+        "media:upload",
+    ],
     StaffRole.USER: [],
 }
 
