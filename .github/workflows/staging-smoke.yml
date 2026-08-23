@@ -36,6 +36,14 @@ jobs:
           curl --fail --show-error --silent "$API_URL/api/v1/health/live/"
           curl --fail --show-error --silent "$API_URL/api/v1/health/ready/"
           curl --fail --show-error --silent "$API_URL/api/v1/health/worker/"
+      - name: Validar ligação Vercel ao backend de staging
+        env:
+          FRONTEND_URL: ${{ inputs.frontend_url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: >-
+          curl --fail --show-error --silent
+          -H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET"
+          "$FRONTEND_URL/api/v1/health/live/"
       - name: Instalar dependências
         run: npm ci
       - name: Instalar Chromium
@@ -45,4 +53,5 @@ jobs:
           PLAYWRIGHT_BASE_URL: ${{ inputs.frontend_url }}
           E2E_REAL_API_URL: ${{ inputs.api_url }}
           E2E_ROLE_CREDENTIALS: ${{ secrets.E2E_ROLE_CREDENTIALS }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: npx playwright test e2e/staging-smoke.spec.ts --workers=1
