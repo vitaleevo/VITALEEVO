@@ -62,6 +62,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "apps.core.middleware.RequestObservabilityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -128,11 +129,35 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-# WhiteNoise: serve ficheiros estáticos (admin) sem servidor dedicado.
+
+# Media persistente: Railway Bucket/S3 em staging e produção; filesystem só em dev/testes.
+_s3_bucket = env.str("AWS_STORAGE_BUCKET_NAME", default="")
+_s3_access_key = env.str("AWS_ACCESS_KEY_ID", default="")
+_s3_secret_key = env.str("AWS_SECRET_ACCESS_KEY", default="")
+_s3_endpoint = env.str("AWS_S3_ENDPOINT_URL", default="")
+_s3_region = env.str("AWS_S3_REGION_NAME", default="auto")
+USE_S3_STORAGE = all((_s3_bucket, _s3_access_key, _s3_secret_key, _s3_endpoint))
+
+# WhiteNoise serve apenas estáticos do Django Admin.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
+if USE_S3_STORAGE:
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "access_key": _s3_access_key,
+            "secret_key": _s3_secret_key,
+            "bucket_name": _s3_bucket,
+            "endpoint_url": _s3_endpoint,
+            "region_name": _s3_region,
+            "addressing_style": env.str("AWS_S3_ADDRESSING_STYLE", default="virtual"),
+            "querystring_auth": True,
+            "querystring_expire": env.int("AWS_QUERYSTRING_EXPIRE", default=900),
+            "file_overwrite": False,
+        },
+    }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -222,3 +247,21 @@ ANALYTICS_RETENTION_DAYS = env.int("ANALYTICS_RETENTION_DAYS", default=180)
 # --- URLs públicas do site (usadas em e-mails/notificações) ---
 SITE_URL = env.str("SITE_URL", default="https://vitaleevo.ao")
 APPEND_SLASH = False
+
+# Railway captura stdout/stderr; JSON facilita pesquisa, alertas e correlação.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json": {"()": "config.logging.JsonFormatter"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "json"},
+    },
+    "root": {"handlers": ["console"], "level": env.str("LOG_LEVEL", default="INFO")},
+    "loggers": {
+        "django.server": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "vitaleevo.request": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "vitaleevo.health": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+}

@@ -9,6 +9,8 @@ if SECRET_KEY == "dev-only-secret-key-change-me-!1234567890abcdef":
     raise ImproperlyConfigured("SECRET_KEY é obrigatório em produção")
 if DATABASES["default"]["ENGINE"] != "django.db.backends.postgresql":
     raise ImproperlyConfigured("Produção exige PostgreSQL configurado via DATABASE_URL")
+if not USE_S3_STORAGE:  # noqa: F405
+    raise ImproperlyConfigured("Produção exige Railway Bucket/S3 para media persistente")
 _default_mailer = MAILERS["default"]  # noqa: F405
 if (
     _default_mailer["BACKEND"] == "django.core.mail.backends.console.EmailBackend"

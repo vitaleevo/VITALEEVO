@@ -2,38 +2,41 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
   pull_request:
-    branches: [main]
+    branches: [main, staging]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
   frontend:
-    name: Frontend — Lint, Typecheck e Build
+    name: Frontend — Audit, Lint, Testes e Build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
-
       - name: Instalar dependências
         run: npm ci
-
-      - name: Lint (ESLint)
+      - name: Auditar dependências de produção
+        run: npm audit --omit=dev --audit-level=high --ignore-scripts
+      - name: Lint
         run: npm run lint
-
-      - name: Typecheck (TypeScript)
+      - name: Typecheck
         run: npm run typecheck
-
-      - name: Build de produção (Next.js)
+      - name: Testes unitários
+        run: npm run test
+      - name: Build de produção
         env:
           NEXT_PUBLIC_API_URL: http://127.0.0.1:8100
           NEXT_PUBLIC_SITE_URL: https://vitaleevo.ao
@@ -41,34 +44,114 @@ jobs:
         run: npm run build:app
 
   backend:
-    name: Backend — Checks, Migrações e Testes
+    name: Backend — PostgreSQL, Redis, Migrações, OpenAPI e Testes
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: vitaleevo_ci
+          POSTGRES_USER: vitaleevo
+          POSTGRES_PASSWORD: vitaleevo_ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vitaleevo -d vitaleevo_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://vitaleevo:vitaleevo_ci_password@127.0.0.1:5432/vitaleevo_ci
+      REDIS_URL: redis://127.0.0.1:6379/0
+      RQ_ASYNC: "False"
+      SECRET_KEY: ci-only-secret-key-change-me-1234567890
+      DJANGO_SETTINGS_MODULE: config.settings.development
     defaults:
       run:
         working-directory: backend
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-
       - name: Setup Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
           cache: pip
           cache-dependency-path: backend/requirements.txt
-
       - name: Instalar dependências
         run: python -m pip install -r requirements.txt
-
       - name: Validar dependências
         run: python -m pip check
-
       - name: Django system check
         run: python manage.py check
-
-      - name: Validar migrações
+      - name: Validar migrações declaradas
         run: python manage.py makemigrations --check --dry-run
-
+      - name: Aplicar migrações numa base PostgreSQL limpa
+        run: python manage.py migrate --noinput
+      - name: Validar contrato OpenAPI
+        run: python manage.py spectacular --file /tmp/openapi.yml --validate
       - name: Testes backend
         run: python -m pytest
+
+  e2e:
+    name: Frontend — Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Executar percursos críticos
+        env:
+          NEXT_PUBLIC_API_URL: http://127.0.0.1:8100
+          NEXT_PUBLIC_SITE_URL: https://vitaleevo.ao
+          SITE_URL: https://vitaleevo.ao
+        run: npm run test:e2e
+
+  container:
+    name: Backend — Imagem e Liveness
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Construir imagem
+        run: docker build -t vitaleevo-backend:ci backend
+      - name: Iniciar API sem privilégios
+        run: >-
+          docker run --rm -d --name vitaleevo-backend-ci
+          -e DJANGO_ENV=development
+          -e SECRET_KEY=ci-only-secret-key-change-me-1234567890
+          -e RQ_ASYNC=False
+          -p 8080:8080 vitaleevo-backend:ci
+      - name: Validar liveness
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8080/api/v1/health/live/; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs vitaleevo-backend-ci
+          exit 1
+      - name: Parar API
+        if: always()
+        run: docker stop vitaleevo-backend-ci || true

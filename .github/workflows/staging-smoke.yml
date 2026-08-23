@@ -1,0 +1,48 @@
+name: Staging Smoke Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      frontend_url:
+        description: URL do Vercel Preview/Staging
+        required: true
+        type: string
+      api_url:
+        description: URL pública da API Railway staging
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Healthchecks e matriz real de login
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - name: Validar API e worker
+        env:
+          API_URL: ${{ inputs.api_url }}
+        run: |
+          curl --fail --show-error --silent "$API_URL/api/v1/health/live/"
+          curl --fail --show-error --silent "$API_URL/api/v1/health/ready/"
+          curl --fail --show-error --silent "$API_URL/api/v1/health/worker/"
+      - name: Instalar dependências
+        run: npm ci
+      - name: Instalar Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Executar matriz integrada
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ inputs.frontend_url }}
+          E2E_REAL_API_URL: ${{ inputs.api_url }}
+          E2E_ROLE_CREDENTIALS: ${{ secrets.E2E_ROLE_CREDENTIALS }}
+        run: npx playwright test e2e/staging-smoke.spec.ts --workers=1

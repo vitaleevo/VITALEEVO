@@ -1,6 +1,9 @@
 """Endpoints utilitários do core."""
-import uuid
+
+import logging
+from datetime import timedelta
 from pathlib import Path
+import uuid
 
 import django_rq
 from django.contrib.auth import get_user_model
@@ -9,6 +12,7 @@ from django.db import connection
 from django.db.models import DecimalField, Sum
 from django.db.models.functions import Coalesce, TruncMonth
 from django.utils import timezone
+from rq import Worker
 from rest_framework import serializers, status, views
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -17,6 +21,7 @@ from rest_framework.response import Response
 from .permissions import CanUploadMedia, IsStaff
 
 User = get_user_model()
+health_logger = logging.getLogger("vitaleevo.health")
 
 ALLOWED_IMAGE_TYPES = {
     "image/jpeg": ".jpg",
@@ -84,17 +89,38 @@ def health_ready(request):
             cursor.execute("SELECT 1")
         dependencies["db"] = True
     except Exception:  # noqa: BLE001 — readiness converte falhas em 503
-        pass
+        health_logger.warning("dependency_unavailable", extra={"dependency": "db"}, exc_info=True)
 
     try:
         dependencies["redis"] = bool(django_rq.get_connection("default").ping())
     except Exception:  # noqa: BLE001 — readiness converte falhas em 503
-        pass
+        health_logger.warning("dependency_unavailable", extra={"dependency": "redis"}, exc_info=True)
 
     is_ready = all(dependencies.values())
     return Response(
         {"status": "ok" if is_ready else "unavailable", "dependencies": dependencies},
         status=status.HTTP_200_OK if is_ready else status.HTTP_503_SERVICE_UNAVAILABLE,
+    )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def health_worker(request):
+    """Confirma que existe um worker RQ com heartbeat recente."""
+    try:
+        connection = django_rq.get_connection("default")
+        workers = Worker.all(connection=connection)
+        active = [
+            worker
+            for worker in workers
+            if worker.last_heartbeat and timezone.now() - worker.last_heartbeat <= timedelta(seconds=90)
+        ]
+    except Exception:  # noqa: BLE001 — healthcheck converte falhas em 503
+        health_logger.warning("dependency_unavailable", extra={"dependency": "rq_worker"}, exc_info=True)
+        active = []
+    return Response(
+        {"status": "ok" if active else "unavailable", "active_workers": len(active)},
+        status=status.HTTP_200_OK if active else status.HTTP_503_SERVICE_UNAVAILABLE,
     )
 
 
