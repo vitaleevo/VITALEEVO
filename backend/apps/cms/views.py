@@ -1,5 +1,6 @@
 """Endpoints do CMS — leitura pública no site; gestão com content:manage / settings:manage."""
-from rest_framework import viewsets
+from django.db import transaction
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView, ListCreateAPIView
 from rest_framework.permissions import AllowAny
@@ -7,17 +8,30 @@ from rest_framework.response import Response
 
 from apps.core.permissions import HasCapability
 
-from .models import ContactMessage, LegalDocument, Newsletter, Service, Setting, SitePage
+from .models import ContactMessage, LegalDocument, Newsletter, NewsletterBroadcast, Service, Setting, SitePage
 from .serializers import (
     ContactMessageSerializer,
     LegalDocumentSerializer,
     NewsletterSerializer,
+    NewsletterBroadcastRequestSerializer,
+    NewsletterBroadcastSerializer,
+    NewsletterUnsubscribeSerializer,
     ServiceAdminSerializer,
     ServiceSerializer,
     SettingSerializer,
     SitePageSerializer,
+    SitePageUpsertSerializer,
 )
-from .services import publish_page, upsert_page_with_blocks
+from .services import (
+    enqueue_contact_notification,
+    enqueue_newsletter_broadcast,
+    enqueue_newsletter_welcome,
+    publish_page,
+    unsubscribe_with_token,
+    upsert_page_with_blocks,
+)
+
+PUBLIC_SETTING_KEYS = {"site_config"}
 
 
 class ServiceViewSet(viewsets.ModelViewSet):
@@ -89,18 +103,16 @@ class SitePageViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"])
     def upsert(self, request):
         """POST /pages/upsert/ — cria/atualiza página com blocos (content:manage)."""
-        data = request.data
+        serializer = SitePageUpsertSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated = serializer.validated_data
+        blocks = validated.pop("blocks", [])
+        slug = validated.pop("slug")
         page = upsert_page_with_blocks(
-            slug=data.get("slug"),
+            slug=slug,
             actor=request.user,
-            data={
-                "title": data.get("title", ""),
-                "seo_title": data.get("seo_title", ""),
-                "seo_description": data.get("seo_description", ""),
-                "og_image": data.get("og_image", ""),
-                "status": data.get("status", "draft"),
-            },
-            blocks=data.get("blocks", []),
+            data=validated,
+            blocks=blocks,
         )
         return Response(SitePageSerializer(page).data)
 
@@ -119,6 +131,10 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         return ContactMessageSerializer
 
+    def perform_create(self, serializer):
+        contact = serializer.save()
+        transaction.on_commit(lambda: enqueue_contact_notification(str(contact.id)))
+
 
 class NewsletterViewSet(viewsets.ModelViewSet):
     """Newsletter — subscrição pública; gestão com contacts:manage."""
@@ -134,49 +150,66 @@ class NewsletterViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         return NewsletterSerializer
 
+    def perform_create(self, serializer):
+        subscriber = serializer.save()
+        transaction.on_commit(lambda: enqueue_newsletter_welcome(subscriber.email))
+
     @action(detail=False, methods=["post"], permission_classes=[AllowAny])
     def unsubscribe(self, request):
-        """POST /cms/newsletters/unsubscribe/ — remove subscrição pública por e-mail."""
-        email = str(request.data.get("email", "")).strip().lower()
-        if not email:
-            return Response({"detail": "E-mail é obrigatório."}, status=400)
-        deleted, _ = Newsletter.objects.filter(email=email).delete()
-        # idempotente: mesmo se não existir, devolve ok
-        return Response({"unsubscribed": bool(deleted), "email": email})
+        """POST /cms/newsletters/unsubscribe/ — desativa por token assinado."""
+        serializer = NewsletterUnsubscribeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if not unsubscribe_with_token(serializer.validated_data["token"]):
+            return Response({"detail": "Link inválido."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"unsubscribed": True})
 
     @action(detail=False, methods=["post"])
     def broadcast(self, request):
-        """POST /cms/newsletters/broadcast/ — envia e-mail a todos os subscritores ativos."""
-        from django.conf import settings
-        from django.core.mail import send_mail
-
+        """POST /cms/newsletters/broadcast/ — agenda envio RQ e devolve o estado."""
         from apps.audit.helpers import log_audit
 
-        subject = str(request.data.get("subject", "")).strip()
-        body = str(request.data.get("body", "")).strip()
-        if not subject or not body:
-            return Response({"detail": "subject e body são obrigatórios."}, status=400)
-        emails = list(Newsletter.objects.filter(is_active=True).values_list("email", flat=True))
-        for email in emails:
-            try:
-                send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [email])
-            except Exception:
-                continue
+        serializer = NewsletterBroadcastRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        recipients = Newsletter.objects.filter(is_active=True).count()
+        broadcast = NewsletterBroadcast.objects.create(
+            **serializer.validated_data,
+            requested_by=request.user,
+            total_recipients=recipients,
+        )
         log_audit(
             user=request.user,
-            action="newsletter.broadcast",
-            resource_type="newsletter",
-            details={"recipients": len(emails), "subject": subject},
+            action="newsletter.broadcast.queued",
+            resource_type="newsletter_broadcast",
+            resource_id=str(broadcast.id),
+            details={"recipients": recipients, "subject": broadcast.subject},
         )
-        return Response({"sent": len(emails)})
+        transaction.on_commit(lambda: enqueue_newsletter_broadcast(broadcast))
+        return Response(
+            NewsletterBroadcastSerializer(broadcast).data,
+            status=status.HTTP_202_ACCEPTED,
+        )
+
+
+class NewsletterBroadcastViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = NewsletterBroadcastSerializer
+    queryset = NewsletterBroadcast.objects.order_by("-created_at")
+
+    def get_permissions(self):
+        return [HasCapability("contacts:manage")]
 
 
 class SettingViewSet(viewsets.ModelViewSet):
     """Configurações do site (ex.: site_config) — leitura pública, gestão com settings:manage."""
 
-    queryset = Setting.objects.all()
     serializer_class = SettingSerializer
     lookup_field = "key"
+
+    def get_queryset(self):
+        queryset = Setting.objects.order_by("key")
+        user = self.request.user
+        if not user or not user.is_authenticated or not user.is_staff:
+            return queryset.filter(key__in=PUBLIC_SETTING_KEYS)
+        return queryset
 
     def get_permissions(self):
         if self.action in {"list", "retrieve"}:

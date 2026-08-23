@@ -2,7 +2,8 @@
 import pytest
 from rest_framework.test import APIClient
 
-from apps.catalog.models import Brand, Category, Product
+from apps.catalog.models import Brand, Category, InventoryMovement, Product
+from apps.catalog.services import adjust_stock
 
 pytestmark = pytest.mark.django_db
 
@@ -95,6 +96,82 @@ class TestCatalogStaff:
             {
                 "name": "Duplicado", "slug": "portatil-hp", "description": "D",
                 "price": "10.00", "image": "https://exemplo.ao/x.jpg", "category": "informatica",
+            },
+            format="json",
+        )
+        assert response.status_code == 400
+
+    def test_duplicate_sku_is_case_insensitive(self, admin_client, product, category):
+        response = admin_client.post(
+            "/api/v1/catalog/products/",
+            {
+                "name": "Outro",
+                "slug": "outro",
+                "sku": "hp-001",
+                "description": "D",
+                "price": "10.00",
+                "image": "https://exemplo.ao/x.jpg",
+                "category": category.slug,
+            },
+            format="json",
+        )
+        assert response.status_code == 400
+
+    def test_adjust_stock_uses_locked_current_value(self, admin_user, product):
+        stale_product = Product.objects.get(pk=product.pk)
+        assert adjust_stock(
+            product=product,
+            quantity=3,
+            actor=admin_user,
+            movement_type="adjustment",
+            note="Entrada 1",
+        ) == 8
+        assert adjust_stock(
+            product=stale_product,
+            quantity=2,
+            actor=admin_user,
+            movement_type="adjustment",
+            note="Entrada 2",
+        ) == 10
+        assert list(
+            InventoryMovement.objects.filter(product=product).values_list("quantity", flat=True)
+        ) == [2, 3]
+
+    def test_adjust_stock_rejects_negative_balance(self, admin_client, product):
+        response = admin_client.post(
+            f"/api/v1/catalog/products/{product.slug}/adjust_stock/",
+            {"quantity": -6, "note": "Saída inválida"},
+            format="json",
+        )
+        assert response.status_code == 400
+        product.refresh_from_db()
+        assert product.stock == 5
+        assert not InventoryMovement.objects.filter(product=product).exists()
+
+    def test_category_rejects_cycle(self, admin_client, category):
+        child = Category.objects.create(
+            name="Portáteis", slug="portateis", type="store", parent=category
+        )
+        response = admin_client.patch(
+            f"/api/v1/catalog/categories/{category.slug}/",
+            {"parent": child.slug},
+            format="json",
+        )
+        assert response.status_code == 400
+
+    def test_product_rejects_subcategory_from_another_category(self, admin_client, category):
+        other = Category.objects.create(name="Outro", slug="outro-cat", type="store")
+        sub = Category.objects.create(name="Sub", slug="sub-outro", type="store", parent=other)
+        response = admin_client.post(
+            "/api/v1/catalog/products/",
+            {
+                "name": "Inválido",
+                "slug": "invalido",
+                "description": "D",
+                "price": "10.00",
+                "image": "https://exemplo.ao/x.jpg",
+                "category": category.slug,
+                "subcategory": sub.slug,
             },
             format="json",
         )

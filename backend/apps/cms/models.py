@@ -145,6 +145,41 @@ class Newsletter(BaseModel):
         return self.email
 
 
+class NewsletterBroadcastStatus(models.TextChoices):
+    QUEUED = "queued", "Em fila"
+    RUNNING = "running", "Em execução"
+    COMPLETED = "completed", "Concluído"
+    FAILED = "failed", "Falhou"
+
+
+class NewsletterBroadcast(BaseModel):
+    subject = models.CharField(max_length=200)
+    body = models.TextField()
+    status = models.CharField(
+        max_length=20,
+        choices=NewsletterBroadcastStatus.choices,
+        default=NewsletterBroadcastStatus.QUEUED,
+        db_index=True,
+    )
+    total_recipients = models.PositiveIntegerField(default=0)
+    sent_count = models.PositiveIntegerField(default=0)
+    failed_count = models.PositiveIntegerField(default=0)
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="newsletter_broadcasts",
+    )
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta(BaseModel.Meta):
+        verbose_name = "envio de newsletter"
+        verbose_name_plural = "envios de newsletter"
+
+    def __str__(self):
+        return f"{self.subject} ({self.status})"
+
+
 class Setting(BaseModel):
     """Configuração chave/valor — fonte única para o conteúdo do site (ex.: site_config)."""
 

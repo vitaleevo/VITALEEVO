@@ -160,6 +160,7 @@ REST_FRAMEWORK = {
         "auth_logout": "30/min",
         "auth_password_reset": "5/hour",
         "auth_password_reset_confirm": "10/hour",
+        "analytics_track": "120/min",
         "quotes": "60/min",
         "quote_status": "20/min",
         "writes": "120/min",
@@ -216,6 +217,7 @@ MAILERS = {
 }
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="no-reply@vitaleevo.ao")
 PASSWORD_RESET_TIMEOUT = env.int("PASSWORD_RESET_TIMEOUT", default=900)
+ANALYTICS_RETENTION_DAYS = env.int("ANALYTICS_RETENTION_DAYS", default=180)
 
 # --- URLs públicas do site (usadas em e-mails/notificações) ---
 SITE_URL = env.str("SITE_URL", default="https://vitaleevo.ao")

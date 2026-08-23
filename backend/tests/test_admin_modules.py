@@ -63,15 +63,19 @@ def test_audit_logs_listable_by_admin(client):
 
 
 @pytest.mark.django_db
-def test_newsletter_broadcast_sends_emails(client, settings):
+def test_newsletter_broadcast_sends_emails(client, settings, django_capture_on_commit_callbacks):
     admin = make_admin()
     Newsletter.objects.create(email="sub@vitaleevo.ao")
     Newsletter.objects.create(email="inactive@vitaleevo.ao", is_active=False)
     settings.MAILERS["default"]["BACKEND"] = "django.core.mail.backends.locmem.EmailBackend"  # type: ignore[index]
     client.force_authenticate(admin)
-    response = client.post(f"{API}/cms/newsletters/broadcast/", {"subject": "Oferta", "body": "Corpo"}, format="json")
-    assert response.status_code == 200
-    assert response.json()["sent"] == 1
+    with django_capture_on_commit_callbacks(execute=True):
+        response = client.post(f"{API}/cms/newsletters/broadcast/", {"subject": "Oferta", "body": "Corpo"}, format="json")
+    assert response.status_code == 202
+    status_response = client.get(f"{API}/cms/newsletter-broadcasts/{response.json()['id']}/")
+    assert status_response.status_code == 200
+    assert status_response.json()["sent_count"] == 1
+    assert status_response.json()["failed_count"] == 0
     assert len(mail.outbox) == 1
 
 

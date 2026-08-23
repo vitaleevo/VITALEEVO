@@ -4,7 +4,7 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 
-from apps.catalog.models import Category, Product
+from apps.catalog.models import Category, InventoryMovement, Product
 from apps.commerce.models import Address, CartItem, Notification, Order, WishlistItem
 
 pytestmark = pytest.mark.django_db
@@ -58,6 +58,9 @@ class TestCheckout:
         assert data["items"][0]["name"] == "Impressora"
         product.refresh_from_db()
         assert product.stock == 8
+        movement = InventoryMovement.objects.get(product=product, type="reserved")
+        assert movement.quantity == -2
+        assert movement.actor is None
 
     def test_order_requires_stock(self, client, product):
         response = client.post(
@@ -147,6 +150,26 @@ class TestAdminOrders:
 
     def test_anon_cannot_manage_orders(self, client, product):
         assert client.get("/api/v1/commerce/orders/manage/").status_code == 401
+
+    def test_cancel_releases_stock_only_once(self, admin_client, product):
+        order_data = admin_client.post(
+            "/api/v1/commerce/orders/",
+            {"items": [{"slug": "impressora", "quantity": 2}], "shipping_address": {}},
+            format="json",
+        ).json()
+        product.refresh_from_db()
+        assert product.stock == 8
+
+        url = f"/api/v1/commerce/orders/manage/{order_data['id']}/update_status/"
+        assert admin_client.post(url, {"status": "cancelled"}, format="json").status_code == 200
+        product.refresh_from_db()
+        assert product.stock == 10
+        assert InventoryMovement.objects.filter(product=product, type="released", quantity=2).count() == 1
+
+        assert admin_client.post(url, {"status": "cancelled"}, format="json").status_code == 200
+        product.refresh_from_db()
+        assert product.stock == 10
+        assert admin_client.post(url, {"status": "processing"}, format="json").status_code == 400
 
 
 class TestMediaUpload:

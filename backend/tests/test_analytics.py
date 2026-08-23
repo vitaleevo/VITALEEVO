@@ -67,6 +67,25 @@ class TestAnalyticsTracking:
         assert PageView.objects.filter(session_id="batch-session-999", path="/services").exists()
         assert ClickEvent.objects.filter(session_id="batch-session-999").count() == 2
 
+    def test_rejects_invalid_coordinates(self):
+        res = self.client.post("/api/v1/analytics/track/", {
+            "type": "click",
+            "path": "/store",
+            "session_id": "session-invalid",
+            "x_percent": 101,
+            "y_percent": -1,
+        }, format="json")
+        assert res.status_code == 400
+        assert ClickEvent.objects.count() == 0
+
+    def test_rejects_oversized_batch(self):
+        res = self.client.post("/api/v1/analytics/track/", {
+            "session_id": "session-too-large",
+            "path": "/store",
+            "clicks": [{"x_percent": 1, "y_percent": 1} for _ in range(51)],
+        }, format="json")
+        assert res.status_code == 400
+
 
 @pytest.mark.django_db
 class TestAnalyticsAggregations:
@@ -116,3 +135,6 @@ class TestAnalyticsAggregations:
         paths = [p["path"] for p in res.data]
         assert "/" in paths
         assert "/store" in paths
+
+    def test_invalid_period_returns_400(self):
+        assert self.client.get("/api/v1/analytics/overview/?period=year").status_code == 400

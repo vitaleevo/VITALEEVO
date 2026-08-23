@@ -1,7 +1,8 @@
 """Testes do CMS — serviços públicos, páginas com blocos e mensagens de contacto."""
 import pytest
 
-from apps.cms.models import LegalDocument, Service, SiteBlock, SitePage
+from apps.cms.models import LegalDocument, Newsletter, Service, Setting, SiteBlock, SitePage
+from apps.cms.services import create_unsubscribe_token
 
 pytestmark = pytest.mark.django_db
 
@@ -54,6 +55,34 @@ class TestCmsPublic:
         )
         assert response.status_code == 201
 
+    def test_private_setting_is_not_public(self, client):
+        Setting.objects.create(key="site_config", value={"siteName": "VitalEvo"})
+        Setting.objects.create(key="internal_secret", value={"token": "never-public"})
+        response = client.get("/api/v1/cms/settings/")
+        assert response.status_code == 200
+        assert [item["key"] for item in response.json()["results"]] == ["site_config"]
+
+    def test_newsletter_unsubscribe_requires_signed_token(self, client):
+        subscriber = Newsletter.objects.create(email="sub@teste.ao")
+        token = create_unsubscribe_token(subscriber.email)
+        response = client.post(
+            "/api/v1/cms/newsletters/unsubscribe/", {"token": token}, format="json"
+        )
+        assert response.status_code == 200
+        subscriber.refresh_from_db()
+        assert subscriber.is_active is False
+        assert client.post(
+            "/api/v1/cms/newsletters/unsubscribe/", {"token": token + "x"}, format="json"
+        ).status_code == 400
+
+    def test_resubscribe_reactivates_existing_email(self, client):
+        Newsletter.objects.create(email="sub@teste.ao", is_active=False)
+        response = client.post(
+            "/api/v1/cms/newsletters/", {"email": "SUB@TESTE.AO"}, format="json"
+        )
+        assert response.status_code == 201
+        assert Newsletter.objects.get(email="sub@teste.ao").is_active is True
+
 
 class TestCmsStaff:
     def test_anon_cannot_create_service(self, client):
@@ -78,6 +107,15 @@ class TestCmsStaff:
         )
         assert response.status_code == 200
         assert len(response.json()["blocks"]) == 2
+
+    def test_upsert_rejects_invalid_block_type(self, admin_client):
+        response = admin_client.post(
+            "/api/v1/cms/pages/upsert/",
+            {"slug": "home", "title": "Home", "blocks": [{"type": "script", "content": "x"}]},
+            format="json",
+        )
+        assert response.status_code == 400
+        assert not SitePage.objects.filter(slug="home").exists()
 
     def test_publish_page(self, admin_client):
         page = SitePage.objects.create(slug="sobre", title="Sobre", status="draft")
