@@ -2,6 +2,8 @@ import FeatureLayout from "@/shared/components/FeatureLayout";
 import Home from "@/features/home/components/Home";
 import { SITE_CONTACT } from "@/shared/utils/contact";
 
+export const revalidate = 10;
+
 export default function HomePage() {
     const jsonLd = {
         '@context': 'https://schema.org',
