@@ -7,12 +7,13 @@ Objetivo: corrigir os bloqueadores técnicos, publicar o código no GitHub e ope
 ## Estado de execução — 2026-08-23
 
 - Gate 0 de código: concluído (credenciais fixas e exemplos sensíveis removidos; bootstrap e seed endurecidos).
-- Gate 0 operacional: em curso. Backup/restauração e configuração pública Railway/DNS concluídos; revogação dos segredos históricos, segredo SMTP e rotação do admin real ainda pendentes.
+- Gate 0 operacional: em curso. Backup/restauração, configuração pública Railway/DNS e staging isolado concluídos; revogação dos segredos históricos, segredo SMTP e rotação do admin real ainda pendentes.
 - PR 1: implementado e validado na branch `codex/production-hardening`.
 - PR 2: implementado, validado e publicado na branch `codex/data-cms-analytics` (`296d519`).
 - PR 3: implementado, validado e publicado na branch `codex/frontend-admin-logins` (`18c8a7d`).
-- PR 4: implementado e validado localmente; publicação do PR e configuração externa em curso.
-- Revisão/merge, staging e produção: pendentes dos gates operacionais.
+- PR 4: implementado, publicado e validado no GitHub; o código de infraestrutura no commit `6dc8828` deixou CI, Vercel Preview e Railway staging verdes.
+- Staging: API, worker, cron, PostgreSQL, Redis, bucket e migrações operacionais; cinco contas E2E foram provisionadas com credenciais seladas no GitHub.
+- Revisão/merge e produção: pendentes do SMTP Resend, revogação Resend/Convex, matriz E2E real e decisão explícita GO.
 - Decisão de release: **NO-GO** até todos os gates aplicáveis passarem.
 
 ## Resultado final esperado

@@ -1,5 +1,12 @@
 # Checklist de Produção
 
+## Estado operacional — 2026-08-23
+
+- Concluído: backup/restauração, PRs 1–4 publicados, CI verde, Railway staging isolado, migrações, API/worker/cron, storage persistente e Vercel Preview ligado ao backend de staging.
+- Concluído: contas E2E de cliente, comercial, conteúdo, operações e super admin provisionadas em staging; credenciais seladas apenas no environment `staging` do GitHub.
+- Pendente: nova chave SMTP Resend, teste real de e-mail/recuperação, revogação das chaves históricas Resend/Convex, rotação do admin real e matriz E2E integrada.
+- Decisão atual: **NO-GO para merge/deploy de produção**.
+
 ## Gate 0 — contenção e credenciais
 
 - Confirmar backup PostgreSQL restaurável e respetivo checksum fora do repositório.

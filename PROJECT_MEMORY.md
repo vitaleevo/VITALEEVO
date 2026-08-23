@@ -2,7 +2,25 @@
 
 ## Estado Atual
 
-O frontend Next.js continua publicado na Vercel em `https://vitaleevo.ao`; o backend Django/DRF está ligado no Railway a PostgreSQL e Redis. Os PRs 1–3 estão implementados em branches empilhadas e publicados no GitHub: `codex/production-hardening`, `codex/data-cms-analytics` (`296d519`) e `codex/frontend-admin-logins` (`18c8a7d`). O backup restaurável e a configuração pública do Railway/DNS foram concluídos; a produção continua bloqueada até revogar os segredos históricos, configurar o segredo SMTP, rotacionar o administrador real, revisar/mesclar os PRs em sequência e concluir a homologação integrada descrita em `PRODUCTION_IMPLEMENTATION_PLAN.md`.
+O frontend Next.js continua publicado na Vercel em `https://vitaleevo.ao`; o backend Django/DRF de produção continua no Railway sem receber as alterações desta sequência. Os PRs 1–4 estão implementados e publicados no GitHub, e a branch `staging` está ligada a um ambiente Railway isolado e a um Vercel Preview. O backup restaurável, a configuração pública do Railway/DNS e a infraestrutura de staging foram concluídos. A produção continua bloqueada até criar e instalar a nova chave SMTP do Resend, revogar as chaves históricas do Resend/Convex, rotacionar o administrador real, executar a matriz E2E integrada e revisar/mesclar os PRs em sequência.
+
+## Checkpoint PR 4, staging e integração — 2026-08-23
+
+- Publicado o PR #4 (`codex/cicd-railway-vercel`); o código de infraestrutura foi validado no commit `6dc8828` e a branch remota `staging` acompanha o PR.
+- Todos os checks do PR #4 estão verdes: backend com PostgreSQL/Redis/migrações/OpenAPI/testes, imagem Docker e liveness, frontend audit/lint/testes/build, Playwright, Vercel e os três serviços Railway.
+- Criado ambiente Railway `staging` isolado com PostgreSQL, Redis persistente, bucket S3 privado `media-staging`, API, worker RQ e cron `analytics-cleanup`.
+- API de staging publicada em `https://api-staging-e6d1.up.railway.app`; liveness, readiness (PostgreSQL/Redis) e heartbeat do worker respondem 200.
+- Migrações executadas com sucesso como Pre-Deploy Command. API e worker são processos separados; o cron de limpeza está versionado e agendado.
+- Vercel Preview das branches `staging` e `codex/cicd-railway-vercel` aponta exclusivamente para a API Railway de staging. O proxy do Preview até `/api/v1/health/live/` foi comprovado.
+- Variáveis de backend/e-mail legadas foram removidas da Vercel. O bypass de proteção do Preview está selado no environment `staging` do GitHub.
+- Foram provisionadas cinco contas E2E exclusivas de staging (cliente, comercial, conteúdo, operações e super admin). As credenciais aleatórias existem apenas como secret `E2E_ROLE_CREDENTIALS` no environment `staging` do GitHub; a cópia temporária no Railway foi removida.
+- A configuração de staging permanece temporariamente em modo de desenvolvimento porque ainda não existe uma nova chave SMTP Resend. Produção não foi mesclada nem alterada por esta etapa.
+
+Estado do release:
+
+- Infraestrutura, CI/CD, storage, migrações e healthchecks de staging: **GO**.
+- SMTP real, recuperação de password, rotação/revogação de chaves e matriz completa de logins/admin: **PENDENTE**.
+- Decisão global: **NO-GO para produção** até concluir os itens pendentes, executar smoke/E2E real e revisar/mesclar os PRs 1–4 em ordem.
 
 ## Checkpoint operacional do Gate 0 — 2026-08-23
 
@@ -126,9 +144,9 @@ Estado do projeto:
 
 ## Próximo passo recomendado
 
-Revisar e mesclar sequencialmente os PRs 1–3, concluir o Gate 0 operacional e executar a homologação de staging antes de qualquer deploy de produção.
+Com confirmação explícita no momento da ação, criar uma nova chave SMTP no Resend, instalá-la de forma selada no Railway staging/produção, validar envio e recuperação de password em staging e só então revogar as chaves históricas do Resend e do Convex. Depois, rotacionar o administrador real, executar a matriz E2E do staging e revisar/mesclar sequencialmente os PRs 1–4 antes do deploy controlado de produção.
 
-AVISO: O proximo passo e criar/implementar a revisao e merge sequencial dos PRs 1-3, concluir o Gate 0 operacional e homologar staging. Antes de iniciar, leia `PROJECT_MEMORY.md` para continuar exatamente de onde o projeto parou, entender o que ja foi feito e integrar a solucao com o sistema atual sem reler todo o repositorio.
+AVISO: O proximo passo e criar/implementar a conclusao operacional do Gate 0 no Resend e Convex, validar SMTP e todos os logins no staging e preparar o merge sequencial dos PRs 1-4. Antes de iniciar, leia `PROJECT_MEMORY.md` para continuar exatamente de onde o projeto parou, entender o que ja foi feito e integrar a solucao com o sistema atual sem reler todo o repositorio.
 
 ## Histórico anterior — publicação Convex (desatualizado)
 
