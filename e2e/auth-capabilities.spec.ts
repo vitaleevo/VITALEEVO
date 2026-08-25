@@ -12,7 +12,7 @@ const PERMISSIONS: Record<Role, string[]> = {
 
 async function mockApi(page: Page, role: Role) {
     await page.route("**/api/v1/**", async route => {
-        const path = new URL(route.request().url()).pathname;
+        const path = new URL(route.request().url()).pathname.replace(/\/+$/, "");
         let body: unknown = { count: 0, next: null, previous: null, results: [] };
         if (path.endsWith("/auth/login")) body = { access: "access-token", refresh: "refresh-token" };
         else if (path.endsWith("/auth/me")) {
