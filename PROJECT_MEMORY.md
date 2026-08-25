@@ -2,7 +2,17 @@
 
 ## Estado Atual
 
-O frontend Next.js continua em `https://vitaleevo.ao` ainda servido pelo backend legado Convex `merry-fennec-711`; o backend Django de produção no Railway (`879017da-2678-4ae5-a4ab-82bad3a220d1`, env `production`, serviço `web` em `https://api.vitaleevo.ao`) continua no build antigo e sem bucket S3. Os PRs 1–4 estão implementados e publicados (`codex/cicd-railway-vercel` e `staging` em `fd7d13e`), e o ambiente Railway `staging` já opera em modo produção com SMTP real e logins validados. A decisão é eliminar o Convex e subir todo o backend no Railway pessoal; falta apenas provisionar o bucket `media-production`, mesclar os PRs e fazer o cutover Vercel → Railway.
+O frontend Next.js continua em `https://vitaleevo.ao` ainda servido pelo backend legado Convex `merry-fennec-711`; o backend Django de produção no Railway (`879017da-2678-4ae5-a4ab-82bad3a220d1`, env `production` id `0a99530d-7e56-4b5a-a402-49975661e1ab`, serviço `web` em `https://api.vitaleevo.ao`) continua no build antigo mas JÁ TEM bucket S3 e SMTP prontos. Os PRs 1–4 estão implementados (`codex/cicd-railway-vercel` e `staging` em `f3704e1`), o ambiente Railway `staging` opera em modo produção com SMTP real, logins validados, 3 réplicas e Fases 0–2 de escala implementadas. Falta apenas: merge dos PRs em `main`, redeploy de produção e cutover Vercel → Railway.
+
+## Checkpoint bucket media-production — 2026-08-24
+
+- Bucket de produção criado e ligado ao serviço `web` via browser CDP (`http://localhost:9222`, perfil `chrome-cdp-profile` autenticado no Railway): bucket `preserved-basketcase` (id `3373836c-b40d-49f6-8a06-68a8f84baa9f`, nome real S3 `preserved-basketcase-o5l8l0`, região EU West Amsterdam, endpoint `https://t3.storageapi.dev`).
+- Fluxo que funcionou: command palette → `New Service` → `Bucket` (navegação por teclado ArrowDown×6+Enter; clique JS não regista no cmdk) → painel Settings confirmou região → `Shift+Enter` na palette aplicou as mudanças (o botão `Apply` não respondeu a cliques sintéticos).
+- Variáveis injetadas pelo diálogo `Add to Service` com estilo **Django (django-storages)** — nomes exatos exigidos por `file:backend/config/settings/base.py:134`: `AWS_S3_ENDPOINT_URL`, `AWS_STORAGE_BUCKET_NAME`, `AWS_S3_REGION_NAME`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (referências `${{preserved-basketcase.*}}`), confirmadas em `production/web` via `railway variable list`.
+- `EMAIL_HOST_PASSWORD` (chave `vitaleevo-production` `re_87Qv...`) já estava selada em `production/web` com `--skip-deploys`.
+- Agent do Railway não consegue definir região em buckets de ambiente (só templates); API GraphQL cria bucket mas não instancia (`BucketInstance not found` sem mutação pública); `bucketS3Credentials` retorna `Not Authorized` para token de CLI — credenciais só visíveis no dashboard.
+- Limpieza pendente: buckets órfãos `2e62acb5` (criado por engano no projeto `profissionais`, env `328a5f6d`) e `10a7352e`/`ample-cornucopia-lJVK` + `64b21aa2`/`convenient-pantry` (sem instância, descartados) — apagar manualmente no dashboard.
+- Produção agora cumpre `file:backend/config/settings/production.py:12` (`USE_S3_STORAGE`) e `:21` (SMTP) — pronta para o deploy do código novo após merge.
 
 ## Checkpoint Gate 0 operacional — SMTP, logins e correções — 2026-08-23
 
