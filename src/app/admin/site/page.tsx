@@ -32,7 +32,7 @@ export function AdminSiteContent() {
             title="Páginas do Site"
             subtitle="Páginas internas e SEO"
             itemName="Página"
-            permission="settings:manage"
+            permission="content:manage"
             fetcher={() => api.pages.list({ page_size: 100 })}
             columns={columns}
             fields={fields}

@@ -35,8 +35,8 @@ export function AdminNewsletterContent() {
         if (!token) return;
         setSending(true);
         try {
-            const { sent } = await api.newsletter.broadcast(subject, body, token);
-            toast.success(`E-mail enviado para ${sent} subscritores`);
+            const result = await api.newsletter.broadcast(subject, body, token);
+            toast.success(`Envio colocado em fila para ${result.totalRecipients} subscritores`);
             setSubject("");
             setBody("");
         } catch (err: any) {
@@ -81,7 +81,7 @@ export function AdminNewsletterContent() {
                             className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white hover:bg-primary-dark disabled:opacity-50 transition-colors"
                         >
                             <Send className="w-4 h-4" />
-                            {sending ? "A enviar..." : `Enviar para ${subscribers?.length ?? 0} subscritores`}
+                            {sending ? "A agendar..." : `Agendar para ${subscribers?.length ?? 0} subscritores`}
                         </button>
                     </div>
                 </Card>

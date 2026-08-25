@@ -1,16 +1,49 @@
-"""Healthcheck antecipado — responde antes da validação de ALLOWED_HOSTS.
+"""Observabilidade HTTP: request ID e latência sem registar dados pessoais."""
 
-O probe da Railway envia Host header interno (IP/nome privado) que não está em
-ALLOWED_HOSTS; sem isto o healthcheck receberia 400 e o deploy falhava.
-"""
-from django.http import JsonResponse
+import logging
+import re
+import time
+import uuid
+
+REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
+logger = logging.getLogger("vitaleevo.request")
 
 
-class HealthCheckMiddleware:
+class RequestObservabilityMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.path == "/api/v1/health/":
-            return JsonResponse({"status": "ok"})
-        return self.get_response(request)
+        supplied_id = request.headers.get("X-Request-ID", "")
+        request_id = supplied_id if REQUEST_ID_PATTERN.fullmatch(supplied_id) else uuid.uuid4().hex
+        request.request_id = request_id
+        started = time.perf_counter()
+
+        try:
+            response = self.get_response(request)
+        except Exception:  # noqa: BLE001 — regista contexto e preserva o handler Django
+            logger.exception(
+                "request_failed",
+                extra={
+                    "request_id": request_id,
+                    "method": request.method,
+                    "path": request.path,
+                    "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                },
+            )
+            raise
+
+        duration_ms = round((time.perf_counter() - started) * 1000, 2)
+        response["X-Request-ID"] = request_id
+        log = logger.warning if response.status_code >= 500 else logger.info
+        log(
+            "request_completed",
+            extra={
+                "request_id": request_id,
+                "method": request.method,
+                "path": request.path,
+                "status_code": response.status_code,
+                "duration_ms": duration_ms,
+            },
+        )
+        return response

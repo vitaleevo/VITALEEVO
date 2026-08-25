@@ -1,4 +1,6 @@
-"""Regras de negócio das cotações — SOLID: criação com transação, auditoria e notificação."""
+"""Regras de negócio das cotações — criação, acesso público e notificações."""
+import hashlib
+import hmac
 import secrets
 
 from django.db import transaction
@@ -18,6 +20,24 @@ def generate_public_id() -> str:
             return public_id
 
 
+def generate_public_access_token() -> str:
+    """Token de capacidade devolvido uma única vez ao autor da cotação."""
+    return secrets.token_urlsafe(32)
+
+
+def hash_public_access_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def public_access_token_matches(quote: QuoteRequest, token: str) -> bool:
+    if not quote.public_access_token_hash or not token:
+        return False
+    return hmac.compare_digest(
+        quote.public_access_token_hash,
+        hash_public_access_token(token),
+    )
+
+
 @transaction.atomic
 def create_quote_request(
     *,
@@ -32,8 +52,11 @@ def create_quote_request(
     ip_address: str | None = None,
 ) -> QuoteRequest:
     """Cria pedido de cotação com itens, auditoria e notificação por e-mail (fila)."""
+    access_token = generate_public_access_token()
+    item_data = items or []
     quote = QuoteRequest.objects.create(
         public_id=generate_public_id(),
+        public_access_token_hash=hash_public_access_token(access_token),
         name=name,
         email=email,
         phone=phone,
@@ -41,7 +64,7 @@ def create_quote_request(
         message=message,
         source=source,
     )
-    for item in items or []:
+    for item in item_data:
         QuoteItem.objects.create(quote=quote, **item)
 
     log_audit(
@@ -49,11 +72,13 @@ def create_quote_request(
         action="quote.create",
         resource_type="quote",
         resource_id=str(quote.id),
-        details={"public_id": quote.public_id, "items": len(items)},
+        details={"public_id": quote.public_id, "items": len(item_data)},
         ip_address=ip_address,
     )
 
-    send_quote_notification.delay(str(quote.id))
+    quote_id = str(quote.id)
+    transaction.on_commit(lambda: send_quote_notification.delay(quote_id))
+    quote.public_access_token = access_token
     return quote
 
 

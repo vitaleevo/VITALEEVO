@@ -78,6 +78,9 @@ export default function LoginPage() {
                         <AnimatePresence mode="wait">
                             {displayError && (
                                 <motion.div
+                                    id="login-error"
+                                    role="alert"
+                                    aria-live="assertive"
                                     initial={{ opacity: 0, y: -20, height: 0 }}
                                     animate={{ opacity: 1, y: 0, height: "auto" }}
                                     exit={{ opacity: 0, y: -20, height: 0 }}
@@ -100,38 +103,47 @@ export default function LoginPage() {
 
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                <label htmlFor="login-email" className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                                     E-mail
                                 </label>
                                 <div className="relative">
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                     <input
+                                        id="login-email"
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         className="w-full h-14 pl-12 pr-4 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                                         placeholder="seu@email.com"
                                         autoComplete="email"
+                                        required
+                                        aria-invalid={Boolean(displayError)}
+                                        aria-describedby={displayError ? "login-error" : undefined}
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                <label htmlFor="login-password" className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                                     Senha
                                 </label>
                                 <div className="relative">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                     <input
+                                        id="login-password"
                                         type={showPassword ? "text" : "password"}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="w-full h-14 pl-12 pr-12 rounded-xl bg-gray-50 dark:bg-black/20 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                                         placeholder="••••••••"
                                         autoComplete="current-password"
+                                        required
+                                        aria-invalid={Boolean(displayError)}
+                                        aria-describedby={displayError ? "login-error" : undefined}
                                     />
                                     <button
                                         type="button"
+                                        aria-label={showPassword ? "Ocultar password" : "Mostrar password"}
                                         onClick={() => setShowPassword(!showPassword)}
                                         className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"
                                     >
@@ -151,7 +163,7 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full h-14 bg-primary hover:bg-primary-dark disabled:bg-primary/50 text-white rounded-xl font-bold text-lg shadow-lg shadow-primary/25 transition-all flex items-center justify-center gap-2 group"
+                                className="w-full h-14 bg-primary hover:bg-primary-dark disabled:bg-primary/50 text-white rounded-xl font-bold text-lg shadow-lg shadow-primary/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all flex items-center justify-center gap-2 group"
                             >
                                 {isLoading ? (
                                     <>

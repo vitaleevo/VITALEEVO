@@ -1,26 +1,9 @@
-# === GUIA DEFINITIVO DE DEPLOY - VITALEEVO ===
+# Variáveis públicas da aplicação Next.js na Vercel.
+# Configure os valores reais no painel da Vercel; nunca coloque segredos neste ficheiro.
 
-# --- 🎯 1. VARIÁVEIS DE AMBIENTE (OBRIGATÓRIO) ---
-# Adicione estas chaves EXATAMENTE assim no painel da Vercel (Settings -> Environment Variables):
-
-# Backend Convex (Obrigatório para o site funcionar)
-NEXT_PUBLIC_CONVEX_URL=https://merry-fennec-711.convex.cloud
-CONVEX_URL=https://merry-fennec-711.convex.cloud
-CONVEX_DEPLOY_KEY=prod:merry-fennec-711|eyJ2MiI6IjgxODJhMTMxNzU3YTRmMWQ4MWJmMDcwMDlhOWEzYWY3In0=
-
-# Serviços Externos
-RESEND_API_KEY=re_STYWwjLe_2D9MieAyMSFxQcKNVwyjnE9V
-
-# Configuração do Site
+NEXT_PUBLIC_API_URL=https://api.vitaleevo.ao
 NEXT_PUBLIC_SITE_URL=https://vitaleevo.ao
+SITE_URL=https://vitaleevo.ao
 
-# --- 🛠️ 2. O QUE EU CORRIGI PARA O NOVO DEPLOY ---
-# 1. ERRO DE FETCH: Adicionei proteção 'try-catch' no servidor. Se o backend demorar a responder, o site não cai.
-# 2. CSP (SEGURANÇA): Actualizei as regras de segurança para permitir que a Vercel fale com o Convex via WebSocket.
-# 3. CONVEX PROVIDER: Adicionei uma proteção que avisa se a URL estiver em falta em vez de crashar o ecrã todo.
-# 4. BRANDING: Tudo unificado como 'Vitaleevo'.
-
-# --- 🚀 3. COMO FAZER O DEPLOY AGORA ---
-# 1. Se o projeto na Vercel já existe, apague todas as variáveis antigas e coloque estas novas.
-# 2. Se for criar um novo, coloque estas variáveis ANTES de fazer o primeiro deploy.
-# 3. Se o erro "Application Error" persistir no navegador: limpe o cache do seu navegador ou abra em modo incógnito (pode ser o cache do antigo sistema Clerk).
+# Variáveis antigas do Convex e segredos de e-mail não pertencem ao frontend.
+# O envio transacional será centralizado no backend Django/Railway.

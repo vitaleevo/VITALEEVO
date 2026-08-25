@@ -7,7 +7,11 @@ export default defineConfig([
     ...nextTypeScript,
     globalIgnores([
         ".next/**",
+        "**/.venv/**",
+        ".agents/**",
         "node_modules/**",
+        "backend/media/**",
+        "backend/staticfiles/**",
     ]),
     {
         rules: {

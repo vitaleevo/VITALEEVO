@@ -1,38 +1,50 @@
 # VitalEvo
 
-Plataforma institucional, loja e painel administrativo da VitalEvo, construída com Next.js, React e Convex.
+Plataforma institucional, loja e painel administrativo da VitalEvo. O frontend usa Next.js/React na Vercel e o backend usa Django/DRF no Railway, com PostgreSQL, Redis e tarefas RQ.
 
-## Desenvolvimento
+## Desenvolvimento local
 
-1. Copie .env.local.example para .env.local e preencha as variáveis da aplicação.
-2. Configure o ambiente de desenvolvimento do Convex.
-3. Execute:
+1. Copie `.env.local.example` para `.env.local`.
+2. Copie `backend/.env.example` para `backend/.env`.
+3. Instale as dependências e inicie os dois serviços:
 
-    npm install
-    npx convex dev
-    npm run dev
+```bash
+npm install
+python -m venv .venv
+.venv/bin/pip install -r backend/requirements.txt
+
+# terminal 1 — frontend
+npm run dev
+
+# terminal 2 — backend
+cd backend
+../.venv/bin/python manage.py migrate
+../.venv/bin/python manage.py runserver 8100
+```
 
 ## Validação
 
-    npm run typecheck
-    npm run lint
-    npm run build:app
+```bash
+npm run lint
+npm run typecheck
+npm run build:app
 
-O comando npm run build também executa npx convex deploy. Use-o somente quando a implantação do Convex tiver sido deliberadamente autorizada.
+cd backend
+../.venv/bin/python -m pip check
+../.venv/bin/python manage.py check
+../.venv/bin/python manage.py makemigrations --check --dry-run
+../.venv/bin/python -m pytest
+```
 
-## Configuração de produção
+## Produção
 
-As variáveis usadas pelo Next.js ficam no provedor da aplicação. As variáveis usadas pelas actions do Convex devem ser configuradas no ambiente do Convex:
+- Frontend: `https://vitaleevo.ao` na Vercel.
+- API: `https://api.vitaleevo.ao/api/v1` no Railway.
+- Django Admin técnico: `https://api.vitaleevo.ao/admin/`.
+- Painel administrativo da aplicação: `https://vitaleevo.ao/admin`.
 
-- RESEND_API_KEY
-- EMAIL_FROM
-- SITE_URL
-- VITALEEVO_API_KEYS_ENCRYPTION_KEY
+O frontend de produção exige `NEXT_PUBLIC_API_URL=https://api.vitaleevo.ao` e `NEXT_PUBLIC_SITE_URL=https://vitaleevo.ao`. O backend exige as variáveis documentadas em `backend/.env.example`; em produção, SMTP, PostgreSQL, Redis e uma `SECRET_KEY` forte são obrigatórios.
 
-Gere a chave de cifragem uma única vez e guarde-a num cofre de segredos:
+O Convex pertence à arquitetura legada e não faz parte do fluxo atual de build ou deploy. Não execute `npx convex deploy` para publicar esta versão.
 
-    openssl rand -hex 32
-
-Depois de configurar VITALEEVO_API_KEYS_ENCRYPTION_KEY, aceda ao painel /admin/ai e execute a migração das chaves antigas. Não rode essa migração antes de configurar a variável, pois as chaves não poderão ser usadas sem ela.
-
-Consulte PRODUCTION_CHECKLIST.md antes de publicar.
+Antes de qualquer publicação, siga `PRODUCTION_CHECKLIST.md` e confirme o estado em `PROJECT_MEMORY.md`.

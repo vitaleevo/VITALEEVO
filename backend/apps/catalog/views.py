@@ -1,11 +1,16 @@
 """Endpoints do catálogo — leitura pública na loja, gestão com capacidade catalog:manage."""
-from django.db.models import Q
+import hashlib
+
+from django.core.cache import cache
+from django.db.models import Max, Q
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_control, cache_page
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from apps.core.permissions import HasCapability
+from apps.core.permissions import HasCapability, user_has_capability
 
 from .models import Brand, Category, InventoryMovement, Product
 from .serializers import (
@@ -20,6 +25,9 @@ from .serializers import (
 from .services import adjust_stock
 
 
+@method_decorator(cache_control(max_age=10, stale_while_revalidate=30, public=True), name="list")
+@method_decorator(cache_page(10), name="list")
+@method_decorator(cache_page(10), name="retrieve")
 class CategoryViewSet(viewsets.ModelViewSet):
     """Categorias — públicas para leitura; gestão com catalog:manage."""
 
@@ -34,7 +42,31 @@ class CategoryViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return [HasCapability("catalog:manage")]
 
+    def list(self, request, *args, **kwargs):
+        qs = self.filter_queryset(self.get_queryset())
+        etag = hashlib.md5(f"{qs.count()}-{qs.aggregate(Max('updated_at'))['updated_at__max']}".encode()).hexdigest()
+        if request.headers.get("If-None-Match") == f'W/"{etag}"':
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+        response = super().list(request, *args, **kwargs)
+        response["ETag"] = f'W/"{etag}"'
+        return response
 
+    def perform_create(self, serializer):
+        cache.clear()
+        return super().perform_create(serializer)
+
+    def perform_update(self, serializer):
+        cache.clear()
+        return super().perform_update(serializer)
+
+    def perform_destroy(self, instance):
+        cache.clear()
+        return super().perform_destroy(instance)
+
+
+@method_decorator(cache_control(max_age=10, stale_while_revalidate=30, public=True), name="list")
+@method_decorator(cache_page(10), name="list")
+@method_decorator(cache_page(10), name="retrieve")
 class BrandViewSet(viewsets.ModelViewSet):
     """Marcas — públicas para leitura; gestão com catalog:manage."""
 
@@ -48,7 +80,31 @@ class BrandViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return [HasCapability("catalog:manage")]
 
+    def list(self, request, *args, **kwargs):
+        qs = self.filter_queryset(self.get_queryset())
+        etag = hashlib.md5(f"{qs.count()}-{qs.aggregate(Max('updated_at'))['updated_at__max']}".encode()).hexdigest()
+        if request.headers.get("If-None-Match") == f'W/"{etag}"':
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+        response = super().list(request, *args, **kwargs)
+        response["ETag"] = f'W/"{etag}"'
+        return response
 
+    def perform_create(self, serializer):
+        cache.clear()
+        return super().perform_create(serializer)
+
+    def perform_update(self, serializer):
+        cache.clear()
+        return super().perform_update(serializer)
+
+    def perform_destroy(self, instance):
+        cache.clear()
+        return super().perform_destroy(instance)
+
+
+@method_decorator(cache_control(max_age=10, stale_while_revalidate=30, public=True), name="list")
+@method_decorator(cache_page(10), name="list")
+@method_decorator(cache_page(10), name="retrieve")
 class ProductViewSet(viewsets.ModelViewSet):
     """Produtos — loja pública (só publicados); gestão completa com catalog:manage."""
 
@@ -59,17 +115,17 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Product.objects.select_related("category", "subcategory", "brand")
-        if self.action in {"list", "retrieve"} and not self.request.user.is_staff:
+        if self.action in {"list", "retrieve"} and not user_has_capability(self.request.user, "catalog:read"):
             qs = qs.filter(is_active=True, status="published")
         return qs
 
     def get_serializer_class(self):
         if self.action in {"list"}:
-            if self.request.user.is_staff:
+            if user_has_capability(self.request.user, "catalog:read"):
                 return ProductAdminSerializer
             return ProductListSerializer
         if self.action in {"retrieve"}:
-            if self.request.user.is_staff:
+            if user_has_capability(self.request.user, "catalog:read"):
                 return ProductAdminSerializer
             return ProductDetailSerializer
         return ProductAdminSerializer
@@ -79,12 +135,30 @@ class ProductViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return [HasCapability("catalog:manage")]
 
+    def list(self, request, *args, **kwargs):
+        qs = self.filter_queryset(self.get_queryset())
+        etag = hashlib.md5(f"{qs.count()}-{qs.aggregate(Max('updated_at'))['updated_at__max']}".encode()).hexdigest()
+        if request.headers.get("If-None-Match") == f'W/"{etag}"':
+            return Response(status=status.HTTP_304_NOT_MODIFIED)
+        response = super().list(request, *args, **kwargs)
+        response["ETag"] = f'W/"{etag}"'
+        return response
+
     def perform_create(self, serializer):
+        cache.clear()
         product = serializer.save()
         from .services import publish_product  # import local para evitar ciclo
 
         if product.status == "published":
             publish_product(product, self.request.user)
+
+    def perform_update(self, serializer):
+        cache.clear()
+        return super().perform_update(serializer)
+
+    def perform_destroy(self, instance):
+        cache.clear()
+        return super().perform_destroy(instance)
 
     @action(detail=True, methods=["post"], permission_classes=[HasCapability("stock:manage")])
     def adjust_stock(self, request, slug=None):
@@ -99,6 +173,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             movement_type="adjustment",
             note=serializer.validated_data["note"],
         )
+        cache.clear()
         return Response({"stock": new_stock}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])

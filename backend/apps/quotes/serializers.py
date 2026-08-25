@@ -105,6 +105,27 @@ class QuoteReadSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class QuotePublicAccessSerializer(serializers.Serializer):
+    """Credenciais mínimas para consultar o estado de uma cotação."""
+
+    public_id = serializers.CharField(max_length=24)
+    access_token = serializers.CharField(min_length=32, max_length=128, trim_whitespace=False)
+
+
+class QuotePublicStatusSerializer(serializers.ModelSerializer):
+    """Resposta pública sem dados pessoais, comerciais ou internos."""
+
+    item_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = QuoteRequest
+        fields = ["public_id", "status", "item_count", "created_at", "updated_at"]
+        read_only_fields = fields
+
+    def get_item_count(self, obj) -> int:
+        return obj.items.count()
+
+
 class QuoteStatusSerializer(serializers.Serializer):
     """Atualização de estado (quotes:manage)."""
 

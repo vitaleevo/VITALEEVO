@@ -98,7 +98,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 class PasswordResetConfirmSerializer(serializers.Serializer):
     """Reposição com token assinado + nova password."""
 
-    email = serializers.EmailField()
+    uid = serializers.CharField(max_length=128)
     token = serializers.CharField()
     password = serializers.CharField(min_length=8)
 
@@ -180,3 +180,7 @@ class AdminResetPasswordSerializer(serializers.Serializer):
     def validate_password(self, value: str) -> str:
         validate_password(value)
         return value
+
+
+class LogoutSerializer(serializers.Serializer):
+    refresh = serializers.CharField(trim_whitespace=False)

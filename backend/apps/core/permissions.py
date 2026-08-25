@@ -1,7 +1,14 @@
 """Permissões DRF por capacidade — SOLID: cada endpoint declara o que exige."""
 from rest_framework.permissions import BasePermission
 
-from apps.core.enums import has_permission
+def user_has_capability(user, capability: str) -> bool:
+    """Verificação segura para utilizadores autenticados e AnonymousUser."""
+    if not user or not getattr(user, "is_authenticated", False) or not getattr(user, "is_staff", False):
+        return False
+    if getattr(user, "is_superuser", False) or getattr(user, "role", None) == "admin":
+        return True
+    checker = getattr(user, "has_capability", None)
+    return bool(checker and checker(capability))
 
 
 class HasCapability(BasePermission):
@@ -12,15 +19,9 @@ class HasCapability(BasePermission):
         super().__init__()
 
     def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            return False
-        if not request.user.is_staff:
-            return False
-        if request.user.is_superuser or getattr(request.user, "role", None) == "admin":
-            return True
         if self.capability is None:
-            return True
-        return request.user.has_capability(self.capability)
+            return bool(request.user and request.user.is_authenticated and request.user.is_staff)
+        return user_has_capability(request.user, self.capability)
 
 
 class IsStaff(BasePermission):
@@ -42,13 +43,7 @@ class HasAnyCapability(BasePermission):
         super().__init__()
 
     def has_permission(self, request, view):
-        if not request.user or not request.user.is_authenticated:
-            return False
-        if not request.user.is_staff:
-            return False
-        if request.user.is_superuser or getattr(request.user, "role", None) == "admin":
-            return True
-        return any(request.user.has_capability(c) for c in self.capabilities)
+        return any(user_has_capability(request.user, capability) for capability in self.capabilities)
 
 
 class CanUploadMedia(HasCapability):

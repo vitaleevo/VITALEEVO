@@ -1,9 +1,15 @@
-"""Regras de negócio do CMS — publicações e conteúdo do site."""
+"""Regras de negócio do CMS — publicações, newsletter e conteúdo do site."""
+from urllib.parse import urlencode
+
+from django.conf import settings
+from django.core import signing
 from django.db import transaction
 
 from apps.audit.helpers import log_audit
 
-from .models import SitePage
+from .models import Newsletter, NewsletterBroadcast, SitePage
+
+NEWSLETTER_SIGNING_SALT = "vitaleevo.cms.newsletter.unsubscribe"
 
 
 @transaction.atomic
@@ -37,3 +43,73 @@ def upsert_page_with_blocks(*, slug: str, actor, data: dict, blocks: list[dict])
         details={"blocks": len(blocks)},
     )
     return page
+
+
+def create_unsubscribe_token(email: str) -> str:
+    return signing.dumps(email.strip().lower(), salt=NEWSLETTER_SIGNING_SALT, compress=True)
+
+
+def build_unsubscribe_url(email: str) -> str:
+    query = urlencode({"token": create_unsubscribe_token(email)})
+    return f"{settings.SITE_URL.rstrip('/')}/unsubscribe?{query}"
+
+
+def unsubscribe_with_token(token: str) -> bool:
+    try:
+        email = signing.loads(token, salt=NEWSLETTER_SIGNING_SALT)
+    except signing.BadSignature:
+        return False
+    if not isinstance(email, str):
+        return False
+    return bool(Newsletter.objects.filter(email=email.strip().lower(), is_active=True).update(is_active=False))
+
+
+def enqueue_newsletter_broadcast(broadcast: NewsletterBroadcast) -> None:
+    from .tasks import send_newsletter_broadcast
+
+    if settings.RQ_ASYNC:
+        import django_rq
+        from rq import Retry
+
+        django_rq.get_queue("default").enqueue(
+            send_newsletter_broadcast,
+            str(broadcast.id),
+            retry=Retry(max=3, interval=[30, 120, 300]),
+            job_timeout=900,
+        )
+    else:
+        send_newsletter_broadcast(str(broadcast.id))
+
+
+def enqueue_contact_notification(contact_id: str) -> None:
+    from .tasks import send_contact_notification
+
+    if settings.RQ_ASYNC:
+        import django_rq
+        from rq import Retry
+
+        django_rq.get_queue("default").enqueue(
+            send_contact_notification,
+            contact_id,
+            retry=Retry(max=3, interval=[30, 120, 300]),
+            job_timeout=120,
+        )
+    else:
+        send_contact_notification(contact_id)
+
+
+def enqueue_newsletter_welcome(email: str) -> None:
+    from .tasks import send_newsletter_welcome
+
+    if settings.RQ_ASYNC:
+        import django_rq
+        from rq import Retry
+
+        django_rq.get_queue("default").enqueue(
+            send_newsletter_welcome,
+            email,
+            retry=Retry(max=3, interval=[30, 120, 300]),
+            job_timeout=120,
+        )
+    else:
+        send_newsletter_welcome(email)

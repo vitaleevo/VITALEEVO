@@ -24,6 +24,7 @@ _allowed_hosts = env("ALLOWED_HOSTS")
 for _domain in (
     env.str("RAILWAY_PUBLIC_DOMAIN", default=""),
     env.str("RAILWAY_PRIVATE_DOMAIN", default=""),
+    "healthcheck.railway.app",
 ):
     if _domain:
         _allowed_hosts.append(_domain)
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     # Terceiros
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "django_filters",
     "drf_spectacular",
@@ -58,9 +60,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "apps.core.middleware.HealthCheckMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "apps.core.middleware.RequestObservabilityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -97,6 +99,15 @@ if database_url:
     DATABASES = {"default": env.db("DATABASE_URL")}
     if DATABASES["default"]["ENGINE"] == "django.db.backends.postgresql":
         DATABASES["default"]["CONN_MAX_AGE"] = 60
+        DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
+    # Fase 2: read replica para 100k (se DATABASE_REPLICA_URL estiver definida)
+    replica_url = env.str("DATABASE_REPLICA_URL", default="")
+    if replica_url:
+        DATABASES["replica"] = env.db("DATABASE_REPLICA_URL")
+        if DATABASES["replica"]["ENGINE"] == "django.db.backends.postgresql":
+            DATABASES["replica"]["CONN_MAX_AGE"] = 60
+            DATABASES["replica"]["CONN_HEALTH_CHECKS"] = True
+        DATABASE_ROUTERS = ["config.routers.ReplicaRouter"]
 else:
     DATABASES = {
         "default": {
@@ -127,11 +138,35 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-# WhiteNoise: serve ficheiros estáticos (admin) sem servidor dedicado.
+
+# Media persistente: Railway Bucket/S3 em staging e produção; filesystem só em dev/testes.
+_s3_bucket = env.str("AWS_STORAGE_BUCKET_NAME", default="")
+_s3_access_key = env.str("AWS_ACCESS_KEY_ID", default="")
+_s3_secret_key = env.str("AWS_SECRET_ACCESS_KEY", default="")
+_s3_endpoint = env.str("AWS_S3_ENDPOINT_URL", default="")
+_s3_region = env.str("AWS_S3_REGION_NAME", default="auto")
+USE_S3_STORAGE = all((_s3_bucket, _s3_access_key, _s3_secret_key, _s3_endpoint))
+
+# WhiteNoise serve apenas estáticos do Django Admin.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
+if USE_S3_STORAGE:
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "access_key": _s3_access_key,
+            "secret_key": _s3_secret_key,
+            "bucket_name": _s3_bucket,
+            "endpoint_url": _s3_endpoint,
+            "region_name": _s3_region,
+            "addressing_style": env.str("AWS_S3_ADDRESSING_STYLE", default="virtual"),
+            "querystring_auth": True,
+            "querystring_expire": env.int("AWS_QUERYSTRING_EXPIRE", default=900),
+            "file_overwrite": False,
+        },
+    }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -152,14 +187,26 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.ScopedRateThrottle"],
-    "DEFAULT_THROTTLE_RATES": {"auth": "10/min", "quotes": "60/min", "writes": "120/min"},
+    "DEFAULT_THROTTLE_RATES": {
+        "auth_login": "10/min",
+        "auth_refresh": "30/min",
+        "auth_register": "5/hour",
+        "auth_logout": "30/min",
+        "auth_password_reset": "5/hour",
+        "auth_password_reset_confirm": "10/hour",
+        "analytics_track": "120/min",
+        "quotes": "60/min",
+        "quote_status": "20/min",
+        "writes": "120/min",
+    },
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
+    "CHECK_REVOKE_TOKEN": True,
     "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_FIELD": "id",
 }
@@ -178,28 +225,68 @@ CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS", default=[
     "https://www.vitaleevo.ao",
 ])
 CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=["https://api.vitaleevo.ao"],
+)
 
 # --- Redis / fila de tarefas (django-rq — KISS: sem Celery) ---
 REDIS_URL = env.str("REDIS_URL", default="redis://localhost:6379/0")
 RQ_QUEUES = {"default": {"URL": REDIS_URL}}
 RQ_ASYNC = env.bool("RQ_ASYNC", default=True)
 
+# --- Cache distribuído (Redis) — Fase 1: throttling e cache partilhado entre instâncias ---
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": REDIS_URL,
+        "OPTIONS": {"db": 1},
+    }
+}
+
 # --- E-mail (Django 6.1 MAILERS — EMAIL_* removido em 7.0) ---
 _mail_host = env.str("EMAIL_HOST", default="")
+_mail_opts = (
+    {}
+    if not _mail_host
+    else {
+        "host": _mail_host,
+        "port": env.int("EMAIL_PORT", default=587),
+        "username": env.str("EMAIL_HOST_USER", default=""),
+        "password": env.str("EMAIL_HOST_PASSWORD", default=""),
+        "use_tls": env.bool("EMAIL_USE_TLS", default=True),
+    }
+)
 MAILERS = {
     "default": {
         "BACKEND": "django.core.mail.backends.console.EmailBackend"
         if not _mail_host
         else "django.core.mail.backends.smtp.EmailBackend",
-        "HOST": _mail_host,
-        "PORT": env.int("EMAIL_PORT", default=587),
-        "USER": env.str("EMAIL_HOST_USER", default=""),
-        "PASSWORD": env.str("EMAIL_HOST_PASSWORD", default=""),
-        "USE_TLS": env.bool("EMAIL_USE_TLS", default=True),
+        "OPTIONS": _mail_opts,
     }
 }
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="no-reply@vitaleevo.ao")
+PASSWORD_RESET_TIMEOUT = env.int("PASSWORD_RESET_TIMEOUT", default=900)
+ANALYTICS_RETENTION_DAYS = env.int("ANALYTICS_RETENTION_DAYS", default=180)
 
 # --- URLs públicas do site (usadas em e-mails/notificações) ---
 SITE_URL = env.str("SITE_URL", default="https://vitaleevo.ao")
 APPEND_SLASH = False
+
+# Railway captura stdout/stderr; JSON facilita pesquisa, alertas e correlação.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json": {"()": "config.logging.JsonFormatter"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "json"},
+    },
+    "root": {"handlers": ["console"], "level": env.str("LOG_LEVEL", default="INFO")},
+    "loggers": {
+        "django.server": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "vitaleevo.request": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "vitaleevo.health": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+}
