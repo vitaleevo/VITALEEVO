@@ -2,7 +2,15 @@
 
 ## Estado Atual
 
-O frontend Next.js continua em `https://vitaleevo.ao` ainda servido pelo backend legado Convex `merry-fennec-711`; o backend Django de produção no Railway (`879017da-2678-4ae5-a4ab-82bad3a220d1`, env `production` id `0a99530d-7e56-4b5a-a402-49975661e1ab`, serviço `web` em `https://api.vitaleevo.ao`) continua no build antigo mas JÁ TEM bucket S3 e SMTP prontos. Os PRs 1–4 estão implementados (`codex/cicd-railway-vercel` e `staging` em `f3704e1`), o ambiente Railway `staging` opera em modo produção com SMTP real, logins validados, 3 réplicas e Fases 0–2 de escala implementadas. Falta apenas: merge dos PRs em `main`, redeploy de produção e cutover Vercel → Railway.
+**CUTOVER CONCLUÍDO — 2026-08-25**: `vitaleevo.ao` (Vercel, build de `main` pós-merge do PR #5) serve o frontend novo e o browser fala diretamente com `https://api.vitaleevo.ao` (Railway Django novo, deploy `4ec19743`/`b57d07a6` SUCCESS). O Convex `merry-fennec-711` está bypassed. Produção: health live/ready 200 (db+redis), 85 produtos, site_config com `siteName=Vitaleevo` (corrigido na BD), password-reset enviado via Resend produção, cotação pública sem token 400, Django Admin 200. `RQ_ASYNC=False` em produção (e-mails síncronos até existir worker). Pendente pós-cutover: revogar chave Resend `vitaleevo`/`re_87Qv...` (esta exposta em transcript via `vercel env pull` — ROTACIONAR), revogar `CONVEX_DEPLOY_KEY`, apagar projeto Convex, rotacionar `admin@vitaleevo.ao`, rotação de credenciais de staging expostas e limpeza de buckets órfãos.
+
+## Checkpoint cutover produção — 2026-08-25
+
+- PR #5 (`codex/cicd-railway-vercel` → `main`) criado e merged (`04:06:33Z`) com 14/14 checks verdes após fix dos mocks E2E (`file:e2e/auth-capabilities.spec.ts:15` normaliza trailing slash — o fix `b149415` do apiClient quebrou os mocks `endsWith("/auth/login")`).
+- Railway production/web: deploy automático SUCCESS; migrações via preDeployCommand aplicadas na BD de produção.
+- Vercel Production: `NEXT_PUBLIC_API_URL=https://api.vitaleevo.ao` e `SITE_URL=https://vitaleevo.ao` criadas (estavam vazias!), redeploy `k5scv250c`; bundle do browser confirma host `api.vitaleevo.ao` no chunk `13fulwe4qce25.js`.
+- `vercel env pull` expôs no transcript `EMAIL_HOST_PASSWORD` de produção (`re_87Qv...`) — **rotação obrigatória**; ficheiro `.tmp-vercel-prod.json` apagado.
+- Smoke produção: login (erro credenciais inválidas OK), reset enviado (Bounced — caixa inexistente), quotes 400, admin 200, proxy `/api/v1/*` no domínio responde do Django.
 
 ## Checkpoint bucket media-production — 2026-08-24
 
