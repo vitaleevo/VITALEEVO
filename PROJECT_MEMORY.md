@@ -2,7 +2,7 @@
 
 ## Estado Atual
 
-**RECUPERAÇÃO DE PRODUÇÃO CONCLUÍDA — 2026-08-28**: o PR #8 restaurou o backend Django 6.1 no `main` (merge `3f1fd43`). O Railway foi corrigido para usar a raiz `/backend`, `backend/Dockerfile`, `railway.json`, migrações no pre-deploy e healthcheck `/api/v1/health/ready/`. O deploy `34496c59` está `SUCCESS`; `live` e `ready` respondem 200, PostgreSQL/Redis estão saudáveis, catálogo responde e `/admin/` redireciona para o login seguro. O worker RQ de produção ainda não existe: `/api/v1/health/worker/` responde 503 com `active_workers=0`; `RQ_ASYNC=False` mantém e-mails síncronos enquanto esse serviço separado não for criado. Continuam pendentes a rotação de segredos expostos (Resend, Convex, PostgreSQL, admin e staging) e a limpeza de buckets órfãos.
+**RECUPERAÇÃO DE PRODUÇÃO CONCLUÍDA — 2026-08-28**: o PR #8 restaurou o backend Django 6.1 no `main` (merge `3f1fd43`). O Railway foi corrigido para usar a raiz `/backend`, `backend/Dockerfile`, `railway.json`, migrações no pre-deploy e healthcheck `/api/v1/health/ready/`. O deploy `34496c59` está `SUCCESS`; `live` e `ready` respondem 200, PostgreSQL/Redis estão saudáveis, catálogo responde e `/admin/` redireciona para o login seguro. Foi criado o serviço Railway `worker`, isolado do `web`, com referências internas às variáveis necessárias; o deploy `7bb0e66a` está `SUCCESS` e `/api/v1/health/worker/` responde 200 (`active_workers=1`). Continuam pendentes a rotação de segredos expostos (Resend, Convex, PostgreSQL, admin e staging), a normalização completa das variáveis SMTP de produção e a limpeza de buckets órfãos.
 
 ## Incidente e recuperação de produção — 2026-08-28
 
