@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Script from "next/script";
 import AnalyticsTracker from "./AnalyticsTracker";
 
 const CONSENT_KEY = "vitaleevo_analytics_consent";
@@ -21,7 +20,7 @@ declare global {
     }
 }
 
-export default function AnalyticsConsent({ googleAnalyticsId }: { googleAnalyticsId?: string }) {
+export default function AnalyticsConsent() {
     const [consent, setConsent] = useState<ConsentState>(null);
     const [ready, setReady] = useState(false);
 
@@ -47,28 +46,6 @@ export default function AnalyticsConsent({ googleAnalyticsId }: { googleAnalytic
     return (
         <>
             {consent === "accepted" && <AnalyticsTracker />}
-            {googleAnalyticsId && (
-                <>
-                    <Script
-                        src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
-                        strategy="afterInteractive"
-                    />
-                    <Script id="ga4-init" strategy="afterInteractive">
-                        {`
-                            window.dataLayer = window.dataLayer || [];
-                            function gtag(){dataLayer.push(arguments);}
-                            gtag('consent', 'default', {
-                                analytics_storage: 'denied',
-                                ad_storage: 'denied',
-                                ad_user_data: 'denied',
-                                ad_personalization: 'denied'
-                            });
-                            gtag('js', new Date());
-                            gtag('config', '${googleAnalyticsId}', { anonymize_ip: true });
-                        `}
-                    </Script>
-                </>
-            )}
             {consent === null && (
                 <section
                     aria-label="Preferências de privacidade"

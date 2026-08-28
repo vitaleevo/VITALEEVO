@@ -1,6 +1,7 @@
 import type { Metadata, Viewport, ResolvingMetadata } from "next";
 import { Inter, Montserrat } from "next/font/google";
 import { Suspense } from "react";
+import Script from "next/script";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { SITE_CONTACT } from "@/shared/utils/contact";
@@ -102,9 +103,33 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const googleAnalyticsId = process.env.NEXT_PUBLIC_GA_ID;
+
     return (
         <html lang="pt-AO" data-scroll-behavior="smooth" suppressHydrationWarning>
             <head>
+                {googleAnalyticsId && (
+                    <>
+                        <Script
+                            src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+                            strategy="beforeInteractive"
+                        />
+                        <Script id="ga4-consent-init" strategy="beforeInteractive">
+                            {`
+                                window.dataLayer = window.dataLayer || [];
+                                function gtag(){dataLayer.push(arguments);}
+                                gtag('consent', 'default', {
+                                    analytics_storage: 'denied',
+                                    ad_storage: 'denied',
+                                    ad_user_data: 'denied',
+                                    ad_personalization: 'denied'
+                                });
+                                gtag('js', new Date());
+                                gtag('config', '${googleAnalyticsId}', { anonymize_ip: true });
+                            `}
+                        </Script>
+                    </>
+                )}
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{
@@ -157,7 +182,7 @@ export default function RootLayout({
                     <CartProvider>
                         <ThemeProvider>
                             <Toaster richColors position="top-right" />
-                            <AnalyticsConsent googleAnalyticsId={process.env.NEXT_PUBLIC_GA_ID} />
+                            <AnalyticsConsent />
                             <a href="#main-content" className="sr-only fixed left-4 top-4 z-[100] rounded-lg bg-primary px-4 py-2 font-semibold text-white focus:not-sr-only">
                                 Saltar para o conteúdo principal
                             </a>
