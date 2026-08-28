@@ -43,13 +43,38 @@ jobs:
         run: npm run build:app
 
   backend:
-    name: Backend — FastAPI, Testes e Liveness
+    name: Backend — PostgreSQL, Redis, Migrações, OpenAPI e Testes
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: vitaleevo_ci
+          POSTGRES_USER: vitaleevo
+          POSTGRES_PASSWORD: vitaleevo_ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vitaleevo -d vitaleevo_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
-      DATABASE_URL: sqlite+aiosqlite:///./test.db
+      DATABASE_URL: postgresql://vitaleevo:vitaleevo_ci_password@127.0.0.1:5432/vitaleevo_ci
+      REDIS_URL: redis://127.0.0.1:6379/0
+      RQ_ASYNC: "False"
       SECRET_KEY: ci-only-secret-key-change-me-1234567890
-      FIRST_ADMIN_PASSWORD: AdminTeste123!
+      DJANGO_SETTINGS_MODULE: config.settings.development
     defaults:
       run:
         working-directory: backend
@@ -66,11 +91,18 @@ jobs:
         run: python -m pip install -r requirements.txt
       - name: Validar dependências
         run: python -m pip check
+      - name: Django system check
+        run: python manage.py check
+      - name: Validar migrações declaradas
+        run: python manage.py makemigrations --check --dry-run
+      - name: Aplicar migrações numa base PostgreSQL limpa
+        run: python manage.py migrate --noinput
+      - name: Gerar manifesto de estáticos do Django Admin
+        run: python manage.py collectstatic --noinput
+      - name: Validar contrato OpenAPI
+        run: python manage.py spectacular --file /tmp/openapi.yml --validate
       - name: Testes backend
         run: python -m pytest
-      - name: Validação de arranque (liveness)
-        run: |
-          python -m pytest tests/test_flow.py -k "health" --quiet
 
   e2e:
     name: Frontend — Playwright
@@ -96,10 +128,31 @@ jobs:
         run: npm run test:e2e
 
   container:
-    name: Backend — Liveness no Railway
+    name: Backend — Imagem e Liveness
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 20
     steps:
-      - name: Validar liveness do Railway staging
-        run: >
-          curl --fail --silent https://api-staging-e6d1.up.railway.app/api/v1/health || true
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Construir imagem
+        run: docker build -t vitaleevo-backend:ci backend
+      - name: Iniciar API sem privilégios
+        run: >-
+          docker run --rm -d --name vitaleevo-backend-ci
+          -e DJANGO_ENV=development
+          -e SECRET_KEY=ci-only-secret-key-change-me-1234567890
+          -e RQ_ASYNC=False
+          -p 8080:8080 vitaleevo-backend:ci
+      - name: Validar liveness
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8080/api/v1/health/live/; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs vitaleevo-backend-ci
+          exit 1
+      - name: Parar API
+        if: always()
+        run: docker stop vitaleevo-backend-ci || true

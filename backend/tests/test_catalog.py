@@ -1,0 +1,178 @@
+"""Testes do catálogo — leitura pública, gestão por staff e ajuste de stock."""
+import pytest
+from rest_framework.test import APIClient
+
+from apps.catalog.models import Brand, Category, InventoryMovement, Product
+from apps.catalog.services import adjust_stock
+
+pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def category():
+    return Category.objects.create(name="Informática", slug="informatica", type="store")
+
+
+@pytest.fixture
+def brand():
+    return Brand.objects.get_or_create(name="HP", defaults={"slug": "hp"})[0]
+
+
+@pytest.fixture
+def product(category, brand):
+    return Product.objects.create(
+        name="Portátil HP", slug="portatil-hp", sku="HP-001",
+        description="Descrição", price="850000.00", image="https://exemplo.ao/img.jpg",
+        category=category, brand=brand, stock=5, status="published",
+    )
+
+
+@pytest.fixture
+def draft_product(category, brand):
+    return Product.objects.create(
+        name="Rascunho", slug="rascunho", description="D",
+        price="100.00", image="https://exemplo.ao/d.jpg",
+        category=category, brand=brand, stock=0, status="draft",
+    )
+
+
+class TestCatalogPublic:
+    def test_list_only_shows_published(self, client, product, draft_product):
+        response = client.get("/api/v1/catalog/products/")
+        assert response.status_code == 200
+        slugs = [p["slug"] for p in response.json()["results"]]
+        assert "portatil-hp" in slugs
+        assert "rascunho" not in slugs
+
+    def test_retrieve_by_slug(self, client, product):
+        response = client.get("/api/v1/catalog/products/portatil-hp/")
+        assert response.status_code == 200
+        assert response.json()["category"] == "informatica"
+
+    def test_categories_public(self, client, category):
+        response = client.get("/api/v1/catalog/categories/")
+        assert response.status_code == 200
+        names = [c["name"] for c in response.json()["results"]]
+        assert "Informática" in names
+        assert len(names) >= 1
+
+
+class TestCatalogStaff:
+    def test_anon_cannot_create(self, client):
+        assert client.post("/api/v1/catalog/products/", {}, format="json").status_code == 401
+
+    def test_staff_can_create(self, admin_client, category, brand):
+        response = admin_client.post(
+            "/api/v1/catalog/products/",
+            {
+                "name": "Novo", "slug": "novo", "description": "D", "price": "10.00",
+                "image": "https://exemplo.ao/n.jpg", "category": "informatica", "brand": "hp",
+            },
+            format="json",
+        )
+        assert response.status_code == 201
+
+    def test_staff_can_adjust_stock(self, admin_client, product):
+        response = admin_client.post(
+            f"/api/v1/catalog/products/{product.slug}/adjust_stock/",
+            {"quantity": 3, "note": "Entrada"},
+            format="json",
+        )
+        assert response.status_code == 200
+        product.refresh_from_db()
+        assert product.stock == 8
+
+    def test_anon_cannot_adjust_stock(self, client, product):
+        response = client.post(
+            f"/api/v1/catalog/products/{product.slug}/adjust_stock/",
+            {"quantity": 1, "note": "x"},
+            format="json",
+        )
+        assert response.status_code in {401, 403}
+
+    def test_duplicate_slug_returns_400(self, admin_client, product, category, brand):
+        response = admin_client.post(
+            "/api/v1/catalog/products/",
+            {
+                "name": "Duplicado", "slug": "portatil-hp", "description": "D",
+                "price": "10.00", "image": "https://exemplo.ao/x.jpg", "category": "informatica",
+            },
+            format="json",
+        )
+        assert response.status_code == 400
+
+    def test_duplicate_sku_is_case_insensitive(self, admin_client, product, category):
+        response = admin_client.post(
+            "/api/v1/catalog/products/",
+            {
+                "name": "Outro",
+                "slug": "outro",
+                "sku": "hp-001",
+                "description": "D",
+                "price": "10.00",
+                "image": "https://exemplo.ao/x.jpg",
+                "category": category.slug,
+            },
+            format="json",
+        )
+        assert response.status_code == 400
+
+    def test_adjust_stock_uses_locked_current_value(self, admin_user, product):
+        stale_product = Product.objects.get(pk=product.pk)
+        assert adjust_stock(
+            product=product,
+            quantity=3,
+            actor=admin_user,
+            movement_type="adjustment",
+            note="Entrada 1",
+        ) == 8
+        assert adjust_stock(
+            product=stale_product,
+            quantity=2,
+            actor=admin_user,
+            movement_type="adjustment",
+            note="Entrada 2",
+        ) == 10
+        assert list(
+            InventoryMovement.objects.filter(product=product).values_list("quantity", flat=True)
+        ) == [2, 3]
+
+    def test_adjust_stock_rejects_negative_balance(self, admin_client, product):
+        response = admin_client.post(
+            f"/api/v1/catalog/products/{product.slug}/adjust_stock/",
+            {"quantity": -6, "note": "Saída inválida"},
+            format="json",
+        )
+        assert response.status_code == 400
+        product.refresh_from_db()
+        assert product.stock == 5
+        assert not InventoryMovement.objects.filter(product=product).exists()
+
+    def test_category_rejects_cycle(self, admin_client, category):
+        child = Category.objects.create(
+            name="Portáteis", slug="portateis", type="store", parent=category
+        )
+        response = admin_client.patch(
+            f"/api/v1/catalog/categories/{category.slug}/",
+            {"parent": child.slug},
+            format="json",
+        )
+        assert response.status_code == 400
+
+    def test_product_rejects_subcategory_from_another_category(self, admin_client, category):
+        other = Category.objects.create(name="Outro", slug="outro-cat", type="store")
+        sub = Category.objects.create(name="Sub", slug="sub-outro", type="store", parent=other)
+        response = admin_client.post(
+            "/api/v1/catalog/products/",
+            {
+                "name": "Inválido",
+                "slug": "invalido",
+                "description": "D",
+                "price": "10.00",
+                "image": "https://exemplo.ao/x.jpg",
+                "category": category.slug,
+                "subcategory": sub.slug,
+            },
+            format="json",
+        )
+        assert response.status_code == 400

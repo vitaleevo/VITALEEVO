@@ -4,6 +4,14 @@
 
 **CUTOVER CONCLUÍDO — 2026-08-25**: `vitaleevo.ao` (Vercel, build de `main` pós-merge do PR #5) serve o frontend novo e o browser fala diretamente com `https://api.vitaleevo.ao` (Railway Django novo, deploy `4ec19743`/`b57d07a6` SUCCESS). O Convex `merry-fennec-711` está bypassed. Produção: health live/ready 200 (db+redis), 85 produtos, site_config com `siteName=Vitaleevo` (corrigido na BD), password-reset enviado via Resend produção, cotação pública sem token 400, Django Admin 200. `RQ_ASYNC=False` em produção (e-mails síncronos até existir worker). Pendente pós-cutover: revogar chave Resend `vitaleevo`/`re_87Qv...` (esta exposta em transcript via `vercel env pull` — ROTACIONAR), revogar `CONVEX_DEPLOY_KEY`, apagar projeto Convex, rotacionar `admin@vitaleevo.ao`, rotação de credenciais de staging expostas e limpeza de buckets órfãos.
 
+## Incidente e recuperação de produção — 2026-08-28
+
+- Os PRs #6 e #7 substituíram o backend Django por FastAPI e removeram Dockerfile, migrações, testes de regressão e os contratos de produção do Django. Após o merge, `https://api.vitaleevo.ao/api/v1/health/ready` passou a responder 404.
+- A substituição não é uma atualização segura: o novo backend não tem migração de dados PostgreSQL, recuperação de password/e-mail operacional, revogação de refresh tokens, storage S3 compatível ou cobertura equivalente da matriz de permissões.
+- Foi preparada a branch isolada `codex/restore-django-production`, sem tocar nas alterações locais do utilizador, para restaurar o backend Django 6.1 que estava comprovadamente funcional no commit `a90e215`.
+- Verificação da recuperação: `manage.py check`, validação de migrações, `collectstatic`, 121 testes backend, typecheck, 8 testes frontend, lint sem erros, build Next.js (44 rotas), Docker build e liveness passaram.
+- Estado: a correção ainda não está mesclada nem implantada; a produção permanece degradada até o PR de recuperação ser aprovado e o Railway concluir o deploy.
+
 ## Checkpoint cutover produção — 2026-08-25
 
 - PR #5 (`codex/cicd-railway-vercel` → `main`) criado e merged (`04:06:33Z`) com 14/14 checks verdes após fix dos mocks E2E (`file:e2e/auth-capabilities.spec.ts:15` normaliza trailing slash — o fix `b149415` do apiClient quebrou os mocks `endsWith("/auth/login")`).
