@@ -2,6 +2,7 @@ const isDevelopment = process.env.NODE_ENV === "development";
 const scriptSources = [
     "'self'",
     "'unsafe-inline'",
+    "https://www.googletagmanager.com",
     ...(isDevelopment ? ["'unsafe-eval'"] : []),
 ].join(" ");
 

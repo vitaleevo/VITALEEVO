@@ -9,10 +9,11 @@ vi.mock("./AnalyticsTracker", () => ({ default: () => <div data-testid="analytic
 describe("AnalyticsConsent", () => {
     beforeEach(() => localStorage.clear());
 
-    it("does not start analytics before explicit consent", async () => {
+    it("keeps internal analytics disabled before explicit consent while loading the consent-aware GA tag", async () => {
         render(<AnalyticsConsent googleAnalyticsId="G-TEST" />);
         expect(await screen.findByRole("region", { name: /preferências de privacidade/i })).toBeInTheDocument();
         expect(screen.queryByTestId("analytics-tracker")).not.toBeInTheDocument();
+        expect(screen.getAllByTestId("ga-script")).toHaveLength(2);
     });
 
     it("persists acceptance and starts internal and GA analytics", async () => {

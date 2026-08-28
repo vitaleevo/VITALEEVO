@@ -8,6 +8,19 @@ const CONSENT_KEY = "vitaleevo_analytics_consent";
 
 type ConsentState = "accepted" | "declined" | null;
 
+type ConsentUpdate = {
+    analytics_storage: "granted" | "denied";
+    ad_storage: "denied";
+    ad_user_data: "denied";
+    ad_personalization: "denied";
+};
+
+declare global {
+    interface Window {
+        gtag?: (command: "consent", action: "update", settings: ConsentUpdate) => void;
+    }
+}
+
 export default function AnalyticsConsent({ googleAnalyticsId }: { googleAnalyticsId?: string }) {
     const [consent, setConsent] = useState<ConsentState>(null);
     const [ready, setReady] = useState(false);
@@ -20,6 +33,12 @@ export default function AnalyticsConsent({ googleAnalyticsId }: { googleAnalytic
 
     const choose = (value: Exclude<ConsentState, null>) => {
         localStorage.setItem(CONSENT_KEY, value);
+        window.gtag?.("consent", "update", {
+            analytics_storage: value === "accepted" ? "granted" : "denied",
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+        });
         setConsent(value);
     };
 
@@ -28,7 +47,7 @@ export default function AnalyticsConsent({ googleAnalyticsId }: { googleAnalytic
     return (
         <>
             {consent === "accepted" && <AnalyticsTracker />}
-            {consent === "accepted" && googleAnalyticsId && (
+            {googleAnalyticsId && (
                 <>
                     <Script
                         src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
@@ -38,6 +57,12 @@ export default function AnalyticsConsent({ googleAnalyticsId }: { googleAnalytic
                         {`
                             window.dataLayer = window.dataLayer || [];
                             function gtag(){dataLayer.push(arguments);}
+                            gtag('consent', 'default', {
+                                analytics_storage: 'denied',
+                                ad_storage: 'denied',
+                                ad_user_data: 'denied',
+                                ad_personalization: 'denied'
+                            });
                             gtag('js', new Date());
                             gtag('config', '${googleAnalyticsId}', { anonymize_ip: true });
                         `}
