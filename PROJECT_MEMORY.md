@@ -2,7 +2,7 @@
 
 ## Estado Atual
 
-**CUTOVER CONCLUÍDO — 2026-08-25**: `vitaleevo.ao` (Vercel, build de `main` pós-merge do PR #5) serve o frontend novo e o browser fala diretamente com `https://api.vitaleevo.ao` (Railway Django novo, deploy `4ec19743`/`b57d07a6` SUCCESS). O Convex `merry-fennec-711` está bypassed. Produção: health live/ready 200 (db+redis), 85 produtos, site_config com `siteName=Vitaleevo` (corrigido na BD), password-reset enviado via Resend produção, cotação pública sem token 400, Django Admin 200. `RQ_ASYNC=False` em produção (e-mails síncronos até existir worker). Pendente pós-cutover: revogar chave Resend `vitaleevo`/`re_87Qv...` (esta exposta em transcript via `vercel env pull` — ROTACIONAR), revogar `CONVEX_DEPLOY_KEY`, apagar projeto Convex, rotacionar `admin@vitaleevo.ao`, rotação de credenciais de staging expostas e limpeza de buckets órfãos.
+**RECUPERAÇÃO DE PRODUÇÃO CONCLUÍDA — 2026-08-28**: o PR #8 restaurou o backend Django 6.1 no `main` (merge `3f1fd43`). O Railway foi corrigido para usar a raiz `/backend`, `backend/Dockerfile`, `railway.json`, migrações no pre-deploy e healthcheck `/api/v1/health/ready/`. O deploy `34496c59` está `SUCCESS`; `live` e `ready` respondem 200, PostgreSQL/Redis estão saudáveis, catálogo responde e `/admin/` redireciona para o login seguro. O worker RQ de produção ainda não existe: `/api/v1/health/worker/` responde 503 com `active_workers=0`; `RQ_ASYNC=False` mantém e-mails síncronos enquanto esse serviço separado não for criado. Continuam pendentes a rotação de segredos expostos (Resend, Convex, PostgreSQL, admin e staging) e a limpeza de buckets órfãos.
 
 ## Incidente e recuperação de produção — 2026-08-28
 
@@ -10,7 +10,7 @@
 - A substituição não é uma atualização segura: o novo backend não tem migração de dados PostgreSQL, recuperação de password/e-mail operacional, revogação de refresh tokens, storage S3 compatível ou cobertura equivalente da matriz de permissões.
 - Foi preparada a branch isolada `codex/restore-django-production`, sem tocar nas alterações locais do utilizador, para restaurar o backend Django 6.1 que estava comprovadamente funcional no commit `a90e215`.
 - Verificação da recuperação: `manage.py check`, validação de migrações, `collectstatic`, 121 testes backend, typecheck, 8 testes frontend, lint sem erros, build Next.js (44 rotas), Docker build e liveness passaram.
-- Estado: a correção ainda não está mesclada nem implantada; a produção permanece degradada até o PR de recuperação ser aprovado e o Railway concluir o deploy.
+- O PR #8 foi mesclado e a recuperação operacional foi validada em produção. A causa adicional foi a configuração persistida do serviço Railway apontando para a raiz, `railway.toml` e Dockerfile da migração FastAPI; foi restaurada para a configuração Django acima e foi feito redeploy a partir de `main`.
 
 ## Checkpoint cutover produção — 2026-08-25
 
