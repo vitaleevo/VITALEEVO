@@ -2,10 +2,10 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "backend/Dockerfile"
+    "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "python manage.py cleanup_analytics",
+    "startCommand": "echo \"cron placeholder - no periodic task required for FastAPI\"",
     "cronSchedule": "0 3 * * *",
     "restartPolicyType": "NEVER"
   }

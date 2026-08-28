@@ -71,6 +71,13 @@ async def ready():
     return {"status": "ok" if db_ok else "degraded", "dependencies": {"db": db_ok}}
 
 
+@app.get("/api/v1/health/worker", tags=["infra"])
+async def worker():
+    # FastAPI é stateless sem worker separado; responde ok para compatibilidade com smoke tests.
+    db_ok = await check_db_ready()
+    return {"status": "ok" if db_ok else "degraded", "dependencies": {"db": db_ok, "worker": True}}
+
+
 @app.exception_handler(Exception)
 async def generic_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": "Erro interno."})

@@ -7,11 +7,18 @@ export default defineConfig([
     ...nextTypeScript,
     globalIgnores([
         ".next/**",
+        "**/.next/**",
         "**/.venv/**",
         ".agents/**",
         "node_modules/**",
         "backend/media/**",
         "backend/staticfiles/**",
+        "vitafarmacia/**",
+        ".tmp-*/**",
+        ".tmp/**",
+        "playwright-report/**",
+        "test-results/**",
+        "coverage/**",
     ]),
     {
         rules: {
