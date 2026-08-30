@@ -1,8 +1,12 @@
+import asyncio
+import base64
 import json
+import smtplib
+from email.message import EmailMessage
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,11 +14,14 @@ from app.api.deps import get_current_user, get_db, require_user, user_permission
 from app.core.security import (
     create_access_token,
     create_refresh_token,
+    create_password_reset_token,
+    decode_password_reset_token,
     decode_refresh_token,
     hash_password,
     verify_password,
 )
 from app.models.catalog import User
+from app.core.config import get_settings
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -22,8 +29,8 @@ ADMIN_PERMS = ["system:manage", "*"]
 
 
 class LoginIn(BaseModel):
-    email: str
-    password: str
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
 
 
 class RefreshIn(BaseModel):
@@ -31,26 +38,26 @@ class RefreshIn(BaseModel):
 
 
 class RegisterIn(BaseModel):
-    email: str
-    password: str
-    first_name: str = ""
-    last_name: str = ""
-    phone: str = ""
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    first_name: str = Field("", max_length=120)
+    last_name: str = Field("", max_length=120)
+    phone: str = Field("", max_length=40)
 
 
 class ChangePasswordIn(BaseModel):
-    old_password: str
-    new_password: str
+    old_password: str = Field(min_length=8, max_length=128)
+    new_password: str = Field(min_length=8, max_length=128)
 
 
 class PasswordResetIn(BaseModel):
-    email: str
+    email: EmailStr
 
 
 class PasswordResetConfirmIn(BaseModel):
     uid: str
     token: str
-    password: str
+    password: str = Field(min_length=8, max_length=128)
 
 
 async def _user_by_email(db: AsyncSession, email: str) -> User | None:
@@ -62,8 +69,8 @@ def _token_out(user: User) -> dict:
     import json as _json
 
     return {
-        "access": create_access_token(subject=user.email, extra={"role": user.role}),
-        "refresh": create_refresh_token(subject=user.email),
+        "access": create_access_token(subject=user.email, extra={"role": user.role, "ver": user.token_version or 0}),
+        "refresh": create_refresh_token(subject=user.email, extra={"ver": user.token_version or 0}),
         "user": {
             "id": user.id,
             "email": user.email,
@@ -73,8 +80,28 @@ def _token_out(user: User) -> dict:
             "role": user.role,
             "is_staff": user.is_staff,
             "permissions": user_permissions(user),
+            "created_at": user.created_at.isoformat() if user.created_at else None,
         },
     }
+
+
+def _send_reset_email(recipient: str, reset_url: str) -> None:
+    settings = get_settings()
+    if not settings.mail_password:
+        return
+    message = EmailMessage()
+    message["Subject"] = "Reposição da palavra-passe Vitaleevo"
+    message["From"] = settings.mail_from
+    message["To"] = recipient
+    message.set_content(
+        "Recebemos um pedido para repor a sua palavra-passe. "
+        f"Abra este link nos próximos 15 minutos: {reset_url}\n\n"
+        "Se não fez este pedido, ignore esta mensagem."
+    )
+    with smtplib.SMTP(settings.mail_host, settings.mail_port, timeout=10) as smtp:
+        smtp.starttls()
+        smtp.login(settings.mail_user, settings.mail_password)
+        smtp.send_message(message)
 
 
 @router.post("/login")
@@ -114,16 +141,23 @@ async def refresh(data: RefreshIn, db: AsyncSession = Depends(get_db)):
     if not payload:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Sessão expirada.")
     user = await _user_by_email(db, payload["sub"])
-    if not user or not user.active:
+    if not user or not user.active or int(payload.get("ver", 0)) != int(user.token_version or 0):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Sessão inválida.")
     return {
-        "access": create_access_token(subject=user.email, extra={"role": user.role}),
-        "refresh": create_refresh_token(subject=user.email),
+        "access": create_access_token(subject=user.email, extra={"role": user.role, "ver": user.token_version or 0}),
+        "refresh": create_refresh_token(subject=user.email, extra={"ver": user.token_version or 0}),
     }
 
 
 @router.post("/logout")
-async def logout(data: RefreshIn | None = None):
+async def logout(data: RefreshIn | None = None, db: AsyncSession = Depends(get_db)):
+    if data:
+        payload = decode_refresh_token(data.refresh)
+        if payload and payload.get("sub"):
+            user = await _user_by_email(db, payload["sub"])
+            if user:
+                user.token_version = int(user.token_version or 0) + 1
+                await db.commit()
     return {"detail": "ok"}
 
 
@@ -140,6 +174,7 @@ async def me(user: User | None = Depends(get_current_user)):
         "role": user.role,
         "is_staff": user.is_staff,
         "permissions": user_permissions(user),
+        "created_at": user.created_at.isoformat() if user.created_at else None,
     }
 
 
@@ -160,6 +195,7 @@ async def update_me(
         "role": user.role,
         "is_staff": user.is_staff,
         "permissions": user_permissions(user),
+        "created_at": user.created_at.isoformat() if user.created_at else None,
     }
 
 
@@ -172,6 +208,7 @@ async def change_password(
     if len(data.new_password) < 8:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Senha muito curta.")
     user.hashed_password = hash_password(data.new_password)
+    user.token_version = int(user.token_version or 0) + 1
     await db.commit()
     return {"detail": "Senha alterada."}
 
@@ -180,34 +217,28 @@ async def change_password(
 async def password_reset(data: PasswordResetIn, db: AsyncSession = Depends(get_db)):
     user = await _user_by_email(db, data.email.strip().lower())
     if user:
-        # No SMTP real ainda: devolver o link apenas em dev; em produção falha silenciosamente
-        try:
-            import base64
-            import urllib.parse
-
-            payload = f"reset|{user.email}|{int(datetime.now(timezone.utc).timestamp())}"
-            token = base64.urlsafe_b64encode(payload.encode()).decode()
-            uid = base64.urlsafe_b64encode(str(user.id).encode()).decode()
-            url = f"{urllib.parse.urljoin('https://vitaleevo.ao', '/recuperar-senha')}?uid={uid}&token={token}"
-        except Exception:
-            pass
+        settings = get_settings()
+        token = create_password_reset_token(user.email, int(user.token_version or 0))
+        uid = base64.urlsafe_b64encode(str(user.id).encode()).decode()
+        url = f"{settings.site_url.rstrip('/')}/recuperar-senha?uid={uid}&token={token}"
+        await asyncio.to_thread(_send_reset_email, user.email, url)
     return {"detail": "Se o e-mail existir, enviámos um link de reposição."}
 
 
 @router.post("/password-reset/confirm")
 async def password_reset_confirm(data: PasswordResetConfirmIn, db: AsyncSession = Depends(get_db)):
-    import base64
-
     try:
         user_id = int(base64.urlsafe_b64decode(data.uid.encode()).decode())
     except Exception:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link inválido ou expirado.")
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
-    if not user:
+    payload = decode_password_reset_token(data.token)
+    if not user or not payload or payload.get("sub") != user.email or int(payload.get("ver", -1)) != int(user.token_version or 0):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link inválido ou expirado.")
     if len(data.password) < 8:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Senha muito curta.")
     user.hashed_password = hash_password(data.password)
+    user.token_version = int(user.token_version or 0) + 1
     await db.commit()
     return {"detail": "Senha reposta."}

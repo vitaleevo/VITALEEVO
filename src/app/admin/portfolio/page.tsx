@@ -20,6 +20,7 @@ export function AdminPortfolioContent() {
         { name: "year", label: "Ano", type: "number", optional: true },
         { name: "category", label: "Categoria", type: "select", options: (cats || []).map((c: any) => ({ value: c.slug, label: c.name })), optional: true },
         { name: "image", label: "Imagem de capa", type: "image", optional: true },
+        { name: "images", label: "Galeria (URLs separados por vírgula)", type: "textarea", optional: true, colSpan: 2 },
         { name: "order", label: "Ordem", type: "number", optional: true },
         { name: "status", label: "Estado", type: "select", options: [
             { value: "published", label: "Publicado" },
@@ -27,7 +28,14 @@ export function AdminPortfolioContent() {
             { value: "archived", label: "Arquivado" },
         ] },
         { name: "is_featured", label: "Destaque no portfólio", type: "checkbox", optional: true },
-        { name: "full_description", label: "Descrição", type: "textarea", optional: true, colSpan: 2 },
+        { name: "description", label: "Resumo", type: "textarea", optional: true, colSpan: 2 },
+        { name: "full_description", label: "Estudo de caso", type: "richtext", optional: true, colSpan: 2 },
+        { name: "challenge", label: "Desafio", type: "textarea", optional: true },
+        { name: "solution", label: "Solução", type: "textarea", optional: true },
+        { name: "results", label: "Resultados (separados por vírgula)", type: "textarea", optional: true },
+        { name: "tags", label: "Tecnologias (separadas por vírgula)", type: "textarea", optional: true },
+        { name: "seo_title", label: "Título SEO", optional: true },
+        { name: "seo_description", label: "Descrição SEO", type: "textarea", optional: true },
     ];
 
     const columns: CrudColumn[] = [
@@ -44,7 +52,8 @@ export function AdminPortfolioContent() {
             subtitle="Projetos apresentados no site"
             itemName="Projeto"
             permission="content:manage"
-            fetcher={() => api.projects.list({ page_size: 100 }).then(d => d.results)}
+            previewBasePath="/portfolio"
+            fetcher={() => api.projects.list({ page_size: 100 }, token).then(d => d.results)}
             columns={columns}
             fields={fields}
             searchKeys={["title", "client", "category"]}

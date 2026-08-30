@@ -1,5 +1,51 @@
 # Memória do Projeto VitalEvo
 
+## Última etapa concluída: plano de conclusão funcional — 2026-08-29
+
+Objetivo: transformar a solicitação de site integralmente funcional num roteiro baseado no estado real do repositório, cobrindo CMS, catálogo, conta de cliente, permissões e verificação ponta a ponta.
+
+Foi feito:
+
+- Inspecionada a base atual: frontend Next.js, API FastAPI, painel administrativo, autenticação por função, conta do cliente e rotas existentes de CMS/comércio.
+- Criado o roteiro consolidado em `PLANO_FUNCIONAL_COMPLETO.md`, com definição de pronto, fases, critérios de aceite, dependências e decisões de negócio pendentes.
+- Identificada a primeira lacuna crítica: campos administrados no portfólio (como cliente, ano, ordem e descrição longa) não estão todos persistidos pelo modelo atual, portanto o CRUD aparenta ser mais completo do que é.
+- Preservadas alterações locais já existentes; não foi alterado código de produto nesta etapa.
+
+Arquivos principais:
+
+- `PLANO_FUNCIONAL_COMPLETO.md`
+- `backend/app/models/catalog.py`
+- `backend/app/api/routes/content.py`
+- `src/app/admin/portfolio/page.tsx`
+
+Verificação executada:
+
+```bash
+rg --files
+rg -n "@router|blog|portfolio|products|orders" backend src
+git diff --check
+```
+
+Resultado: o projeto já dispõe da maior parte da superfície de rotas/telas necessária, mas a integridade entre formulários, persistência e páginas públicas precisa ser concluída antes de declarar os módulos totalmente funcionais.
+
+Estado atual:
+
+- Existe uma base operacional com CRUDs e páginas públicas, mas a trilha de produto ainda está em meio de execução.
+- Falta imediato: definir o contrato de dados definitivo e corrigir primeiro o portfólio; em seguida validar publicação pública, catálogo e reflexos na conta com testes ponta a ponta.
+
+Estado do projeto:
+
+- Fase/trilha atual: planeamento técnico de conclusão funcional.
+- Sólido agora: autenticação, painel, rotas centrais e área de cliente já existem como base.
+- Falta imediato: contratos/migrações consistentes, regras completas de ciclo de vida, testes de autorização e de reflexo de dados.
+- Distância do fim: meio do caminho; há ampla cobertura de interface e API, mas ainda não há evidência suficiente de que todos os fluxos sejam coerentes de ponta a ponta.
+
+## Próximo passo recomendado
+
+Criar/implementar a Fase 0: inventário de campos e migração que torna o portfólio persistente de ponta a ponta.
+
+AVISO: O proximo passo e criar/implementar a Fase 0 — contrato de dados e correção do portfólio. Antes de iniciar, leia `PROJECT_MEMORY.md` para continuar exatamente de onde o projeto parou, entender o que ja foi feito e integrar a solucao com o sistema atual sem reler todo o repositorio.
+
 ## Estado Atual
 
 **CUTOVER CONCLUÍDO — 2026-08-25**: `vitaleevo.ao` (Vercel, build de `main` pós-merge do PR #5) serve o frontend novo e o browser fala diretamente com `https://api.vitaleevo.ao` (Railway Django novo, deploy `4ec19743`/`b57d07a6` SUCCESS). O Convex `merry-fennec-711` está bypassed. Produção: health live/ready 200 (db+redis), 85 produtos, site_config com `siteName=Vitaleevo` (corrigido na BD), password-reset enviado via Resend produção, cotação pública sem token 400, Django Admin 200. `RQ_ASYNC=False` em produção (e-mails síncronos até existir worker). Pendente pós-cutover: revogar chave Resend `vitaleevo`/`re_87Qv...` (esta exposta em transcript via `vercel env pull` — ROTACIONAR), revogar `CONVEX_DEPLOY_KEY`, apagar projeto Convex, rotacionar `admin@vitaleevo.ao`, rotação de credenciais de staging expostas e limpeza de buckets órfãos.

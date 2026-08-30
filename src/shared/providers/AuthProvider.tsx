@@ -25,6 +25,7 @@ interface User {
     phone?: string;
     isStaff?: boolean;
     permissions?: string[];
+    createdAt?: string;
 }
 
 interface AuthContextType {
@@ -71,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     phone: (profile.phone as string | undefined) ?? "",
                     isStaff: Boolean(profile.isStaff),
                     permissions: profile.permissions as string[] | undefined,
+                    createdAt: (profile.createdAt as string | undefined) ?? (profile.created_at as string | undefined),
                 });
             })
             .catch(() => {
@@ -97,15 +99,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => window.removeEventListener(AUTH_UPDATED_EVENT, handleAuthUpdated);
     }, []);
 
-    // Persistência da sessão (tab atual)
+    // Persistência da sessão (tab atual) + sync cookie para preview staff (?preview=true via cookies)
     useEffect(() => {
+        if (typeof window === "undefined") return;
         if (user?.token) {
-            sessionStorage.setItem(
-                AUTH_STORAGE_KEY,
-                JSON.stringify({ token: user.token, refreshToken: user.refreshToken })
-            );
+            const payload = JSON.stringify({ token: user.token, refreshToken: user.refreshToken });
+            sessionStorage.setItem(AUTH_STORAGE_KEY, payload);
+            try {
+                document.cookie = `${AUTH_STORAGE_KEY}=${encodeURIComponent(payload)}; path=/; max-age=604800; SameSite=Lax`;
+                document.cookie = `token=${encodeURIComponent(user.token)}; path=/; max-age=604800; SameSite=Lax`;
+            } catch {}
         } else {
             sessionStorage.removeItem(AUTH_STORAGE_KEY);
+            try {
+                document.cookie = `${AUTH_STORAGE_KEY}=; path=/; max-age=0; SameSite=Lax`;
+                document.cookie = `token=; path=/; max-age=0; SameSite=Lax`;
+            } catch {}
         }
     }, [user?.token, user?.refreshToken]);
 
@@ -128,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 phone: (profile.phone as string | undefined) ?? "",
                 isStaff: Boolean(profile.isStaff),
                 permissions: profile.permissions as string[] | undefined,
+                createdAt: (profile.createdAt as string | undefined) ?? (profile.created_at as string | undefined),
             };
             setUser(userData);
             return userData;

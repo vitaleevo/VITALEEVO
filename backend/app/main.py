@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api.routes import auth, catalog, cms, commerce, content, misc, quotes
 from app.core.config import get_settings
 from app.db.seed import ensure_admin_user, seed_catalog
+from app.db.migrations import run_additive_migrations
 from app.db.session import check_db_ready, get_engine
 from app.models.catalog import Base
 
@@ -20,6 +21,8 @@ async def lifespan(app: FastAPI):
     # Cria tabelas e seed idempotente (padrão vitafarmacia)
     async with get_engine().begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    await run_additive_migrations()
 
     await ensure_admin_user()
     await seed_catalog()

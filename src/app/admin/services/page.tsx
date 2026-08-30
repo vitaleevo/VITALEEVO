@@ -21,6 +21,10 @@ const fields: CrudField[] = [
         ],
     },
     { name: "description", label: "Descrição", type: "textarea", optional: true, colSpan: 2 },
+    { name: "features", label: "Itens incluídos (separados por vírgula)", type: "textarea", optional: true, colSpan: 2 },
+    { name: "benefits", label: "Benefícios (JSON)", type: "textarea", optional: true, colSpan: 2 },
+    { name: "process", label: "Processo (JSON)", type: "textarea", optional: true, colSpan: 2 },
+    { name: "cta_text", label: "Texto do botão principal", optional: true },
 ];
 
 const columns: CrudColumn[] = [
@@ -39,7 +43,7 @@ export function AdminServicesContent() {
             subtitle="Serviços apresentados no site"
             itemName="Serviço"
             permission="content:manage"
-            fetcher={() => api.services.list({ page_size: 100 })}
+            fetcher={() => api.services.list({ page_size: 100 }, token)}
             columns={columns}
             fields={fields}
             searchKeys={["title", "slug"]}

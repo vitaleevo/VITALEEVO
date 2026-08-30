@@ -22,9 +22,11 @@ import {
 import FeaturedProjectsSlider from "@/shared/components/FeaturedProjectsSlider";
 import FeaturedArticlesSlider from "@/shared/components/FeaturedArticlesSlider";
 import ConceptBackdrop, { CONCEPT_IMAGES } from "@/shared/components/ConceptBackdrop";
+import { useApiQuery } from "@/shared/hooks/useApiQuery";
+import { api } from "@/shared/utils/apiClient";
 
 const Services: React.FC = () => {
-  const categories = [
+  const defaultCategories = [
     {
       icon: <Brush className="h-8 w-8" />,
       title: "Branding e Design",
@@ -75,6 +77,36 @@ const Services: React.FC = () => {
       slug: "infra-security",
     },
   ];
+
+  const { data: managedServices } = useApiQuery<any[]>(null, {
+    deps: [],
+    fetcher: () => api.services.getAll(),
+    cacheKey: "public:services",
+    cacheTTL: 10_000,
+  });
+
+  const serviceIcons: Record<string, React.ReactNode> = {
+    brush: <Brush className="h-8 w-8" />,
+    code: <Code className="h-8 w-8" />,
+    smartphone: <Smartphone className="h-8 w-8" />,
+    rocket: <Rocket className="h-8 w-8" />,
+    brain: <Brain className="h-8 w-8" />,
+    analytics: <BarChart3 className="h-8 w-8" />,
+    network: <Router className="h-8 w-8" />,
+    globe: <Code className="h-8 w-8" />,
+    megaphone: <Rocket className="h-8 w-8" />,
+    bot: <Brain className="h-8 w-8" />,
+  };
+
+  const categories = managedServices?.length
+    ? managedServices.map((service: any) => ({
+        icon: serviceIcons[service.icon] ?? <Layers className="h-8 w-8" />,
+        title: service.title,
+        desc: service.description || service.subtitle,
+        items: service.features || [],
+        slug: service.slug,
+      }))
+    : defaultCategories;
 
   const differentiators = [
     { title: "Velocidade Incomparável", desc: "Sites que carregam em milissegundos, melhorando seu ranking e a satisfação do cliente.", icon: <Zap className="h-6 w-6" /> },
@@ -135,7 +167,7 @@ const Services: React.FC = () => {
                 <p className="mb-6 leading-relaxed text-slate-500 dark:text-slate-400">{cat.desc}</p>
 
                 <ul className="mb-6 space-y-2.5 border-t border-slate-100 pt-6 dark:border-white/5">
-                  {cat.items.map((item, i) => (
+                  {cat.items.map((item: string, i: number) => (
                     <li key={i} className="flex items-center gap-2.5 text-sm text-slate-600 dark:text-slate-400">
                       <CheckCircle className="h-4 w-4 shrink-0 text-secondary" />
                       {item}

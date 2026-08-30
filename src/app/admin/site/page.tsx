@@ -8,6 +8,8 @@ import CrudPage, { CrudField, CrudColumn, badgeColumn } from "@/shared/component
 const fields: CrudField[] = [
     { name: "title", label: "Título", required: true },
     { name: "slug", label: "Slug", placeholder: "auto a partir do título", optional: true },
+    { name: "hero_title", label: "Título do hero", optional: true },
+    { name: "hero_subtitle", label: "Subtítulo do hero", type: "textarea", optional: true },
     {
         name: "status", label: "Estado", type: "select",
         options: [
@@ -17,6 +19,7 @@ const fields: CrudField[] = [
     },
     { name: "seo_title", label: "Título SEO", optional: true },
     { name: "seo_description", label: "Descrição SEO", optional: true },
+    { name: "content", label: "Conteúdo institucional", type: "richtext", optional: true, colSpan: 2 },
 ];
 
 const columns: CrudColumn[] = [
@@ -33,7 +36,7 @@ export function AdminSiteContent() {
             subtitle="Páginas internas e SEO"
             itemName="Página"
             permission="content:manage"
-            fetcher={() => api.pages.list({ page_size: 100 })}
+            fetcher={() => api.pages.list({ page_size: 100 }, token)}
             columns={columns}
             fields={fields}
             searchKeys={["title", "slug"]}

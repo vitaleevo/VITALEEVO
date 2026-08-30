@@ -2,7 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { Plus, Search, Pencil, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { Plus, Search, Pencil, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { useApiQuery } from "@/shared/hooks/useApiQuery";
@@ -44,6 +45,7 @@ interface CrudPageProps {
     keyField?: string;
     permission?: string;
     managePermission?: string;
+    previewBasePath?: string; // ex: "/blog" -> preview href "/blog/{slug}?preview=true"
     onCreate?: (form: Record<string, any>) => Promise<unknown>;
     onUpdate?: (key: string, form: Record<string, any>) => Promise<unknown>;
     onDelete?: (key: string) => Promise<unknown>;
@@ -76,6 +78,7 @@ function CrudPageContent({
     keyField = "slug",
     managePermission,
     permission,
+    previewBasePath,
     onCreate,
     onUpdate,
     onDelete,
@@ -162,27 +165,42 @@ function CrudPageContent({
             </div>
 
             <Table headers={canManage ? [...columns.map(c => c.label), "Ações"] : columns.map(c => c.label)}>
-                {filtered.map((row, idx) => (
-                    <tr key={row.id ?? row[keyField] ?? idx}>
-                        {columns.map(col => (
-                            <Td key={col.key}>{col.render ? col.render(row) : row[col.key]}</Td>
-                        ))}
-                        {canManage && (
-                            <Td>
-                                <div className="flex items-center gap-1">
-                                    <button onClick={() => openEdit(row)} title="Editar" className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors">
-                                        <Pencil className="w-4 h-4" />
-                                    </button>
-                                    {onDelete && (
-                                        <button onClick={() => setDeleting(row)} title="Remover" className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors">
-                                            <Trash2 className="w-4 h-4" />
+                {filtered.map((row, idx) => {
+                    const slugVal = row[keyField] ?? row.slug;
+                    const previewHref = previewBasePath && slugVal ? `${previewBasePath}/${slugVal}?preview=true` : null;
+                    return (
+                        <tr key={row.id ?? row[keyField] ?? idx}>
+                            {columns.map(col => (
+                                <Td key={col.key}>{col.render ? col.render(row) : row[col.key]}</Td>
+                            ))}
+                            {canManage && (
+                                <Td>
+                                    <div className="flex items-center gap-1">
+                                        {previewHref && (
+                                            <Link
+                                                href={previewHref}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                title="Preview (nova aba) — visível para staff com content:manage, suporta ?preview=true com auth via cookie/header"
+                                                className="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-500/10 transition-colors"
+                                            >
+                                                <Eye className="w-4 h-4" />
+                                            </Link>
+                                        )}
+                                        <button onClick={() => openEdit(row)} title="Editar" className="p-1.5 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors">
+                                            <Pencil className="w-4 h-4" />
                                         </button>
-                                    )}
-                                </div>
-                            </Td>
-                        )}
-                    </tr>
-                ))}
+                                        {onDelete && (
+                                            <button onClick={() => setDeleting(row)} title="Remover" className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </Td>
+                            )}
+                        </tr>
+                    );
+                })}
                 {!filtered.length && (
                     <tr><td colSpan={columns.length + (canManage ? 1 : 0)}><Empty label={search ? "Sem resultados para os filtros" : "Sem registos adicionados"} /></td></tr>
                 )}
@@ -196,6 +214,8 @@ function CrudPageContent({
                 itemName={itemName}
                 onSave={handleSave}
                 saving={saving}
+                previewBasePath={previewBasePath}
+                previewSlug={editing?.[keyField] ?? editing?.slug}
             />
 
             <DeleteDialog
@@ -209,7 +229,7 @@ function CrudPageContent({
     );
 }
 
-function CrudModal({ isOpen, onClose, editing, fields, itemName, onSave, saving }: {
+function CrudModal({ isOpen, onClose, editing, fields, itemName, onSave, saving, previewBasePath, previewSlug }: {
     isOpen: boolean;
     onClose: () => void;
     editing: any | null;
@@ -217,12 +237,20 @@ function CrudModal({ isOpen, onClose, editing, fields, itemName, onSave, saving 
     itemName: string;
     onSave: (form: Record<string, any>) => void;
     saving: boolean;
+    previewBasePath?: string;
+    previewSlug?: string;
 }) {
     const getInitial = () => {
         const initial: Record<string, any> = {};
         for (const f of fields) {
             const value = editing?.[f.name];
-            initial[f.name] = value ?? (f.type === "checkbox" ? false : "");
+            initial[f.name] = value ?? (
+                f.type === "checkbox"
+                    ? false
+                    : f.type === "select" && f.name === "status"
+                        ? (f.options?.[0]?.value ?? "")
+                        : ""
+            );
         }
         return initial;
     };
@@ -350,24 +378,38 @@ function CrudModal({ isOpen, onClose, editing, fields, itemName, onSave, saving 
                     );
                 })}
             </div>
-            <div className="mt-6 flex justify-end gap-3">
-                <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
-                    Cancelar
-                </button>
-                <button
-                    disabled={saving || fields.some(f => f.required && !form[f.name])}
-                    onClick={() => {
-                        const clean: Record<string, any> = {};
-                        for (const f of fields) {
-                            if (f.optional && (form[f.name] === "" || form[f.name] == null)) continue;
-                            clean[f.name] = form[f.name];
-                        }
-                        onSave(clean);
-                    }}
-                    className="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-dark disabled:opacity-50 transition-colors"
-                >
-                    {saving ? "A guardar..." : "Guardar"}
-                </button>
+            <div className="mt-6 flex justify-between gap-3">
+                <div>
+                    {previewBasePath && editing && previewSlug && (
+                        <a
+                            href={`${previewBasePath}/${previewSlug}?preview=true`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-bold text-amber-700 hover:bg-amber-100 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200 transition-colors"
+                        >
+                            <Eye className="w-4 h-4" /> Preview
+                        </a>
+                    )}
+                </div>
+                <div className="flex gap-3">
+                    <button onClick={onClose} className="rounded-xl px-5 py-2.5 text-sm font-bold text-gray-500 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                        Cancelar
+                    </button>
+                    <button
+                        disabled={saving || fields.some(f => f.required && !form[f.name])}
+                        onClick={() => {
+                            const clean: Record<string, any> = {};
+                            for (const f of fields) {
+                                if (f.optional && (form[f.name] === "" || form[f.name] == null)) continue;
+                                clean[f.name] = form[f.name];
+                            }
+                            onSave(clean);
+                        }}
+                        className="rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-white hover:bg-primary-dark disabled:opacity-50 transition-colors"
+                    >
+                        {saving ? "A guardar..." : "Guardar"}
+                    </button>
+                </div>
             </div>
         </Modal>
     );

@@ -28,7 +28,10 @@ async def get_current_user(
     if not payload or "sub" not in payload:
         return None
     result = await db.execute(select(User).where(User.email == payload["sub"]))
-    return result.scalar_one_or_none()
+    user = result.scalar_one_or_none()
+    if user is None or int(payload.get("ver", 0)) != int(user.token_version or 0):
+        return None
+    return user
 
 
 def user_permissions(user: User | None) -> list[str]:

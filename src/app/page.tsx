@@ -1,6 +1,7 @@
 import FeatureLayout from "@/shared/components/FeatureLayout";
 import Home from "@/features/home/components/Home";
 import { SITE_CONTACT } from "@/shared/utils/contact";
+import ManagedPageOrFallback from "@/shared/components/ManagedPageOrFallback";
 
 export const revalidate = 10;
 
@@ -43,7 +44,7 @@ export default function HomePage() {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-            <Home />
+            <ManagedPageOrFallback slug="home" fallback={<Home />} />
         </FeatureLayout>
     );
 }

@@ -26,6 +26,14 @@ CATEGORIES: list[dict] = [
     {"name": "Acessórios", "slug": "acessorios", "description": "Periféricos e acessórios."},
 ]
 
+BLOG_CATEGORIES: list[dict] = [
+    {"name": "Tecnologia", "slug": "tecnologia", "description": "Novidades e tendências em tecnologia."},
+    {"name": "Marketing Digital", "slug": "marketing-digital", "description": "Estratégias de marketing e growth."},
+    {"name": "Design", "slug": "design", "description": "Design, branding e experiência do utilizador."},
+    {"name": "Negócios", "slug": "negocios", "description": "Gestão, empreendedorismo e mercado."},
+    {"name": "Inovação", "slug": "inovacao", "description": "Inovação e transformação digital."},
+]
+
 PRODUCTS: list[dict] = [
     {"name": "Portátil HP 250 G8", "category": "computadores", "brand": "HP", "price": 750000, "stock": 10, "featured": True, "description": "Core i5, 8GB, 512GB SSD, 15.6\"."},
     {"name": "Portátil Lenovo ThinkPad E15", "category": "computadores", "brand": "Lenovo", "price": 890000, "stock": 8, "description": "Ryzen 5, 16GB, 512GB SSD, 15.6\"."},
@@ -76,9 +84,18 @@ async def ensure_admin_user() -> None:
 async def seed_catalog() -> None:
     sessionmaker = get_sessionmaker()
     async with sessionmaker() as session:
+        # Sempre garante categorias de blog (mesmo se já houver produtos)
+        existing_blog_slugs = {
+            r[0] for r in (await session.execute(select(Category.slug).where(Category.type == "blog"))).all()
+        }
+        for cat in BLOG_CATEGORIES:
+            if cat["slug"] not in existing_blog_slugs:
+                session.add(Category(name=cat["name"], slug=cat["slug"], description=cat.get("description", ""), type="blog"))
+
         count = (await session.execute(select(func.count(Product.id)))).scalar() or 0
         if count > 0:
             await _ensure_site_settings(session)
+            await session.commit()
             return
 
         for cat in CATEGORIES:
