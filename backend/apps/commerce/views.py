@@ -145,7 +145,10 @@ class CartViewSet(viewsets.ViewSet):
 
     @action(detail=True, methods=["patch"])
     def update_quantity(self, request, pk=None):
-        item = CartItem.objects.get(user=request.user, pk=pk)
+        try:
+            item = CartItem.objects.get(user=request.user, pk=pk)
+        except CartItem.DoesNotExist:
+            return Response({"detail": "Item não encontrado."}, status=status.HTTP_404_NOT_FOUND)
         quantity = request.data.get("quantity")
         if not isinstance(quantity, int) or quantity < 1 or quantity > 999:
             return Response({"detail": "Quantidade inválida"}, status=status.HTTP_400_BAD_REQUEST)
