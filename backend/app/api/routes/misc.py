@@ -184,7 +184,9 @@ async def upload(file: UploadFile = File(...), user: User | None = Depends(requi
             "webp": "image/webp", "gif": "image/gif", "avif": "image/avif",
         }.get(ext, "application/octet-stream")
         try:
-            url = storage_module.save(key=name, data=data, content_type=content_type)
+            result = storage_module.save_with_thumbnail(key=name, data=data, content_type=content_type)
+            url = result["url"]
+            thumb_url = result["thumb_url"]
         except HTTPException:
             raise
         except Exception as exc:  # noqa: BLE001
@@ -196,7 +198,7 @@ async def upload(file: UploadFile = File(...), user: User | None = Depends(requi
         if isinstance(exc, HTTPException):
             raise
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Falha ao guardar ficheiro.") from exc
-    return {"url": url}
+    return {"url": url, "thumb_url": thumb_url}
 
 
 @router.get("/audit/logs")

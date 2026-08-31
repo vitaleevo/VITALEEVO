@@ -132,6 +132,44 @@ def save(*, key: str, data: bytes, content_type: str | None = None) -> str:
     return f"/media/{safe_key}"
 
 
+def _make_thumbnail(data: bytes, max_size: tuple[int, int] = (400, 400)) -> bytes | None:
+    """Gera miniatura 400x400 preservando aspect ratio. Retorna None se não for imagem válida."""
+    try:
+        from PIL import Image
+        import io
+
+        with Image.open(io.BytesIO(data)) as im:
+            # Converte para RGB se necessário (ex: RGBA PNG)
+            if im.mode in ("RGBA", "LA", "P"):
+                background = Image.new("RGB", im.size, (255, 255, 255))
+                if im.mode == "P":
+                    im = im.convert("RGBA")
+                background.paste(im, mask=im.split()[-1] if im.mode == "RGBA" else None)
+                im = background
+            elif im.mode != "RGB":
+                im = im.convert("RGB")
+            thumb = im.copy()
+            thumb.thumbnail(max_size, Image.LANCZOS)
+            out = io.BytesIO()
+            # Força JPEG para miniaturas (menor tamanho), PNG se original tinha transparência já convertida
+            thumb.save(out, format="JPEG", quality=82, optimize=True)
+            return out.getvalue()
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("thumbnail falhou: %s", exc)
+        return None
+
+
+def save_with_thumbnail(*, key: str, data: bytes, content_type: str | None = None) -> dict[str, str]:
+    """Guarda original + miniatura thumb_*. Retorna {url, thumb_url}."""
+    url = save(key=key, data=data, content_type=content_type)
+    thumb_url = url
+    thumb_data = _make_thumbnail(data)
+    if thumb_data:
+        thumb_key = f"thumb_{key}"
+        thumb_url = save(key=thumb_key, data=thumb_data, content_type="image/jpeg")
+    return {"url": url, "thumb_url": thumb_url}
+
+
 def save_fileobj(*, key: str, fileobj: BinaryIO, content_type: str | None = None) -> str:
     """Variante que aceita file-like object."""
     data = fileobj.read()
