@@ -3,7 +3,7 @@
 import React from "react";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { useApiQuery } from "@/shared/hooks/useApiQuery";
-import { api } from "@/shared/utils/apiClient";
+import { api, request } from "@/shared/utils/apiClient";
 import CrudPage, { CrudField, CrudColumn } from "@/shared/components/admin/CrudPage";
 import { Loading } from "@/shared/components/admin/ui";
 
@@ -18,36 +18,35 @@ const fields: CrudField[] = [
             { value: "portfolio", label: "Portfólio" },
         ],
     },
-    { name: "parent", label: "Categoria pai", type: "select", options: [], optional: true },
+    { name: "parent_slug", label: "Categoria pai", type: "select", options: [], optional: true },
     { name: "description", label: "Descrição", type: "textarea", optional: true, colSpan: 2 },
-    { name: "order", label: "Ordem", type: "number", optional: true },
 ];
 
 export function AdminCategoriesContent() {
     const { token } = useAuth();
-    const { data: all } = useApiQuery<any[]>(null, { deps: [token], enabled: !!token, fetcher: () => api.categories.getByType("store") });
+    const fetchAll = () => request<any>("/catalog/categories/", {}).then((d: any) => Array.isArray(d) ? d : d.results ?? d);
+    const { data: all } = useApiQuery<any[]>(null, { deps: [token], enabled: !!token, fetcher: fetchAll });
 
     if (!all) return <Loading />;
 
-    const parentOptions = (all || []).filter((c: any) => !c.parent).map((c: any) => ({ value: c.slug, label: c.name }));
-    const withParents = fields.map(f => (f.name === "parent" ? { ...f, options: parentOptions } : f));
+    const parentOptions = (all || []).filter((c: any) => !c.parent && !c.parentSlug).map((c: any) => ({ value: c.slug, label: c.name }));
+    const withParents = fields.map(f => (f.name === "parent_slug" ? { ...f, options: parentOptions } : f));
 
     const columns: CrudColumn[] = [
         { key: "name", label: "Nome", render: (c: any) => <span className="font-bold text-gray-900 dark:text-white">{c.name}</span> },
         { key: "slug", label: "Slug", render: (c: any) => <span className="font-mono text-xs">{c.slug}</span> },
         { key: "type", label: "Tipo" },
-        { key: "parent", label: "Pai", render: (c: any) => c.parent || "—" },
-        { key: "order", label: "Ordem" },
+        { key: "parent", label: "Pai", render: (c: any) => c.parent || c.parentSlug || "—" },
     ];
 
     return (
         <CrudPage
             title="Categorias"
-            subtitle="Categorias e subcategorias do catálogo"
+            subtitle="Categorias e subcategorias (Loja, Blog, Portfólio)"
             itemName="Categoria"
             permission="catalog:read"
             managePermission="catalog:manage"
-            fetcher={() => api.categories.getByType("store")}
+            fetcher={fetchAll}
             columns={columns}
             fields={withParents}
             searchKeys={["name", "slug", "type"]}

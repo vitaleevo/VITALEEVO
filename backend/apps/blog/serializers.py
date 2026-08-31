@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from apps.catalog.models import Category
-from apps.core.validators import validate_slug
+from apps.core.validators import sanitize_html, validate_slug
 
 from .models import Article
 
@@ -58,3 +58,9 @@ class ArticleAdminSerializer(ArticleSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+    def validate_content(self, value):
+        return sanitize_html(value)
+
+    def validate_excerpt(self, value):
+        return sanitize_html(value) if value else value

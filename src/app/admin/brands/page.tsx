@@ -8,16 +8,11 @@ import CrudPage, { CrudField, CrudColumn, imageColumn } from "@/shared/component
 const fields: CrudField[] = [
     { name: "name", label: "Nome", required: true },
     { name: "slug", label: "Slug", placeholder: "auto a partir do nome", optional: true },
-    { name: "logo", label: "Logótipo", type: "image", optional: true },
-    { name: "description", label: "Descrição", type: "textarea", optional: true, colSpan: 2 },
-    { name: "order", label: "Ordem", type: "number", optional: true },
 ];
 
 const columns: CrudColumn[] = [
-    { key: "logo", label: "", render: imageColumn("logo") },
     { key: "name", label: "Nome", render: (b: any) => <span className="font-bold text-gray-900 dark:text-white">{b.name}</span> },
     { key: "slug", label: "Slug", render: (b: any) => <span className="font-mono text-xs">{b.slug}</span> },
-    { key: "description", label: "Descrição", render: (b: any) => <span className="line-clamp-1 max-w-xs">{b.description || "—"}</span> },
 ];
 
 export function AdminBrandsContent() {

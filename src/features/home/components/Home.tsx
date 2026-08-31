@@ -17,10 +17,14 @@ import {
   Shield,
   Camera,
   ShoppingBag,
+  Clock,
+  User,
+  BookOpen,
 } from "lucide-react";
 import Hero from "@/shared/components/Hero";
 import AnimatedCounter from "@/shared/components/AnimatedCounter";
 import ConceptBackdrop, { CONCEPT_IMAGES } from "@/shared/components/ConceptBackdrop";
+import SafeImage from "@/shared/components/SafeImage";
 
 const socialProof = [
   { value: 150, suffix: "+", label: "Projetos Entregues" },
@@ -101,7 +105,8 @@ const fadeUp = {
 };
 
 const Home: React.FC = () => {
-const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.projects.getFeatured(3) });
+  const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.projects.getFeatured(3) });
+  const { data: featuredArticles } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.articles.getFeatured(3) });
 
   const { data: dbServices } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.services.getAll() });
   const services: any[] = dbServices && dbServices.length > 0
@@ -302,6 +307,97 @@ const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher:
                         </div>
                       )}
                     </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== 5b. Artigos em Destaque (Home reflection) ===== */}
+      {featuredArticles && featuredArticles.length > 0 && (
+        <section className="section-pad bg-white dark:bg-[#0b1120]">
+          <div className="wrap">
+            <div className="section-head flex flex-col items-end justify-between gap-4 md:flex-row">
+              <div>
+                <span className="eyebrow">
+                  <BookOpen className="h-4 w-4" />
+                  Insights & Tendências
+                </span>
+                <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl dark:text-white">
+                  Últimos artigos do blog
+                </h2>
+              </div>
+              <Link
+                href="/blog"
+                className="group inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-primary dark:text-slate-200"
+              >
+                Ver Blog Completo
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+
+            <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
+              {featuredArticles.slice(0, 3).map((article: any, idx: number) => (
+                <motion.div
+                  key={article._id}
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true }}
+                  custom={idx}
+                  variants={fadeUp}
+                  className="card group overflow-hidden flex flex-col"
+                >
+                  <Link href={`/blog/${article.slug}`} className="block">
+                    <div className="relative aspect-[16/10] overflow-hidden">
+                      {article.image ? (
+                        <SafeImage
+                          src={article.image}
+                          alt={article.title}
+                          sizes="(min-width:768px) 33vw, 100vw"
+                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-br from-primary/20 to-primary-dark/20" />
+                      )}
+                      <span className="absolute left-4 top-4 rounded-full bg-primary px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white shadow-lg">
+                        {article.category || 'Artigo'}
+                      </span>
+                    </div>
+                  </Link>
+                  <div className="flex flex-1 flex-col p-6">
+                    <div className="mb-3 flex items-center gap-4 text-xs font-bold text-slate-500 dark:text-slate-400">
+                      {article.readTime && (
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="h-4 w-4 text-primary" />
+                          {article.readTime}
+                        </span>
+                      )}
+                      {article.author && (
+                        <span className="flex items-center gap-1.5">
+                          <User className="h-4 w-4 text-primary" />
+                          {article.author}
+                        </span>
+                      )}
+                    </div>
+                    <Link href={`/blog/${article.slug}`}>
+                      <h3 className="font-display text-xl font-bold leading-tight text-slate-900 line-clamp-2 transition-colors group-hover:text-primary dark:text-white">
+                        {article.title}
+                      </h3>
+                    </Link>
+                    {article.excerpt && (
+                      <p className="mt-3 line-clamp-3 flex-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+                        {article.excerpt}
+                      </p>
+                    )}
+                    <Link
+                      href={`/blog/${article.slug}`}
+                      className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-primary"
+                    >
+                      Ler Artigo
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
                   </div>
                 </motion.div>
               ))}

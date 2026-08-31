@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from apps.catalog.models import Category
-from apps.core.validators import validate_slug
+from apps.core.validators import sanitize_html, validate_slug
 
 from .models import Project
 
@@ -56,3 +56,12 @@ class ProjectAdminSerializer(ProjectSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+    def validate_full_description(self, value):
+        return sanitize_html(value) if value else value
+
+    def validate_challenge(self, value):
+        return sanitize_html(value) if value else value
+
+    def validate_solution(self, value):
+        return sanitize_html(value) if value else value

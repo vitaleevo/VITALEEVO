@@ -1,6 +1,7 @@
 import { generateSEOMetadata } from '@/shared/utils/seo';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Contact from '@/features/contact/components/Contact';
+import ManagedPageOrFallback from '@/shared/components/ManagedPageOrFallback';
 
 export const metadata = generateSEOMetadata({
     title: 'Contacto',
@@ -11,7 +12,7 @@ export const metadata = generateSEOMetadata({
 export default function ContactPage() {
     return (
         <FeatureLayout>
-            <Contact />
+            <ManagedPageOrFallback slug="contact" fallback={<Contact />} />
         </FeatureLayout>
     );
 }
