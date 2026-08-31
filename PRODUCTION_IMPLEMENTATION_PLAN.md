@@ -7,11 +7,13 @@ Objetivo: corrigir os bloqueadores técnicos, publicar o código no GitHub e ope
 ## Estado de execução — 2026-08-23
 
 - Gate 0 de código: concluído (credenciais fixas e exemplos sensíveis removidos; bootstrap e seed endurecidos).
-- Gate 0 operacional: em curso. Backup/restauração e configuração pública Railway/DNS concluídos; revogação dos segredos históricos, segredo SMTP e rotação do admin real ainda pendentes.
+- Gate 0 operacional: em curso. Backup/restauração, configuração pública Railway/DNS e staging isolado concluídos; revogação dos segredos históricos, segredo SMTP e rotação do admin real ainda pendentes.
 - PR 1: implementado e validado na branch `codex/production-hardening`.
 - PR 2: implementado, validado e publicado na branch `codex/data-cms-analytics` (`296d519`).
 - PR 3: implementado, validado e publicado na branch `codex/frontend-admin-logins` (`18c8a7d`).
-- PR 4, revisão/merge, staging e produção: pendentes.
+- PR 4: implementado, publicado e validado no GitHub; o código de infraestrutura no commit `6dc8828` deixou CI, Vercel Preview e Railway staging verdes.
+- Staging: API, worker, cron, PostgreSQL, Redis, bucket e migrações operacionais; cinco contas E2E foram provisionadas com credenciais seladas no GitHub.
+- Revisão/merge e produção: pendentes do SMTP Resend, revogação Resend/Convex, matriz E2E real e decisão explícita GO.
 - Decisão de release: **NO-GO** até todos os gates aplicáveis passarem.
 
 ## Resultado final esperado
@@ -189,7 +191,7 @@ Proteger `main` com PR obrigatório, checks obrigatórios, branch atualizada e b
 
 ### Railway
 
-Usar o repositório GitHub com Root Directory `/backend` e manter uma única configuração Railway. Estrutura:
+Usar o repositório GitHub com Root Directory `/backend` e uma configuração versionada por tipo de serviço. Estrutura:
 
 - `vitaleevo-api`: Gunicorn apenas.
 - `vitaleevo-worker`: `python manage.py rqworker default`.
@@ -225,7 +227,7 @@ EMAIL_HOST_USER=<segredo>
 EMAIL_HOST_PASSWORD=<segredo selado>
 EMAIL_USE_TLS=True
 DEFAULT_FROM_EMAIL=no-reply@vitaleevo.ao
-AWS_ENDPOINT_URL=${{MediaBucket.ENDPOINT}}
+AWS_S3_ENDPOINT_URL=${{MediaBucket.ENDPOINT}}
 AWS_ACCESS_KEY_ID=${{MediaBucket.ACCESS_KEY_ID}}
 AWS_SECRET_ACCESS_KEY=${{MediaBucket.SECRET_ACCESS_KEY}}
 AWS_STORAGE_BUCKET_NAME=${{MediaBucket.BUCKET}}
@@ -251,7 +253,7 @@ SITE_URL=https://vitaleevo.ao
 
 ### Observabilidade
 
-- Logs JSON com request ID/correlation ID, utilizador, rota, status e latência, sem tokens ou dados pessoais desnecessários.
+- Logs JSON com request ID/correlation ID, rota, status e latência, sem tokens, payloads ou dados pessoais.
 - Error tracking para frontend, API e worker.
 - Monitorização externa contínua da home, readiness e percurso de login; o healthcheck Railway atua apenas durante deploy.
 - Alertas para 5xx, falha de jobs, indisponibilidade de DB/Redis, fila acumulada e falhas de e-mail.

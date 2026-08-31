@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { servicesData } from '@/features/services/data';
+import { api } from '@/shared/utils/apiClient';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Link from 'next/link';
 import {
@@ -32,13 +33,29 @@ import {
     Check
 } from "lucide-react";
 
-interface Props {
-    params: { slug: string };
+interface Props { params: Promise<{ slug: string }>; }
+
+async function resolveService(slug: string) {
+    try {
+        const managed: any = await api.services.getBySlug(slug);
+        const fallback: any = servicesData.find((item) => item.slug === slug);
+        return {
+            ...fallback,
+            ...managed,
+            image: managed.image || fallback?.image || '/images/heros/services.webp',
+            features: managed.features || fallback?.features || [],
+            benefits: managed.benefits?.length ? managed.benefits : (fallback?.benefits || []),
+            process: managed.process?.length ? managed.process : (fallback?.process || []),
+            ctaText: managed.ctaText || fallback?.ctaText || 'Solicitar proposta',
+        };
+    } catch {
+        return servicesData.find((item) => item.slug === slug) || null;
+    }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { slug } = await params;
-    const service = servicesData.find((s) => s.slug === slug);
+    const service = await resolveService(slug);
 
     if (!service) return { title: 'Serviço Não Encontrado' };
 
@@ -58,7 +75,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // The dynamic page component
 export default async function ServicePage({ params }: Props) {
     const { slug } = await params;
-    const service = servicesData.find((s) => s.slug === slug);
+    const service = await resolveService(slug);
 
     if (!service) {
         notFound();
@@ -115,7 +132,7 @@ export default async function ServicePage({ params }: Props) {
                             </span>
 
                             <h1 className="mb-6 font-display text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-6xl dark:text-white">
-                                {service.title.split(' ').map((word, i) => (
+                                {service.title.split(' ').map((word: string, i: number) => (
                                     <span key={i} className={i % 2 !== 0 ? "text-primary" : ""}>
                                         {word}{' '}
                                     </span>
@@ -161,7 +178,7 @@ export default async function ServicePage({ params }: Props) {
 
                                 <h3 className="mb-6 font-bold text-xl text-slate-900 dark:text-white">O que está incluso:</h3>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                    {service.features.map((feature, idx) => (
+                                    {service.features.map((feature: string, idx: number) => (
                                         <div key={idx} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-white/5 dark:bg-white/5">
                                             <CheckCircle className="h-5 w-5 shrink-0 text-primary" />
                                             <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{feature}</span>
@@ -172,7 +189,7 @@ export default async function ServicePage({ params }: Props) {
 
                             {/* Right Benefits */}
                             <div className="w-full space-y-6 lg:w-1/2">
-                                {service.benefits.map((benefit, idx) => {
+                                {service.benefits.map((benefit: { icon: string; title: string; desc: string }, idx: number) => {
                                     const Icon = IconComponent(benefit.icon);
                                     return (
                                         <div key={idx} className="group flex rounded-2xl border border-gray-100 bg-white p-6 shadow-lg transition-colors hover:border-primary/50 dark:border-white/5 dark:bg-[#151e32]">
@@ -207,7 +224,7 @@ export default async function ServicePage({ params }: Props) {
                         </div>
 
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                            {service.process.map((step, idx) => (
+                            {service.process.map((step: { step: string; title: string; desc: string }, idx: number) => (
                                 <div key={idx} className="group relative rounded-3xl border border-white/10 bg-white p-8 shadow-card transition-colors hover:border-primary/50 dark:bg-[#1e293b] dark:border-white/5">
                                     <span className="absolute right-6 top-4 text-6xl font-black text-slate-100 transition-colors group-hover:text-primary/20 dark:text-white/5">{step.step}</span>
                                     <h3 className="relative z-10 mb-4 mt-6 font-display text-xl font-bold text-slate-900 dark:text-white">{step.title}</h3>

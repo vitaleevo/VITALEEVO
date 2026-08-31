@@ -45,14 +45,20 @@ test-results/
 .cache
 .turbo
 
-# Python / Django
+# Python / FastAPI
 backend/.venv/
+.venv/
 __pycache__/
 *.pyc
 backend/.env
 backend/db.sqlite3
+backend/*.db
+*.db
 backend/staticfiles/
 .pytest_cache/
+vitafarmacia/
+.tmp-*
+.tmp/
 
 
 # Large Media / Binaries (mantidos fora do repo)

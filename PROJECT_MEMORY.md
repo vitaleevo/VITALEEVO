@@ -1,8 +1,108 @@
 # Memória do Projeto VitalEvo
 
+## Última etapa concluída: plano de conclusão funcional — 2026-08-29
+
+Objetivo: transformar a solicitação de site integralmente funcional num roteiro baseado no estado real do repositório, cobrindo CMS, catálogo, conta de cliente, permissões e verificação ponta a ponta.
+
+Foi feito:
+
+- Inspecionada a base atual: frontend Next.js, API FastAPI, painel administrativo, autenticação por função, conta do cliente e rotas existentes de CMS/comércio.
+- Criado o roteiro consolidado em `PLANO_FUNCIONAL_COMPLETO.md`, com definição de pronto, fases, critérios de aceite, dependências e decisões de negócio pendentes.
+- Identificada a primeira lacuna crítica: campos administrados no portfólio (como cliente, ano, ordem e descrição longa) não estão todos persistidos pelo modelo atual, portanto o CRUD aparenta ser mais completo do que é.
+- Preservadas alterações locais já existentes; não foi alterado código de produto nesta etapa.
+
+Arquivos principais:
+
+- `PLANO_FUNCIONAL_COMPLETO.md`
+- `backend/app/models/catalog.py`
+- `backend/app/api/routes/content.py`
+- `src/app/admin/portfolio/page.tsx`
+
+Verificação executada:
+
+```bash
+rg --files
+rg -n "@router|blog|portfolio|products|orders" backend src
+git diff --check
+```
+
+Resultado: o projeto já dispõe da maior parte da superfície de rotas/telas necessária, mas a integridade entre formulários, persistência e páginas públicas precisa ser concluída antes de declarar os módulos totalmente funcionais.
+
+Estado atual:
+
+- Existe uma base operacional com CRUDs e páginas públicas, mas a trilha de produto ainda está em meio de execução.
+- Falta imediato: definir o contrato de dados definitivo e corrigir primeiro o portfólio; em seguida validar publicação pública, catálogo e reflexos na conta com testes ponta a ponta.
+
+Estado do projeto:
+
+- Fase/trilha atual: planeamento técnico de conclusão funcional.
+- Sólido agora: autenticação, painel, rotas centrais e área de cliente já existem como base.
+- Falta imediato: contratos/migrações consistentes, regras completas de ciclo de vida, testes de autorização e de reflexo de dados.
+- Distância do fim: meio do caminho; há ampla cobertura de interface e API, mas ainda não há evidência suficiente de que todos os fluxos sejam coerentes de ponta a ponta.
+
+## Próximo passo recomendado
+
+Criar/implementar a Fase 0: inventário de campos e migração que torna o portfólio persistente de ponta a ponta.
+
+AVISO: O proximo passo e criar/implementar a Fase 0 — contrato de dados e correção do portfólio. Antes de iniciar, leia `PROJECT_MEMORY.md` para continuar exatamente de onde o projeto parou, entender o que ja foi feito e integrar a solucao com o sistema atual sem reler todo o repositorio.
+
 ## Estado Atual
 
-O frontend Next.js continua publicado na Vercel em `https://vitaleevo.ao`; o backend Django/DRF está ligado no Railway a PostgreSQL e Redis. Os PRs 1–3 estão implementados em branches empilhadas e publicados no GitHub: `codex/production-hardening`, `codex/data-cms-analytics` (`296d519`) e `codex/frontend-admin-logins` (`18c8a7d`). O backup restaurável e a configuração pública do Railway/DNS foram concluídos; a produção continua bloqueada até revogar os segredos históricos, configurar o segredo SMTP, rotacionar o administrador real, revisar/mesclar os PRs em sequência e concluir a homologação integrada descrita em `PRODUCTION_IMPLEMENTATION_PLAN.md`.
+**CUTOVER CONCLUÍDO — 2026-08-25**: `vitaleevo.ao` (Vercel, build de `main` pós-merge do PR #5) serve o frontend novo e o browser fala diretamente com `https://api.vitaleevo.ao` (Railway Django novo, deploy `4ec19743`/`b57d07a6` SUCCESS). O Convex `merry-fennec-711` está bypassed. Produção: health live/ready 200 (db+redis), 85 produtos, site_config com `siteName=Vitaleevo` (corrigido na BD), password-reset enviado via Resend produção, cotação pública sem token 400, Django Admin 200. `RQ_ASYNC=False` em produção (e-mails síncronos até existir worker). Pendente pós-cutover: revogar chave Resend `vitaleevo`/`re_87Qv...` (esta exposta em transcript via `vercel env pull` — ROTACIONAR), revogar `CONVEX_DEPLOY_KEY`, apagar projeto Convex, rotacionar `admin@vitaleevo.ao`, rotação de credenciais de staging expostas e limpeza de buckets órfãos.
+
+## Checkpoint cutover produção — 2026-08-25
+
+- PR #5 (`codex/cicd-railway-vercel` → `main`) criado e merged (`04:06:33Z`) com 14/14 checks verdes após fix dos mocks E2E (`file:e2e/auth-capabilities.spec.ts:15` normaliza trailing slash — o fix `b149415` do apiClient quebrou os mocks `endsWith("/auth/login")`).
+- Railway production/web: deploy automático SUCCESS; migrações via preDeployCommand aplicadas na BD de produção.
+- Vercel Production: `NEXT_PUBLIC_API_URL=https://api.vitaleevo.ao` e `SITE_URL=https://vitaleevo.ao` criadas (estavam vazias!), redeploy `k5scv250c`; bundle do browser confirma host `api.vitaleevo.ao` no chunk `13fulwe4qce25.js`.
+- `vercel env pull` expôs no transcript `EMAIL_HOST_PASSWORD` de produção (`re_87Qv...`) — **rotação obrigatória**; ficheiro `.tmp-vercel-prod.json` apagado.
+- Smoke produção: login (erro credenciais inválidas OK), reset enviado (Bounced — caixa inexistente), quotes 400, admin 200, proxy `/api/v1/*` no domínio responde do Django.
+
+## Checkpoint bucket media-production — 2026-08-24
+
+- Bucket de produção criado e ligado ao serviço `web` via browser CDP (`http://localhost:9222`, perfil `chrome-cdp-profile` autenticado no Railway): bucket `preserved-basketcase` (id `3373836c-b40d-49f6-8a06-68a8f84baa9f`, nome real S3 `preserved-basketcase-o5l8l0`, região EU West Amsterdam, endpoint `https://t3.storageapi.dev`).
+- Fluxo que funcionou: command palette → `New Service` → `Bucket` (navegação por teclado ArrowDown×6+Enter; clique JS não regista no cmdk) → painel Settings confirmou região → `Shift+Enter` na palette aplicou as mudanças (o botão `Apply` não respondeu a cliques sintéticos).
+- Variáveis injetadas pelo diálogo `Add to Service` com estilo **Django (django-storages)** — nomes exatos exigidos por `file:backend/config/settings/base.py:134`: `AWS_S3_ENDPOINT_URL`, `AWS_STORAGE_BUCKET_NAME`, `AWS_S3_REGION_NAME`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (referências `${{preserved-basketcase.*}}`), confirmadas em `production/web` via `railway variable list`.
+- `EMAIL_HOST_PASSWORD` (chave `vitaleevo-production` `re_87Qv...`) já estava selada em `production/web` com `--skip-deploys`.
+- Agent do Railway não consegue definir região em buckets de ambiente (só templates); API GraphQL cria bucket mas não instancia (`BucketInstance not found` sem mutação pública); `bucketS3Credentials` retorna `Not Authorized` para token de CLI — credenciais só visíveis no dashboard.
+- Limpieza pendente: buckets órfãos `2e62acb5` (criado por engano no projeto `profissionais`, env `328a5f6d`) e `10a7352e`/`ample-cornucopia-lJVK` + `64b21aa2`/`convenient-pantry` (sem instância, descartados) — apagar manualmente no dashboard.
+- Produção agora cumpre `file:backend/config/settings/production.py:12` (`USE_S3_STORAGE`) e `:21` (SMTP) — pronta para o deploy do código novo após merge.
+
+## Checkpoint Gate 0 operacional — SMTP, logins e correções — 2026-08-23
+
+- Domínio `vitaleevo.ao` verificado no Resend (status `Verified` em `https://resend.com/domains/9dd3ed75-6501-4bfe-a865-fc9871d12e2a`): adicionados `resend._domainkey` TXT `p=MIGfMA0GCSqG...DAQAB`, `send` MX `feedback-smtp.us-east-1.amazonses.com` e `send` TXT `v=spf1 include:amazonses.com ~all` via `vercel dns add` e validados com `https://dns.google/resolve`; `_dmarc` já existia.
+- Criadas duas novas chaves Resend `Sending access` via browser CDP (`chrome-cdp-profile` em `http://localhost:9222`): `vitaleevo-staging` (`re_VVJd...`, rotacionada após vazamento no `printenv`) e `vitaleevo-production` (`re_87Qv...`); instaladas via `railway variable set EMAIL_HOST_PASSWORD --stdin --skip-deploys` em `staging/api,worker,analytics-cleanup` e `production/web`.
+- Chave antiga `erp geral` (`re_Dqwu...`, `Full access`, 5 meses sem uso) revogada no dashboard; `vitaleevo` (`re_FjKx...`, 8 meses) mantida até o cutover porque ainda alimenta e-mails do Convex em produção. Chave vazada no histórico `re_STYW...` (`file:.env.local.example:239`, removida em `dbe184a`) já não consta entre as chaves ativas.
+- Staging migrado para `DJANGO_ENV=production`: corrigido `file:backend/config/settings/base.py:229` (`MAILERS["default"]["OPTIONS"]` com `host/port/username/password/use_tls`) e `file:backend/config/settings/production.py:14` (validação de `OPTIONS` + `SECURE_REDIRECT_EXEMPT = [r"^api/v1/health/"]` em `file:backend/config/settings/production.py:26` para o healthcheck `file:railway.json:9` não receber `301`). Deploys `a9f0f843` (`api`) e `fa242ad0` (`worker`) em `SUCCESS` em `2026-08-23 16:34:45 +01:00`.
+- SMTP validado em staging: `POST https://api-staging-e6d1.up.railway.app/api/v1/auth/password-reset/` (`file:backend/apps/users/views.py:106`) para `e2e.user@vitaleevo.ao` retorna `200` e gera entrada em `https://resend.com/emails` (`Bounced` = caixa de teste inexistente, não falha de infra; `Duration 1775ms` vs `397ms` do `console`).
+- 5 logins E2E validados via `POST /api/v1/auth/login/` (`e2e.user/commercial/content/operations/admin@vitaleevo.ao`) com passwords rotacionadas para `E2e*2026Test*` via `railway ssh -e staging -s api -- python manage.py shell`; secret `E2E_ROLE_CREDENTIALS` atualizado no environment `staging` do GitHub.
+- Vercel Preview de `staging` em `https://vitaleevo-git-staging-vitaleevos-projects.vercel.app` (deploy `dpl_JnhXXgHEQGy5BC8xZmwk55Z8EGq7`, `16:34:45`) continua protegido por `x-vercel-protection-bypass` (workflow `file:.github/workflows/staging-smoke.yml:55` não despachável porque só existe em `staging`, não em `main`); `production` em `https://vitaleevo.ao` ainda aponta para Convex.
+- Vazamentos nesta sessão: `AWS_*` de `media-staging` via `railway variable list` sem filtro e `re_auFRBcgY...` via `printenv` no SSH — ambas as credenciais de staging devem ser rotacionadas; ficheiros `key-*.txt` e `.tmp-*.sh` removidos.
+
+Estado do release:
+
+- Staging API/worker/cron, health `live`/`ready`/`worker`, SMTP, 5 logins: **GO**.
+- Produção: **NO-GO** — bloqueada por falta de bucket S3 `media-production` (exigido em `file:backend/config/settings/production.py:12`) e por `EMAIL_HOST_PASSWORD` ainda com `--skip-deploys`; `Convex CONVEX_DEPLOY_KEY` (`prod:merry-fennec-711|...`) exposta no histórico (`5e5644d`, `dbe184a`) pendente de rotação manual no `dashboard.convex.dev` após cutover; `admin@vitaleevo.ao` (`is_superuser` único) ainda sem rotação/invalidação de sessões; `DATABASE_URL`/`REDIS_URL` expostas via túnel também pendentes de rotação pós-estabilização.
+
+Próximo passo: no projeto `https://railway.com/project/879017da-2678-4ae5-a4ab-82bad3a220d1`, criar Bucket `media-production` (Tigris `t3.storageapi.dev`, privado) no environment `production`, injetar `AWS_*` em `production/web` (e `worker` quando existir), depois merge sequencial `main ← PR1 ← PR2 ← PR3 ← PR4`, redeploy `production/web` (migrations via `preDeployCommand`), trocar Vercel `Production` para `NEXT_PUBLIC_API_URL=https://api.vitaleevo.ao`, validar produção e só então revogar `vitaleevo`/`CONVEX_DEPLOY_KEY`, rotacionar `admin@vitaleevo.ao` e eliminar projeto Convex.
+
+## Checkpoint PR 4, staging e integração — 2026-08-23
+
+- Publicado o PR #4 (`codex/cicd-railway-vercel`); o código de infraestrutura foi validado no commit `6dc8828` e a branch remota `staging` acompanha o PR.
+- Todos os checks do PR #4 estão verdes: backend com PostgreSQL/Redis/migrações/OpenAPI/testes, imagem Docker e liveness, frontend audit/lint/testes/build, Playwright, Vercel e os três serviços Railway.
+- Criado ambiente Railway `staging` isolado com PostgreSQL, Redis persistente, bucket S3 privado `media-staging`, API, worker RQ e cron `analytics-cleanup`.
+- API de staging publicada em `https://api-staging-e6d1.up.railway.app`; liveness, readiness (PostgreSQL/Redis) e heartbeat do worker respondem 200.
+- Migrações executadas com sucesso como Pre-Deploy Command. API e worker são processos separados; o cron de limpeza está versionado e agendado.
+- Vercel Preview das branches `staging` e `codex/cicd-railway-vercel` aponta exclusivamente para a API Railway de staging. O proxy do Preview até `/api/v1/health/live/` foi comprovado.
+- Variáveis de backend/e-mail legadas foram removidas da Vercel. O bypass de proteção do Preview está selado no environment `staging` do GitHub.
+- Foram provisionadas cinco contas E2E exclusivas de staging (cliente, comercial, conteúdo, operações e super admin). As credenciais aleatórias existem apenas como secret `E2E_ROLE_CREDENTIALS` no environment `staging` do GitHub; a cópia temporária no Railway foi removida.
+- A configuração de staging permanece temporariamente em modo de desenvolvimento porque ainda não existe uma nova chave SMTP Resend. Produção não foi mesclada nem alterada por esta etapa.
+
+Estado do release:
+
+- Infraestrutura, CI/CD, storage, migrações e healthchecks de staging: **GO**.
+- SMTP real, recuperação de password, rotação/revogação de chaves e matriz completa de logins/admin: **PENDENTE**.
+- Decisão global: **NO-GO para produção** até concluir os itens pendentes, executar smoke/E2E real e revisar/mesclar os PRs 1–4 em ordem.
 
 ## Checkpoint operacional do Gate 0 — 2026-08-23
 
@@ -126,9 +226,9 @@ Estado do projeto:
 
 ## Próximo passo recomendado
 
-Revisar e mesclar sequencialmente os PRs 1–3, concluir o Gate 0 operacional e executar a homologação de staging antes de qualquer deploy de produção.
+Com confirmação explícita no momento da ação, criar uma nova chave SMTP no Resend, instalá-la de forma selada no Railway staging/produção, validar envio e recuperação de password em staging e só então revogar as chaves históricas do Resend e do Convex. Depois, rotacionar o administrador real, executar a matriz E2E do staging e revisar/mesclar sequencialmente os PRs 1–4 antes do deploy controlado de produção.
 
-AVISO: O proximo passo e criar/implementar a revisao e merge sequencial dos PRs 1-3, concluir o Gate 0 operacional e homologar staging. Antes de iniciar, leia `PROJECT_MEMORY.md` para continuar exatamente de onde o projeto parou, entender o que ja foi feito e integrar a solucao com o sistema atual sem reler todo o repositorio.
+AVISO: O proximo passo e criar/implementar a conclusao operacional do Gate 0 no Resend e Convex, validar SMTP e todos os logins no staging e preparar o merge sequencial dos PRs 1-4. Antes de iniciar, leia `PROJECT_MEMORY.md` para continuar exatamente de onde o projeto parou, entender o que ja foi feito e integrar a solucao com o sistema atual sem reler todo o repositorio.
 
 ## Histórico anterior — publicação Convex (desatualizado)
 

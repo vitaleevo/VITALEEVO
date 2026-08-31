@@ -32,6 +32,7 @@ import {
     Star,
     Heart,
     Bell,
+    FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/shared/utils/error-handler";
@@ -46,6 +47,11 @@ export default function ContaPage() {
         deps: [token],
         enabled: !!token,
         fetcher: () => api.orders.getByUser(token!),
+    });
+    const { data: quotes } = useApiQuery<any[]>(null, {
+        deps: [token],
+        enabled: !!token,
+        fetcher: () => api.quotes.getMine(token!),
     });
     const { data: addresses, refetch: refetchAddresses } = useApiQuery<any[]>(null, {
         deps: [token],
@@ -68,7 +74,7 @@ export default function ContaPage() {
         fetcher: () => api.notifications.unreadCount(token!).then(r => r.count),
     });
 
-    const [activeTab, setActiveTab] = useState<"profile" | "orders" | "addresses" | "wishlist" | "notifications" | "security">("profile");
+    const [activeTab, setActiveTab] = useState<"profile" | "orders" | "quotes" | "addresses" | "wishlist" | "notifications" | "security">("profile");
     const [isEditing, setIsEditing] = useState(false);
     const [showAddressModal, setShowAddressModal] = useState(false);
     const [showPasswords, setShowPasswords] = useState(false);
@@ -168,6 +174,7 @@ export default function ContaPage() {
     const tabs = [
         { id: "profile", label: "Meu Perfil", icon: User },
         { id: "orders", label: "Meus Pedidos", icon: Package },
+        { id: "quotes", label: "Minhas Cotações", icon: FileText },
         { id: "notifications", label: "Notificações", icon: Bell },
         { id: "wishlist", label: "Desejos", icon: Heart },
         { id: "addresses", label: "Endereços", icon: MapPin },
@@ -384,7 +391,7 @@ export default function ContaPage() {
                                                 </label>
                                                 <p className="text-gray-900 dark:text-white font-medium flex items-center gap-2">
                                                     <Calendar className="w-4 h-4 text-gray-400" />
-                                                    {formatDate(Date.now())}
+                                                    {formatDate((user as any)?.createdAt || (user as any)?.created_at || Date.now())}
                                                 </p>
                                             </div>
                                         </div>
@@ -461,6 +468,53 @@ export default function ContaPage() {
                                                         </div>
                                                     </div>
                                                 </Link>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Quotes Tab */}
+                            {activeTab === "quotes" && (
+                                <div className="bg-white dark:bg-[#151e32] rounded-3xl p-8 border border-gray-100 dark:border-white/5 shadow-xl">
+                                    <h2 className="font-bold text-xl text-gray-900 dark:text-white flex items-center gap-2 mb-8">
+                                        <FileText className="w-5 h-5 text-primary" />
+                                        Minhas Cotações
+                                    </h2>
+                                    {!quotes || quotes.length === 0 ? (
+                                        <div className="text-center py-12">
+                                            <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                                            <h3 className="font-bold text-gray-900 dark:text-white mb-2">Nenhuma cotação ainda</h3>
+                                            <p className="text-gray-500 mb-6">Adicione produtos e envie um pedido de proposta comercial.</p>
+                                            <Link href="/store" className="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-xl font-bold">
+                                                Explorar catálogo <ChevronRight className="w-5 h-5" />
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {quotes.map((quote: any) => (
+                                                <div key={quote._id || quote.publicId} className="border border-gray-100 dark:border-white/5 rounded-2xl p-5 space-y-3">
+                                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                                        <div>
+                                                            <p className="font-mono text-sm font-bold text-gray-900 dark:text-white">{quote.publicId}</p>
+                                                            <p className="mt-1 text-sm text-gray-500">{formatDate(quote.createdAt || quote.created_at)} • {quote.itemCount || quote.items?.length || 0} itens</p>
+                                                            {(quote.company || quote.message) && (
+                                                                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                                                                    {quote.company ? `${quote.company} — ` : ""}{quote.message || quote.notes || ""}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                        <span className="self-start rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary sm:self-auto">
+                                                            {String(quote.status || "new").replaceAll("_", " ")}
+                                                        </span>
+                                                    </div>
+                                                    {quote.proposal && Object.keys(quote.proposal).length > 0 && (
+                                                        <div className="rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4">
+                                                            <p className="text-xs font-bold text-green-800 dark:text-green-200 uppercase tracking-wider mb-1">Proposta comercial</p>
+                                                            <p className="text-sm text-green-700 dark:text-green-300">{typeof quote.proposal === "string" ? quote.proposal : JSON.stringify(quote.proposal)}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             ))}
                                         </div>
                                     )}

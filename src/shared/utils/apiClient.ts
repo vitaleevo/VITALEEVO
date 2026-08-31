@@ -51,12 +51,31 @@ function notifyAuthUpdated(auth: StoredAuth | null) {
     }
 }
 
+function syncAuthCookie(auth: StoredAuth | null) {
+    if (typeof document === "undefined") return;
+    try {
+        if (auth?.token) {
+            const value = encodeURIComponent(JSON.stringify(auth));
+            // 7 dias, path=/, SameSite=Lax para permitir preview staff via cookies Next.js
+            document.cookie = `${AUTH_STORAGE_KEY}=${value}; path=/; max-age=604800; SameSite=Lax`;
+            // alias simple para compatibilidade com getPreviewToken reading "token"
+            document.cookie = `token=${encodeURIComponent(auth.token)}; path=/; max-age=604800; SameSite=Lax`;
+        } else {
+            document.cookie = `${AUTH_STORAGE_KEY}=; path=/; max-age=0; SameSite=Lax`;
+            document.cookie = `token=; path=/; max-age=0; SameSite=Lax`;
+        }
+    } catch {
+        // cookie indisponível — ignora (mantém compatibilidade sessionStorage-only)
+    }
+}
+
 export function setStoredAuth(auth: StoredAuth) {
     try {
         const raw = sessionStorage.getItem(AUTH_STORAGE_KEY);
         const parsed = raw ? JSON.parse(raw) : {};
         const updated = { ...parsed, ...auth } as StoredAuth;
         sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(updated));
+        syncAuthCookie(updated);
         notifyAuthUpdated(updated);
     } catch {
         // storage indisponível — ignora
@@ -66,6 +85,7 @@ export function setStoredAuth(auth: StoredAuth) {
 export function clearStoredAuth() {
     try {
         sessionStorage.removeItem(AUTH_STORAGE_KEY);
+        syncAuthCookie(null);
         notifyAuthUpdated(null);
     } catch {
         // ignora
@@ -143,7 +163,7 @@ export interface RequestOptions {
 export async function request<T = unknown>(path: string, options: RequestOptions = {}): Promise<T> {
     const { method = "GET", body, token, params, auth = false, retried } = options;
     const cleanPath = path.startsWith("/") ? path : `/${path}`;
-    const normalizedPath = cleanPath.replace(/\/+$/, "");
+    const normalizedPath = cleanPath.endsWith("/") ? cleanPath : `${cleanPath}/`;
     let url = `${API_BASE_URL}/api/v1${normalizedPath}`;
     if (params) {
         const qs = new URLSearchParams();
@@ -276,8 +296,8 @@ export const api = {
     // ── Categorias ───────────────────────────────────────────────────────
     categories: {
         getByType: (type: string) =>
-            request<Paginated<Record<string, unknown>>>("/catalog/categories/", { params: { type } }).then(d =>
-                asPaginated<Record<string, unknown>>(d).results.map(c => withCategoryAliases(c))
+            request<Record<string, unknown>[] | Paginated<Record<string, unknown>>>("/catalog/categories/", { params: { type } }).then(d =>
+                (Array.isArray(d) ? d : asPaginated<Record<string, unknown>>(d).results).map(c => withCategoryAliases(c))
             ),
         create: (body: Record<string, unknown>, token: string) =>
             request("/catalog/categories/", { method: "POST", body, token, auth: true }),
@@ -301,8 +321,8 @@ export const api = {
 
     // ── Artigos (blog) ───────────────────────────────────────────────────
     articles: {
-        list: (params: Record<string, unknown> = {}) =>
-            request<Paginated<Record<string, unknown>>>("/blog/articles/", { params }).then(d => {
+        list: (params: Record<string, unknown> = {}, token?: string | null) =>
+            request<Paginated<Record<string, unknown>>>("/blog/articles/", { params, auth: !!token, token }).then(d => {
                 const page = asPaginated<Record<string, unknown>>(d);
 return {
                     ...page,
@@ -318,8 +338,8 @@ return {
             api.articles.list({ ...params, status: undefined }).then(d => d.results),
         getFeatured: (limit = 5) =>
             api.articles.list({ is_featured: true, page_size: limit }).then(d => d.results),
-        getBySlug: (slug: string) =>
-            request<Record<string, unknown>>(`/blog/articles/${slug}/`).then(a => ({
+        getBySlug: (slug: string, token?: string | null) =>
+            request<Record<string, unknown>>(`/blog/articles/${slug}/`, { auth: !!token, token }).then(a => ({
                 ...withId(a),
                 category: (a as Record<string, unknown>).categoryName ?? (a as Record<string, unknown>).category,
                 createdAt: (a as Record<string, unknown>).publishedAt ?? (a as Record<string, unknown>).published_at,
@@ -334,8 +354,8 @@ return {
 
     // ── Projetos (portfolio) ─────────────────────────────────────────────
     projects: {
-        list: (params: Record<string, unknown> = {}) =>
-            request<Paginated<Record<string, unknown>>>("/portfolio/projects/", { params }).then(d => {
+        list: (params: Record<string, unknown> = {}, token?: string | null) =>
+            request<Paginated<Record<string, unknown>>>("/portfolio/projects/", { params, auth: !!token, token }).then(d => {
                 const page = asPaginated<Record<string, unknown>>(d);
                 return {
                     ...page,
@@ -349,8 +369,8 @@ return {
             api.projects.list(params).then(d => d.results),
         getFeatured: (limit = 6) =>
             api.projects.list({ is_featured: true, page_size: limit }).then(d => d.results),
-        getBySlug: (slug: string) =>
-            request<Record<string, unknown>>(`/portfolio/projects/${slug}/`).then(p => ({
+        getBySlug: (slug: string, token?: string | null) =>
+            request<Record<string, unknown>>(`/portfolio/projects/${slug}/`, { auth: !!token, token }).then(p => ({
                 ...withId(p),
                 category: (p as Record<string, unknown>).categoryName ?? (p as Record<string, unknown>).category,
             }) as any),
@@ -364,9 +384,11 @@ return {
 
     // ── Serviços ─────────────────────────────────────────────────────────
     services: {
-        list: (params: Record<string, unknown> = {}) =>
-            request<Paginated<Record<string, unknown>>>("/cms/services/", { params }).then(d => asPaginated<Record<string, unknown>>(d).results),
+        list: (params: Record<string, unknown> = {}, token?: string | null) =>
+            request<Paginated<Record<string, unknown>>>("/cms/services/", { params, auth: !!token, token }).then(d => asPaginated<Record<string, unknown>>(d).results),
         getAll: () => api.services.list({ page_size: 100 }),
+        getBySlug: (slug: string, token?: string | null) =>
+            request<Record<string, unknown>>(`/cms/services/${slug}/`, { auth: !!token, token }),
         create: (body: Record<string, unknown>, token: string) =>
             request("/cms/services/", { method: "POST", body, token, auth: true }),
         update: (slug: string, body: Record<string, unknown>, token: string) =>
@@ -377,8 +399,8 @@ return {
 
     // ── Documentos legais ────────────────────────────────────────────────
     legal: {
-        list: () =>
-            request<Paginated<Record<string, unknown>>>("/cms/legal/").then(d => asPaginated<Record<string, unknown>>(d).results),
+        list: (token?: string | null) =>
+            request<Paginated<Record<string, unknown>>>("/cms/legal/", { auth: !!token, token }).then(d => asPaginated<Record<string, unknown>>(d).results),
         getBySlug: (slug: string) =>
             request<Record<string, unknown>>(`/cms/legal/${slug}/`),
         upsert: (body: Record<string, unknown>, token: string) =>
@@ -423,13 +445,15 @@ return {
         create: (body: Record<string, unknown>) =>
             request<{ publicId: string; status: string; accessToken: string; itemCount: number }>(
                 "/quotes/",
-                { method: "POST", body },
+                { method: "POST", body, auth: true },
             ),
         getByPublicId: (publicId: string, accessToken: string) =>
             request<Record<string, unknown>>("/quotes/status/", {
                 method: "POST",
                 body: { public_id: publicId, access_token: accessToken },
             }),
+        getMine: (token: string) =>
+            request<Record<string, unknown>[]>("/quotes/mine/", { auth: true, token }).then(rows => rows.map(withId)),
         list: (token: string, params: Record<string, unknown> = {}) =>
             request<Paginated<Record<string, unknown>>>("/quotes/manage/", { auth: true, token, params }).then(d => asPaginated<Record<string, unknown>>(d)),
         getStats: (token: string) => request("/quotes/manage/stats/", { auth: true, token }),
@@ -541,7 +565,7 @@ return {
         count: (token: string) => request<{ count: number }>("/commerce/cart/count/", { auth: true, token }),
     },
     orders: {
-        create: (body: Record<string, unknown>) => request("/commerce/orders/", { method: "POST", body }),
+        create: (body: Record<string, unknown>) => request("/commerce/orders/", { method: "POST", body, auth: true }),
         getByOrderNumber: (orderNumber: string, accessToken: string) =>
             request<Record<string, unknown>>(`/commerce/orders/by_number/?order_number=${encodeURIComponent(orderNumber)}&access_token=${encodeURIComponent(accessToken)}`).then(o => {
                 const order = o as Record<string, unknown>;
@@ -616,16 +640,39 @@ return {
         upload: async (file: File, token: string) => {
             const form = new FormData();
             form.append("file", file);
-            const res = await fetch(`${API_BASE_URL}/api/v1/media/upload/`, {
-                method: "POST",
-                headers: { Authorization: `Bearer ${token}` },
-                body: form,
-            });
-            const data = await res.json();
-            if (!res.ok) {
-                const first = Array.isArray(data.file) ? data.file[0] : data.detail;
-                throw new ApiError(res.status, typeof first === "string" ? first : "Upload falhou", data);
+            // Usa proxy relativo para evitar CORS/HTTP2 direto no api.vitaleevo.ao
+            const url = `/api/v1/media/upload/`;
+            let res: Response;
+            try {
+                res = await fetch(url, {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${token}` },
+                    body: form,
+                });
+            } catch (e: any) {
+                // Fallback direto se proxy falhar (ex: 502)
+                try {
+                    res = await fetch(`${API_BASE_URL}/api/v1/media/upload/`, {
+                        method: "POST",
+                        headers: { Authorization: `Bearer ${token}` },
+                        body: form,
+                    });
+                } catch (e2: any) {
+                    throw new ApiError(0, "Falha de rede ao carregar imagem. Use 'Inserir link direto' ou tente novamente.", null);
+                }
             }
+            let data: any = null;
+            try {
+                data = await res.json();
+            } catch {
+                if (!res.ok) throw new ApiError(res.status, `Upload falhou (${res.status}). Tente ficheiro <5MB JPG/PNG/WebP.`, null);
+            }
+            if (!res.ok) {
+                const first = Array.isArray(data?.file) ? data.file[0] : data?.detail || data?.error;
+                // Mensagens Django: "Ficheiro excede 15 MB", "Conteúdo inválido", etc.
+                throw new ApiError(res.status, typeof first === "string" ? first : `Upload falhou (${res.status}). Use 'Inserir link direto'.`, data);
+            }
+            // Django devolve {url, filename}, FastAPI {url}
             return data as { url: string };
         },
     },
@@ -672,8 +719,10 @@ return {
 
     // ── Páginas do site ──────────────────────────────────────────────────
     pages: {
-        list: (params: Record<string, unknown> = {}) =>
-            request<Paginated<Record<string, unknown>>>("/cms/pages/", { params }).then(d => asPaginated<Record<string, unknown>>(d).results),
+        list: (params: Record<string, unknown> = {}, token?: string | null) =>
+            request<Paginated<Record<string, unknown>>>("/cms/pages/", { params, auth: !!token, token }).then(d => asPaginated<Record<string, unknown>>(d).results),
+        getBySlug: (slug: string, token?: string | null) =>
+            request<Record<string, unknown>>(`/cms/pages/${slug}/`, { auth: !!token, token }),
         create: (body: Record<string, unknown>, token: string) =>
             request("/cms/pages/", { method: "POST", body, token, auth: true }),
         update: (slug: string, body: Record<string, unknown>, token: string) =>

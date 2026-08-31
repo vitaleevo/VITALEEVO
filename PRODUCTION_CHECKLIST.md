@@ -1,5 +1,12 @@
 # Checklist de Produção
 
+## Estado operacional — 2026-08-23
+
+- Concluído: backup/restauração, PRs 1–4 publicados, CI verde, Railway staging isolado, migrações, API/worker/cron, storage persistente e Vercel Preview ligado ao backend de staging.
+- Concluído: contas E2E de cliente, comercial, conteúdo, operações e super admin provisionadas em staging; credenciais seladas apenas no environment `staging` do GitHub.
+- Pendente: nova chave SMTP Resend, teste real de e-mail/recuperação, revogação das chaves históricas Resend/Convex, rotação do admin real e matriz E2E integrada.
+- Decisão atual: **NO-GO para merge/deploy de produção**.
+
 ## Gate 0 — contenção e credenciais
 
 - Confirmar backup PostgreSQL restaurável e respetivo checksum fora do repositório.
@@ -16,17 +23,20 @@
 - `CORS_ALLOWED_ORIGINS=https://vitaleevo.ao,https://www.vitaleevo.ao`.
 - `CSRF_TRUSTED_ORIGINS=https://api.vitaleevo.ao,https://vitaleevo.ao,https://www.vitaleevo.ao`.
 - `SITE_URL=https://vitaleevo.ao`.
-- SMTP configurado com host, porta, utilizador, password e remetente verificado.
+- SMTP Resend configurado com `smtp.resend.com:587`, utilizador `resend`, API key selada e remetente verificado.
+- Bucket privado configurado com `AWS_STORAGE_BUCKET_NAME`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_ENDPOINT_URL` e `AWS_S3_REGION_NAME`.
 - Domínio `api.vitaleevo.ao` verificado, certificado emitido e apontado ao serviço web.
-- `/api/v1/health/live/` responde 200; `/api/v1/health/ready/` confirma PostgreSQL e Redis.
+- `/api/v1/health/live/` responde 200; `/api/v1/health/ready/` confirma PostgreSQL e Redis; `/api/v1/health/worker/` confirma heartbeat RQ.
 - Migrações são executadas uma vez no processo de release; API e worker usam serviços separados.
+- Root Directory dos serviços é `/backend`; API, worker e cron usam respetivamente `/railway.json`, `/railway.worker.json` e `/railway.cron.json` (as cópias em `/backend` suportam serviços cujo source root seja o próprio backend).
 
 ## Vercel — frontend Next.js
 
 - `NEXT_PUBLIC_API_URL=https://api.vitaleevo.ao`.
 - `NEXT_PUBLIC_SITE_URL=https://vitaleevo.ao` e `SITE_URL=https://vitaleevo.ao`.
 - Produção não contém variáveis internas de PostgreSQL, Redis, Railway, Elasticsearch ou Convex.
-- `RESEND_API_KEY` permanece apenas enquanto a server action de contacto ainda enviar diretamente pelo Next.js; remover quando o envio for centralizado no Django.
+- `RESEND_API_KEY` e todas as variáveis SMTP ficam fora da Vercel; o envio está centralizado no Django.
+- Preview da branch `staging` usa `NEXT_PUBLIC_API_URL` do Railway staging, nunca a API de produção.
 - Fazer redeploy controlado depois de alterar variáveis e somente após os gates aplicáveis.
 - Confirmar `vitaleevo.ao` como domínio principal e redirecionamento de `www`.
 

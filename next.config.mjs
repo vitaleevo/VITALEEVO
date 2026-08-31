@@ -2,6 +2,7 @@ const isDevelopment = process.env.NODE_ENV === "development";
 const scriptSources = [
     "'self'",
     "'unsafe-inline'",
+    "https://www.googletagmanager.com",
     ...(isDevelopment ? ["'unsafe-eval'"] : []),
 ].join(" ");
 
@@ -34,8 +35,9 @@ const nextConfig = {
                             `script-src ${scriptSources}`,
                             `connect-src ${connectSources}`,
                             "img-src 'self' data: https: blob: http://localhost:8100 http://127.0.0.1:8100 http://localhost:8000 http://localhost:8080 http://localhost:3000 http:",
-                            "style-src 'self' 'unsafe-inline'",
-                            "font-src 'self' data:",
+                            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+                            "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
+                            "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com",
                             "base-uri 'self'",
                             "form-action 'self'",
                             "frame-ancestors 'none'",

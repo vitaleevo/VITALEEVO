@@ -3,6 +3,7 @@
 
 NEXT_PUBLIC_API_URL=https://api.vitaleevo.ao
 NEXT_PUBLIC_SITE_URL=https://vitaleevo.ao
+NEXT_PUBLIC_GA_ID=G-V4XK0H7P33
 SITE_URL=https://vitaleevo.ao
 
 # Variáveis antigas do Convex e segredos de e-mail não pertencem ao frontend.

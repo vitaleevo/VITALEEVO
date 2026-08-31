@@ -34,7 +34,7 @@ export function AdminLegalContent() {
             subtitle="Políticas e termos do site"
             itemName="Documento"
             permission="content:manage"
-            fetcher={() => api.legal.list()}
+            fetcher={() => api.legal.list(token)}
             columns={columns}
             fields={fields}
             searchKeys={["title", "slug"]}

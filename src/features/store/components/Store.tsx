@@ -28,9 +28,9 @@ import ConceptBackdrop, { CONCEPT_IMAGES } from '@/shared/components/ConceptBack
 const PAGE_SIZE = 9;
 
 const Store: React.FC = () => {
-    const { data: products } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.products.list({ page_size: 100 }).then(d => d.results) });
-    const { data: dbCategories } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.categories.getByType("store") });
-    const { data: dbBrands } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.brands.list() });
+    const { data: products } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.products.list({ page_size: 100 }).then(d => d.results), cacheKey: "store:products", cacheTTL: 10000 });
+    const { data: dbCategories } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.categories.getByType("store"), cacheKey: "store:categories", cacheTTL: 10000 });
+    const { data: dbBrands } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.brands.list(), cacheKey: "store:brands", cacheTTL: 10000 });
     const { addItem, totalItems } = useCart();
 
     // Filters State
@@ -50,6 +50,7 @@ const Store: React.FC = () => {
             id: product._id,
             name: product.name,
             sku: product.sku,
+            slug: product.slug,
             image: product.image,
         });
     };
@@ -125,7 +126,11 @@ const Store: React.FC = () => {
         if (sortBy === 'A-Z') {
             result = [...result].sort((a, b) => a.name.localeCompare(b.name, 'pt'));
         } else if (sortBy === 'Mais Recentes') {
-            result = [...result].sort((a, b) => b._creationTime - a._creationTime);
+            result = [...result].sort((a, b) => {
+                const ta = new Date(a.createdAt || a.created_at || 0).getTime();
+                const tb = new Date(b.createdAt || b.created_at || 0).getTime();
+                return tb - ta;
+            });
         }
 
         return result;
@@ -234,12 +239,12 @@ const Store: React.FC = () => {
 
                                     {parentCategories.map((cat) => {
                                         const children: any[] = subcategoriesByParent[cat.slug] || [];
-                                        const isExpanded = expandedCategories.includes(cat.name) || activeCategory === cat.name;
-                                        const isActiveCat = activeCategory === cat.name;
+                                        const isExpanded = expandedCategories.includes(cat.slug) || activeCategory === cat.slug;
+                                        const isActiveCat = activeCategory === cat.slug;
                                         return (
-                                            <div key={cat._id}>
+                                            <div key={cat.slug}>
                                                 <button
-                                                    onClick={() => handleSelectCategory(cat.name)}
+                                                    onClick={() => handleSelectCategory(cat.slug)}
                                                     className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl transition-all group ${isActiveCat
                                                         ? 'bg-primary/10 text-primary border border-primary/20'
                                                         : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-400'
@@ -257,11 +262,11 @@ const Store: React.FC = () => {
                                                 {children.length > 0 && isExpanded && (
                                                     <div className="ml-3 mt-1 space-y-1 border-l-2 border-gray-100 dark:border-white/10 pl-3">
                                                         {children.map((child) => {
-                                                            const isActiveSub = activeSubcategory === child.name;
+                                                            const isActiveSub = activeSubcategory === child.slug;
                                                             return (
                                                                 <button
-                                                                    key={child._id}
-                                                                    onClick={() => handleSelectSubcategory(child.name)}
+                                                                    key={child.slug}
+                                                                    onClick={() => handleSelectSubcategory(child.slug)}
                                                                     className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${isActiveSub
                                                                         ? 'bg-primary/10 text-primary font-bold'
                                                                         : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-primary'
@@ -369,7 +374,7 @@ const Store: React.FC = () => {
                                                     <div className="absolute top-4 left-4 z-10 px-3 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/40">Novo</div>
                                                 )}
                                                 <WishlistButton
-                                                    productId={product._id}
+                                                    productId={product.slug}
                                                     className="absolute top-4 right-4 z-10"
                                                 />
                                                 <Image
@@ -377,7 +382,8 @@ const Store: React.FC = () => {
                                                     alt={product.name}
                                                     fill
                                                     className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                                                    unoptimized
+                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                    loading="lazy"
                                                 />
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                             </div>
