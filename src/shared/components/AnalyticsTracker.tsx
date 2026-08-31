@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { API_BASE_URL } from "@/shared/utils/apiClient";
 
 const SESSION_KEY = "vitaleevo_analytics_session";
 
@@ -33,32 +32,50 @@ export default function AnalyticsTracker() {
     const pathname = usePathname();
     const pendingClicksRef = useRef<any[]>([]);
     const flushTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const failedRef = useRef(0);
+    const disabledRef = useRef(false);
 
     // Função para enviar os cliques acumulados para a API
     const flushClicks = useCallback(() => {
+        if (disabledRef.current) return;
         if (pendingClicksRef.current.length === 0) return;
         const clicksToSend = [...pendingClicksRef.current];
         pendingClicksRef.current = [];
 
         const sessionId = getOrCreateSessionId();
         const payload = JSON.stringify({
+            // Django espera {session_id, path, clicks} ou {type, path, session_id}; FastAPI aceita ambos
             session_id: sessionId,
             path: pathname,
             clicks: clicksToSend,
         });
 
-        const url = `${API_BASE_URL}/api/v1/analytics/track`;
+        // Usa rota relativa via proxy Next.js para evitar CORS/404 direto no api.vitaleevo.ao
+        const url = `/api/v1/analytics/track/`;
+
+        const handleFail = () => {
+            failedRef.current += 1;
+            if (failedRef.current >= 3) disabledRef.current = true;
+        };
 
         if (typeof navigator !== "undefined" && navigator.sendBeacon) {
-            const blob = new Blob([payload], { type: "application/json" });
-            navigator.sendBeacon(url, blob);
+            try {
+                const blob = new Blob([payload], { type: "application/json" });
+                const ok = navigator.sendBeacon(url, blob);
+                if (!ok) handleFail();
+            } catch {
+                handleFail();
+            }
         } else {
             fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: payload,
                 keepalive: true,
-            }).catch(() => {});
+            }).then(r => {
+                if (!r.ok) handleFail();
+                else failedRef.current = 0;
+            }).catch(handleFail);
         }
     }, [pathname]);
 
@@ -73,19 +90,36 @@ export default function AnalyticsTracker() {
         const deviceType = getDeviceType();
         const screenRes = typeof window !== "undefined" ? `${window.screen.width}x${window.screen.height}` : "";
 
-        // Enviar pageview
-        fetch(`${API_BASE_URL}/api/v1/analytics/track`, {
+        // Enviar pageview via proxy relativo (evita 401/404 direto no api.vitaleevo.ao)
+        if (disabledRef.current) return;
+        // Payload compatível Django (pageview dentro de batch) e FastAPI (type)
+        fetch(`/api/v1/analytics/track/`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                type: "pageview",
-                path: pathname,
                 session_id: sessionId,
+                path: pathname,
+                pageview: {
+                    referrer: typeof document !== "undefined" ? document.referrer : "",
+                    device_type: deviceType,
+                    screen_resolution: screenRes,
+                },
+                // Fallback FastAPI: type + campos soltos
+                type: "pageview",
                 referrer: typeof document !== "undefined" ? document.referrer : "",
                 device_type: deviceType,
                 screen_resolution: screenRes,
             }),
-        }).catch(() => {});
+            keepalive: true,
+        }).then(r => {
+            if (!r.ok) {
+                failedRef.current += 1;
+                if (failedRef.current >= 3) disabledRef.current = true;
+            } else failedRef.current = 0;
+        }).catch(() => {
+            failedRef.current += 1;
+            if (failedRef.current >= 3) disabledRef.current = true;
+        });
     }, [flushClicks, pathname]);
 
     // 2. Rastrear cliques em botões, links e elementos com coordenadas (X, Y)
@@ -141,12 +175,13 @@ export default function AnalyticsTracker() {
 
         window.addEventListener("click", handleClick, { passive: true, capture: true });
         document.addEventListener("visibilitychange", handleVisibilityChange);
-        window.addEventListener("beforeunload", flushClicks);
+        // beforeunload é bloqueado por Permissions-Policy (unload) e gera violation; usar pagehide
+        window.addEventListener("pagehide", flushClicks);
 
         return () => {
             window.removeEventListener("click", handleClick, { capture: true });
             document.removeEventListener("visibilitychange", handleVisibilityChange);
-            window.removeEventListener("beforeunload", flushClicks);
+            window.removeEventListener("pagehide", flushClicks);
             if (flushTimerRef.current) clearTimeout(flushTimerRef.current);
             flushClicks();
         };

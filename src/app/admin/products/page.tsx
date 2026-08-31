@@ -363,7 +363,7 @@ function AdminProductsContent() {
                         >
                             <option value="">Todas as Categorias</option>
                             {storeCategories.map((c: any) => (
-                                <option key={c.slug} value={c.name}>{c.name}</option>
+                                <option key={c.slug} value={c.slug}>{c.name}</option>
                             ))}
                         </Select>
                     </div>
@@ -722,6 +722,8 @@ const getInitialProductForm = (product: any | null) => ({
     old_price: product?.oldPrice ?? product?.old_price ?? "",
     stock: product?.stock ?? 0,
     image: product?.image ?? "",
+    gallery: Array.isArray(product?.gallery) ? product.gallery.join("\n") : (product?.gallery ?? ""),
+    specifications: typeof product?.specifications === "object" ? JSON.stringify(product.specifications, null, 2) : (product?.specifications ?? "{}"),
     category: product?.category ?? "",
     subcategory: product?.subcategory ?? "",
     brand: product?.brand ?? "",
@@ -912,7 +914,7 @@ function ProductForm({
                                 onChange={e => { set("category", e.target.value); set("subcategory", ""); }}
                             >
                                 <option value="">— Selecionar —</option>
-                                {categories.map((c: any) => <option key={c.slug} value={c.name}>{c.name}</option>)}
+                                {categories.map((c: any) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
                             </Select>
                         </Field>
 
@@ -922,7 +924,7 @@ function ProductForm({
                                 onChange={e => set("subcategory", e.target.value)}
                             >
                                 <option value="">— Nenhuma —</option>
-                                {subs.map((c: any) => <option key={c.slug} value={c.name}>{c.name}</option>)}
+                                {subs.map((c: any) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
                             </Select>
                         </Field>
 
@@ -943,6 +945,24 @@ function ProductForm({
                     <div className="space-y-4">
                         <Field label="Imagem do Produto">
                             <ImageUpload value={form.image ?? ""} onChange={url => set("image", url)} />
+                        </Field>
+
+                        <Field label="Galeria (um URL por linha)">
+                            <TextArea
+                                value={form.gallery ?? ""}
+                                onChange={e => set("gallery", e.target.value)}
+                                rows={3}
+                                placeholder="https://.../imagem-2.webp"
+                            />
+                        </Field>
+
+                        <Field label="Especificações (JSON)">
+                            <TextArea
+                                value={typeof form.specifications === "string" ? form.specifications : JSON.stringify(form.specifications ?? {}, null, 2)}
+                                onChange={e => set("specifications", e.target.value)}
+                                rows={4}
+                                placeholder={'{"Processador":"Intel Core i5","RAM":"16 GB"}'}
+                            />
                         </Field>
 
                         <Field label="Descrição Curta" required>

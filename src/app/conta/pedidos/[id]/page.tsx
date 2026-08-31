@@ -92,7 +92,8 @@ export default function OrderDetailPage() {
                 id: item.productId as any,
                 name: item.name,
                 price: item.price,
-                image: item.image
+                image: item.image,
+                slug: item.slug,
             }, item.quantity);
         });
 

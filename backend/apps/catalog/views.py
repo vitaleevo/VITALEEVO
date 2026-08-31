@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from apps.core.models import SlugRedirect
 from apps.core.permissions import HasCapability, user_has_capability
 
 from .models import Brand, Category, InventoryMovement, Product
@@ -152,9 +153,30 @@ class ProductViewSet(viewsets.ModelViewSet):
         if product.status == "published":
             publish_product(product, self.request.user)
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            return super().retrieve(request, *args, **kwargs)
+        except Exception:
+            slug = kwargs.get("slug")
+            redirect = SlugRedirect.objects.filter(old_slug=slug, resource_type="product").first()
+            if redirect:
+                target = redirect.new_slug
+                for _ in range(5):
+                    nxt = SlugRedirect.objects.filter(old_slug=target, resource_type="product").first()
+                    if not nxt:
+                        break
+                    target = nxt.new_slug
+                return Response(status=status.HTTP_308_PERMANENT_REDIRECT, headers={"Location": f"/api/v1/catalog/products/{target}/"})
+            raise
+
     def perform_update(self, serializer):
         cache.clear()
-        return super().perform_update(serializer)
+        old_slug = serializer.instance.slug if serializer.instance else None
+        instance = serializer.save()
+        if old_slug and old_slug != instance.slug:
+            SlugRedirect.objects.update_or_create(old_slug=old_slug, resource_type="product", defaults={"new_slug": instance.slug})
+            SlugRedirect.objects.filter(old_slug=instance.slug, new_slug=old_slug, resource_type="product").delete()
+        return instance
 
     def perform_destroy(self, instance):
         cache.clear()

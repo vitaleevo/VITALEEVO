@@ -1,5 +1,6 @@
 """Endpoints utilitários do core."""
 
+import io
 import logging
 from datetime import timedelta
 from pathlib import Path
@@ -129,20 +130,56 @@ def health_worker(request):
     )
 
 
+def _make_thumbnail(data: bytes, max_size: tuple[int, int] = (400, 400)) -> bytes | None:
+    try:
+        from PIL import Image
+        with Image.open(io.BytesIO(data)) as im:
+            if im.mode in ("RGBA", "LA", "P"):
+                bg = Image.new("RGB", im.size, (255, 255, 255))
+                if im.mode == "P":
+                    im = im.convert("RGBA")
+                bg.paste(im, mask=im.split()[-1] if im.mode == "RGBA" else None)
+                im = bg
+            elif im.mode != "RGB":
+                im = im.convert("RGB")
+            thumb = im.copy()
+            thumb.thumbnail(max_size, Image.LANCZOS)
+            out = io.BytesIO()
+            thumb.save(out, format="JPEG", quality=82, optimize=True)
+            return out.getvalue()
+    except Exception:
+        return None
+
+
 @api_view(["POST"])
 @permission_classes([CanUploadMedia])
 def upload_image(request):
-    """POST /media/upload/ — multipart 'file' → {url, filename, size}."""
+    """POST /media/upload/ — multipart 'file' → {url, filename, size, thumb_url}."""
     serializer = UploadSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     uploaded = serializer.validated_data["file"]
     content_type = uploaded.detected_content_type
     ext = ALLOWED_IMAGE_TYPES[content_type]
     filename = f"uploads/{uuid.uuid4().hex}{ext}"
+    # Guarda original via storage (S3 em prod, local em dev)
     stored = default_storage.save(filename, uploaded)
     url = request.build_absolute_uri(default_storage.url(stored))
+    # Miniatura 400x400 para catálogo (thumb_uploads/...)
+    thumb_url = url
+    try:
+        uploaded.seek(0)
+        data = uploaded.read()
+        thumb_data = _make_thumbnail(data)
+        if thumb_data:
+            thumb_name = f"uploads/thumb_{Path(filename).name.rsplit('.',1)[0]}.jpg"
+            from django.core.files.base import ContentFile
+            thumb_stored = default_storage.save(thumb_name, ContentFile(thumb_data))
+            thumb_url = request.build_absolute_uri(default_storage.url(thumb_stored))
+    except Exception:
+        pass
     return Response({
         "url": url,
+        "thumb_url": thumb_url,
         "filename": stored,
         "size": uploaded.size,
         "content_type": content_type,

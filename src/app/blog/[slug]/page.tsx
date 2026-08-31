@@ -1,33 +1,75 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { cookies, headers } from 'next/headers';
 import { api } from '@/shared/utils/apiClient';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Link from 'next/link';
-import { ArrowLeft, Clock, Calendar, User, Share2 } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, User, Share2, Eye } from "lucide-react";
 import { formatDate } from "@/shared/utils/format";
 import ShareButtons from '@/features/blog/components/ShareButtons';
 import { sanitizeRichText } from "@/shared/utils/sanitize";
 
 interface Props {
     params: Promise<{ slug: string }>;
+    searchParams?: Promise<{ preview?: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const { slug } = await params;
+async function getPreviewToken(): Promise<string | null> {
     try {
-        const article = await api.articles.getBySlug(slug);
+        const cookieStore = await cookies();
+        const headerStore = await headers();
+        const authHeader = headerStore.get('authorization') || headerStore.get('Authorization') || headerStore.get('x-preview-token');
+        if (authHeader) {
+            const bearer = authHeader.toLowerCase().startsWith('bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+            if (bearer) return bearer;
+        }
+        const candidates = ['vitaleevo_auth', 'token', 'auth_token', 'access_token', 'vitaleevo_token'];
+        for (const name of candidates) {
+            const raw = cookieStore.get(name)?.value;
+            if (!raw) continue;
+            try {
+                const parsed = JSON.parse(raw);
+                if (parsed?.token) return parsed.token as string;
+                if (typeof parsed === 'string' && parsed.length > 10) return parsed;
+                if (parsed?.access) return parsed.access as string;
+            } catch {
+                const cleaned = raw.startsWith('Bearer ') ? raw.slice(7).trim() : raw.trim();
+                // remove surrounding quotes if any
+                const unquoted = cleaned.replace(/^"|"$/g, '');
+                if (unquoted) return unquoted;
+            }
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+    const { slug } = await params;
+    const sp = searchParams ? await searchParams : undefined;
+    const isPreview = sp?.preview === 'true';
+    let token: string | null = null;
+    if (isPreview) token = await getPreviewToken();
+    try {
+        const article = await api.articles.getBySlug(slug, token ?? undefined);
         if (!article) return { title: 'Artigo Não Encontrado' };
 
+        // Draft não deve expor metadados indexáveis em preview
+        const isDraft = (article as any).status && (article as any).status !== 'published';
+        if (isDraft && !isPreview) return { title: 'Artigo Não Encontrado' };
+
         return {
-            title: article.title,
-            description: article.excerpt,
+            title: article.seoTitle || article.title,
+            description: article.seoDescription || article.excerpt,
             openGraph: {
-                title: `${article.title} | Vitaleevo Blog`,
-                description: article.excerpt,
+                title: `${article.seoTitle || article.title} | Vitaleevo Blog`,
+                description: article.seoDescription || article.excerpt,
                 type: 'article',
                 url: `https://vitaleevo.ao/blog/${slug}`,
                 images: [{ url: article.image }],
             },
+            ...(isPreview && isDraft ? { robots: { index: false, follow: false } } : {}),
         };
     } catch (error) {
         console.error("Failed to fetch article metadata:", error);
@@ -35,11 +77,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 }
 
-export default async function ArticlePage({ params }: Props) {
+export default async function ArticlePage({ params, searchParams }: Props) {
     const { slug } = await params;
+    const sp = searchParams ? await searchParams : undefined;
+    const isPreview = sp?.preview === 'true';
+    let previewToken: string | null = null;
+    if (isPreview) previewToken = await getPreviewToken();
+
     let article = null;
     try {
-        article = await api.articles.getBySlug(slug);
+        article = await api.articles.getBySlug(slug, previewToken ?? undefined);
     } catch (error) {
         console.error("Failed to fetch article for page:", error);
     }
@@ -48,9 +95,25 @@ export default async function ArticlePage({ params }: Props) {
         notFound();
     }
 
+    const articleStatus = (article as any).status as string | undefined;
+    const isDraft = articleStatus && articleStatus !== 'published';
+    if (isDraft && !isPreview) {
+        notFound();
+    }
+    const showPreviewBanner = isPreview && isDraft;
+
     return (
         <FeatureLayout>
             <div className="bg-white dark:bg-[#0b1120] min-h-screen pt-32 pb-24">
+                {showPreviewBanner && (
+                    <div className="max-w-4xl mx-auto px-4 sm:px-6 mb-6">
+                        <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200">
+                            <Eye className="h-5 w-5 shrink-0" />
+                            <span className="font-semibold">Modo Preview —</span>
+                            <span>Este artigo está em rascunho (status: {articleStatus}) e é visível apenas para staff com permissão <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs dark:bg-amber-900/40">content:manage</code>.</span>
+                        </div>
+                    </div>
+                )}
                 <div className="max-w-4xl mx-auto px-4 sm:px-6">
 
                     {/* Header */}

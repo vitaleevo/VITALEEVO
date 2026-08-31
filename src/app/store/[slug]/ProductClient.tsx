@@ -21,6 +21,7 @@ export default function ProductClient({ product }: ProductClientProps) {
                 id: product._id,
                 name: product.name,
                 sku: product.sku,
+                slug: product.slug,
                 image: product.image,
             },
             quantity
@@ -52,13 +53,13 @@ export default function ProductClient({ product }: ProductClientProps) {
                                 alt={product.name}
                                 className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                             />
-                            {product.isNew && (
+                            {(product.isNew || product.is_new) && (
                                 <span className="absolute top-6 left-6 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
                                     Novo Lançamento
                                 </span>
                             )}
                             <WishlistButton
-                                productId={product._id}
+                                productId={product.slug}
                                 className="absolute top-6 right-6 z-10 scale-150 !bg-white dark:!bg-[#151e32] !text-gray-400 hover:!text-red-500 !border-gray-100 dark:!border-white/5 shadow-xl"
                             />
                         </div>
@@ -91,19 +92,24 @@ export default function ProductClient({ product }: ProductClientProps) {
                                 Especificações
                             </span>
                             <div className="space-y-3">
-                                {product.specs ? (
-                                    product.specs.map((spec: any, i: number) => (
-                                        <div
-                                            key={i}
-                                            className="flex justify-between border-b border-gray-100 dark:border-white/5 pb-2 last:border-0 last:pb-0"
-                                        >
-                                            <span className="text-gray-600 dark:text-gray-400">{spec.label}</span>
-                                            <span className="font-medium text-gray-900 dark:text-white">{spec.value}</span>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-gray-500 italic">Especificações detalhadas indisponíveis.</p>
-                                )}
+                                {(() => {
+                                    const specsRaw = product.specifications || product.specs;
+                                    const specsList = Array.isArray(specsRaw)
+                                        ? specsRaw
+                                        : specsRaw && typeof specsRaw === "object"
+                                            ? Object.entries(specsRaw).map(([k, v]) => ({ label: k, value: String(v) }))
+                                            : null;
+                                    return specsList && specsList.length > 0 ? (
+                                        specsList.map((spec: any, i: number) => (
+                                            <div key={i} className="flex justify-between border-b border-gray-100 dark:border-white/5 pb-2 last:border-0 last:pb-0">
+                                                <span className="text-gray-600 dark:text-gray-400">{spec.label || spec.key || Object.keys(spec)[0]}</span>
+                                                <span className="font-medium text-gray-900 dark:text-white">{spec.value || spec.label || String(spec)}</span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-gray-500 italic">Especificações detalhadas indisponíveis.</p>
+                                    );
+                                })()}
                             </div>
                         </div>
 

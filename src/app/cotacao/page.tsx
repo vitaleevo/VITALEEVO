@@ -47,6 +47,7 @@ export default function CotacaoPage() {
                     name: item.name,
                     sku: item.sku,
                     image: item.image,
+                    slug: item.slug,
                     quantity: item.quantity,
                 })),
             });

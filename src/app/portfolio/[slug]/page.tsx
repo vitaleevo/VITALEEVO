@@ -1,18 +1,50 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { cookies, headers } from 'next/headers';
 import { api } from '@/shared/utils/apiClient';
 import FeatureLayout from '@/shared/components/FeatureLayout';
 import Link from 'next/link';
-import { ArrowLeft, CheckCircle, ArrowRight } from "lucide-react";
+import { ArrowLeft, CheckCircle, ArrowRight, Eye } from "lucide-react";
 import { sanitizeRichText } from "@/shared/utils/sanitize";
 
 interface Props {
     params: Promise<{ slug: string }>;
+    searchParams?: Promise<{ preview?: string }>;
 }
 
-async function resolveProject(slug: string) {
+async function getPreviewToken(): Promise<string | null> {
     try {
-        return await api.projects.getBySlug(slug);
+        const cookieStore = await cookies();
+        const headerStore = await headers();
+        const authHeader = headerStore.get('authorization') || headerStore.get('Authorization') || headerStore.get('x-preview-token');
+        if (authHeader) {
+            const bearer = authHeader.toLowerCase().startsWith('bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+            if (bearer) return bearer;
+        }
+        const candidates = ['vitaleevo_auth', 'token', 'auth_token', 'access_token', 'vitaleevo_token'];
+        for (const name of candidates) {
+            const raw = cookieStore.get(name)?.value;
+            if (!raw) continue;
+            try {
+                const parsed = JSON.parse(raw);
+                if (parsed?.token) return parsed.token as string;
+                if (typeof parsed === 'string' && parsed.length > 10) return parsed;
+                if (parsed?.access) return parsed.access as string;
+            } catch {
+                const cleaned = raw.startsWith('Bearer ') ? raw.slice(7).trim() : raw.trim();
+                const unquoted = cleaned.replace(/^"|"$/g, '');
+                if (unquoted) return unquoted;
+            }
+        }
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+async function resolveProject(slug: string, token?: string | null) {
+    try {
+        return await api.projects.getBySlug(slug, token ?? undefined);
     } catch {
         return null;
     }
@@ -21,17 +53,24 @@ async function resolveProject(slug: string) {
 export async function generateMetadata(props: Props): Promise<Metadata> {
     const params = await props.params;
     const { slug } = params;
+    const sp = props.searchParams ? await props.searchParams : undefined;
+    const isPreview = sp?.preview === 'true';
+    const token = isPreview ? await getPreviewToken() : null;
 
     try {
-        const project = await resolveProject(slug);
+        const project = await resolveProject(slug, token);
 
         if (!project) {
             return { title: 'Projeto Não Encontrado' };
         }
 
+        const isDraft = (project as any).status && (project as any).status !== 'published';
+        if (isDraft && !isPreview) return { title: 'Projeto Não Encontrado' };
+
         return {
-            title: `${project.title} | VitalEvo Portfolio`,
-            description: project.fullDescription || project.title,
+            title: `${project.seoTitle || project.title} | VitalEvo Portfolio`,
+            description: project.seoDescription || project.description || project.fullDescription || project.title,
+            ...(isPreview && isDraft ? { robots: { index: false, follow: false } } : {}),
         };
     } catch (e) {
         return { title: 'Projeto Não Encontrado' };
@@ -41,15 +80,34 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function ProjectPage(props: Props) {
     const params = await props.params;
     const { slug } = params;
+    const sp = props.searchParams ? await props.searchParams : undefined;
+    const isPreview = sp?.preview === 'true';
+    const previewToken = isPreview ? await getPreviewToken() : null;
 
-    const project = await resolveProject(slug);
+    const project = await resolveProject(slug, previewToken);
 
     if (!project) {
         notFound();
     }
 
+    const projectStatus = (project as any).status as string | undefined;
+    const isDraft = projectStatus && projectStatus !== 'published';
+    if (isDraft && !isPreview) {
+        notFound();
+    }
+    const showPreviewBanner = isPreview && isDraft;
+
     return (
         <FeatureLayout>
+            {showPreviewBanner && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-900/50">
+                    <div className="wrap flex items-center gap-3 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
+                        <Eye className="h-5 w-5 shrink-0" />
+                        <span className="font-semibold">Modo Preview —</span>
+                        <span>Este projeto está em rascunho (status: {projectStatus}) e é visível apenas para staff com permissão <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs dark:bg-amber-900/40">content:manage</code>.</span>
+                    </div>
+                </div>
+            )}
             <div className="min-h-screen bg-white dark:bg-[#0b1120]">
                 {/* Hero Header */}
                 <div className="relative h-[55vh] min-h-[420px] w-full overflow-hidden bg-background-light dark:bg-background-dark">

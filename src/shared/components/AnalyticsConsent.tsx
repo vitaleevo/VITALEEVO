@@ -1,14 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Script from "next/script";
 import AnalyticsTracker from "./AnalyticsTracker";
 
 const CONSENT_KEY = "vitaleevo_analytics_consent";
 
 type ConsentState = "accepted" | "declined" | null;
 
-export default function AnalyticsConsent({ googleAnalyticsId }: { googleAnalyticsId?: string }) {
+type ConsentUpdate = {
+    analytics_storage: "granted" | "denied";
+    ad_storage: "denied";
+    ad_user_data: "denied";
+    ad_personalization: "denied";
+};
+
+declare global {
+    interface Window {
+        gtag?: (command: "consent", action: "update", settings: ConsentUpdate) => void;
+    }
+}
+
+export default function AnalyticsConsent() {
     const [consent, setConsent] = useState<ConsentState>(null);
     const [ready, setReady] = useState(false);
 
@@ -20,6 +32,12 @@ export default function AnalyticsConsent({ googleAnalyticsId }: { googleAnalytic
 
     const choose = (value: Exclude<ConsentState, null>) => {
         localStorage.setItem(CONSENT_KEY, value);
+        window.gtag?.("consent", "update", {
+            analytics_storage: value === "accepted" ? "granted" : "denied",
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+        });
         setConsent(value);
     };
 
@@ -28,22 +46,6 @@ export default function AnalyticsConsent({ googleAnalyticsId }: { googleAnalytic
     return (
         <>
             {consent === "accepted" && <AnalyticsTracker />}
-            {consent === "accepted" && googleAnalyticsId && (
-                <>
-                    <Script
-                        src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
-                        strategy="afterInteractive"
-                    />
-                    <Script id="ga4-init" strategy="afterInteractive">
-                        {`
-                            window.dataLayer = window.dataLayer || [];
-                            function gtag(){dataLayer.push(arguments);}
-                            gtag('js', new Date());
-                            gtag('config', '${googleAnalyticsId}', { anonymize_ip: true });
-                        `}
-                    </Script>
-                </>
-            )}
             {consent === null && (
                 <section
                     aria-label="Preferências de privacidade"

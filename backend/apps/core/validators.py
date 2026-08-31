@@ -47,3 +47,24 @@ def validate_text(value: str, field: str, max_length: int) -> str:
     if len(normalized) > max_length:
         raise ValidationError(f"{field} não pode exceder {max_length} caracteres")
     return normalized
+
+
+def sanitize_html(value: str | None) -> str:
+    """Sanitiza HTML rico defense-in-depth com nh3 (compatível TipTap)."""
+    if not value:
+        return ""
+    try:
+        import nh3
+        return nh3.clean(
+            value,
+            tags={"a","abbr","address","article","aside","b","blockquote","br","cite","code","del","details","div","em","figcaption","figure","footer","h1","h2","h3","h4","h5","h6","header","hr","i","img","ins","kbd","li","main","mark","ol","p","pre","q","s","samp","section","small","span","strong","sub","summary","sup","table","tbody","td","th","thead","time","tr","u","ul","var"},
+            attributes={"a": {"href","title","target","class"}, "img": {"src","alt","title","class"}, "*": {"class","id"}},
+            url_schemes={"http","https","mailto"},
+            link_rel="noopener noreferrer",
+            clean_content_tags={"script","style"},
+            strip_comments=True,
+        )
+    except Exception:
+        # fallback: escapa tudo se nh3 falhar
+        import html
+        return html.escape(value)
