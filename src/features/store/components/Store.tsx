@@ -16,21 +16,50 @@ import {
     CheckCircle,
     Star,
     ChevronDown,
-    Heart,
     Plus,
     SearchX,
     Loader2,
     X
 } from "lucide-react";
 import WishlistButton from '@/shared/components/WishlistButton';
-import ConceptBackdrop, { CONCEPT_IMAGES } from '@/shared/components/ConceptBackdrop';
+import { CONCEPT_IMAGES } from '@/shared/components/ConceptBackdrop';
 
 const PAGE_SIZE = 9;
 
 const Store: React.FC = () => {
-    const { data: products } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.products.list({ page_size: 100 }).then(d => d.results), cacheKey: "store:products", cacheTTL: 10000 });
-    const { data: dbCategories } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.categories.getByType("store"), cacheKey: "store:categories", cacheTTL: 10000 });
-    const { data: dbBrands } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.brands.list(), cacheKey: "store:brands", cacheTTL: 10000 });
+    const {
+        data: products,
+        isLoading: productsLoading,
+        error: productsError,
+        refetch: refetchProducts,
+    } = useApiQuery<any[]>(null, {
+        deps: [],
+        fetcher: () => api.products.list({ page_size: 100 }).then(d => d.results),
+        cacheKey: "store:products",
+        cacheTTL: 10000,
+    });
+    const {
+        data: dbCategories,
+        isLoading: categoriesLoading,
+        error: categoriesError,
+        refetch: refetchCategories,
+    } = useApiQuery<any[]>(null, {
+        deps: [],
+        fetcher: () => api.categories.getByType("store"),
+        cacheKey: "store:categories",
+        cacheTTL: 10000,
+    });
+    const {
+        data: dbBrands,
+        isLoading: brandsLoading,
+        error: brandsError,
+        refetch: refetchBrands,
+    } = useApiQuery<any[]>(null, {
+        deps: [],
+        fetcher: () => api.brands.list(),
+        cacheKey: "store:brands",
+        cacheTTL: 10000,
+    });
     const { addItem, totalItems } = useCart();
 
     // Filters State
@@ -110,10 +139,14 @@ const Store: React.FC = () => {
             const searchNormalized = normalizeText(searchQuery);
             const nameNormalized = normalizeText(product.name);
             const descNormalized = normalizeText(product.description || "");
+            const skuNormalized = normalizeText(product.sku || "");
+            const brandNormalized = normalizeText(product.brand || "");
 
             const matchesSearch = searchNormalized === "" ||
                 nameNormalized.includes(searchNormalized) ||
-                descNormalized.includes(searchNormalized);
+                descNormalized.includes(searchNormalized) ||
+                skuNormalized.includes(searchNormalized) ||
+                brandNormalized.includes(searchNormalized);
 
             const matchesCategory = activeCategory === 'Todos' || product.category === activeCategory;
             const matchesSubcategory = !activeSubcategory || product.subcategory === activeSubcategory;
@@ -125,13 +158,42 @@ const Store: React.FC = () => {
         if (sortBy === 'A-Z') {
             result = [...result].sort((a, b) => a.name.localeCompare(b.name, 'pt'));
         } else if (sortBy === 'Mais Recentes') {
-            result = [...result].sort((a, b) => b._creationTime - a._creationTime);
+            result = [...result].sort((a, b) => {
+                const bTime = new Date(b.createdAt || 0).getTime();
+                const aTime = new Date(a.createdAt || 0).getTime();
+                return bTime - aTime;
+            });
         }
 
         return result;
     }, [products, searchQuery, activeCategory, activeSubcategory, selectedBrands, sortBy]);
 
-    if (!products || !dbCategories || !dbBrands) {
+    const loadError = productsError || categoriesError || brandsError;
+    const isInitialLoading = productsLoading || categoriesLoading || brandsLoading || !products || !dbCategories || !dbBrands;
+
+    if (loadError && (!products || !dbCategories || !dbBrands)) {
+        return (
+            <div className="pt-24 pb-20 bg-gray-50 dark:bg-background-dark min-h-screen flex items-center justify-center px-4">
+                <div className="max-w-md text-center bg-white dark:bg-surface-dark rounded-3xl border border-gray-100 dark:border-white/5 p-8 shadow-xl">
+                    <SearchX className="w-12 h-12 text-primary mx-auto mb-4" />
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Não foi possível carregar a loja</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{loadError}</p>
+                    <button
+                        onClick={() => {
+                            refetchProducts();
+                            refetchCategories();
+                            refetchBrands();
+                        }}
+                        className="px-6 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary-dark transition-colors"
+                    >
+                        Tentar novamente
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (isInitialLoading) {
         return (
             <div className="pt-24 pb-20 bg-gray-50 dark:bg-background-dark min-h-screen flex items-center justify-center">
                 <Loader2 className="w-12 h-12 text-primary animate-spin" />

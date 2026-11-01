@@ -62,6 +62,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "name",
             "slug",
             "sku",
+            "description",
             "image",
             "price",
             "old_price",
@@ -76,6 +77,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "is_featured",
             "rating",
             "review_count",
+            "created_at",
         ]
 
 
@@ -84,7 +86,6 @@ class ProductDetailSerializer(ProductListSerializer):
 
     class Meta(ProductListSerializer.Meta):
         fields = ProductListSerializer.Meta.fields + [
-            "description",
             "full_description",
             "images",
             "specs",

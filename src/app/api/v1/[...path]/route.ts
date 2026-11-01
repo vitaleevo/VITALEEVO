@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const DJANGO_API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8100').replace(/\/$/, '') + '/api/v1';
+const DJANGO_API_BASE = (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8100').replace(/\/$/, '') + '/api/v1';
 const REQUEST_TIMEOUT_MS = 10_000;
 const MAX_REQUEST_BYTES = 16 * 1024 * 1024;
 const MAX_RESPONSE_BYTES = 10 * 1024 * 1024;

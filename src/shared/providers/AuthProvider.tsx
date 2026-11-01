@@ -23,6 +23,7 @@ interface User {
     refreshToken?: string;
     avatarUrl?: string;
     phone?: string;
+    createdAt?: string;
     isStaff?: boolean;
     permissions?: string[];
 }
@@ -69,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     token: currentAuth.token,
                     refreshToken: currentAuth.refreshToken,
                     phone: (profile.phone as string | undefined) ?? "",
+                    createdAt: profile.createdAt as string | undefined,
                     isStaff: Boolean(profile.isStaff),
                     permissions: profile.permissions as string[] | undefined,
                 });
@@ -126,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 token: access,
                 refreshToken: refresh,
                 phone: (profile.phone as string | undefined) ?? "",
+                createdAt: profile.createdAt as string | undefined,
                 isStaff: Boolean(profile.isStaff),
                 permissions: profile.permissions as string[] | undefined,
             };

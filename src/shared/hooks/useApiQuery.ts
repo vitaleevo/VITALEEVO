@@ -34,7 +34,10 @@ export function useApiQuery<T = unknown>(path: string | null, options: ApiQueryO
     const [error, setError] = useState<string | null>(null);
     const [tick, setTick] = useState(0);
     const fetcherRef = useRef(fetcher);
-    fetcherRef.current = fetcher;
+
+    useEffect(() => {
+        fetcherRef.current = fetcher;
+    }, [fetcher]);
 
     useEffect(() => {
         if ((!path && !fetcherRef.current) || !enabled) {

@@ -384,7 +384,7 @@ export default function ContaPage() {
                                                 </label>
                                                 <p className="text-gray-900 dark:text-white font-medium flex items-center gap-2">
                                                     <Calendar className="w-4 h-4 text-gray-400" />
-                                                    {formatDate(Date.now())}
+                                                    {formatDate(user?.createdAt)}
                                                 </p>
                                             </div>
                                         </div>

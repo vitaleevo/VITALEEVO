@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const DJANGO_MEDIA_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8100').replace(/\/$/, '') + '/media';
+const DJANGO_MEDIA_BASE = (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8100').replace(/\/$/, '') + '/media';
 const MAX_MEDIA_BYTES = 20 * 1024 * 1024;
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
