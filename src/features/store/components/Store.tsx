@@ -80,6 +80,7 @@ const Store: React.FC = () => {
             name: product.name,
             sku: product.sku,
             image: product.image,
+            price: Number(product.price) || 0,
         });
     };
 

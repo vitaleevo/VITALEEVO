@@ -26,23 +26,30 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([]);
+    const [hydrated, setHydrated] = useState(false);
 
-    // Load cart from localStorage on mount
+    // Load cart from localStorage before enabling persistence.
     useEffect(() => {
         const savedCart = localStorage.getItem("vitaleevo_cart");
         if (savedCart) {
             try {
-                setItems(JSON.parse(savedCart));
-            } catch (e) {
-                console.error("Error parsing cart:", e);
+                const parsed = JSON.parse(savedCart);
+                if (Array.isArray(parsed)) {
+                    setItems(parsed);
+                }
+            } catch (error) {
+                console.error("Error parsing cart:", error);
+                localStorage.removeItem("vitaleevo_cart");
             }
         }
+        setHydrated(true);
     }, []);
 
-    // Save cart to localStorage whenever it changes
+    // Avoid overwriting a persisted cart with [] during the first client render.
     useEffect(() => {
+        if (!hydrated) return;
         localStorage.setItem("vitaleevo_cart", JSON.stringify(items));
-    }, [items]);
+    }, [hydrated, items]);
 
     const addItem = (product: { id: string | number; name: string; image: string; price?: number; sku?: string }, quantity = 1) => {
         setItems((prev) => {

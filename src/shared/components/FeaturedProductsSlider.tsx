@@ -7,6 +7,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import  { ShoppingBag, ArrowRight, ArrowLeft, Plus }  from 'lucide-react';
 import Link from 'next/link';
+import SafeImage from './SafeImage';
 import { motion } from 'framer-motion';
 
 // Import Swiper styles
@@ -80,7 +81,7 @@ export default function FeaturedProductsSlider() {
                                 >
                                     {/* Image Container */}
                                     <div className="relative aspect-square overflow-hidden bg-white dark:bg-slate-800">
-                                        <img
+                                        <SafeImage
                                             src={product.image}
                                             alt={product.name}
                                             className="h-full w-full object-contain p-8 transition-transform duration-500 group-hover/card:scale-110"

@@ -7,6 +7,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
 import { ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
 import Link from "next/link";
+import SafeImage from "./SafeImage";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -60,7 +61,7 @@ export default function FeaturedProjectsSlider() {
             {featuredProjects.map((project) => (
               <SwiperSlide key={project._id}>
                 <div className="relative aspect-[16/9] w-full md:aspect-[21/9] lg:aspect-[24/9]">
-                  <img
+                  <SafeImage
                     src={project.image}
                     alt={project.title}
                     className="absolute inset-0 h-full w-full object-cover"

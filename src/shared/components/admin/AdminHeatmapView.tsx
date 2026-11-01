@@ -10,19 +10,15 @@ import {
     Smartphone,
     Monitor,
     Tablet,
-    Calendar,
-    Layers,
     ListOrdered,
     BarChart3,
-    Sparkles,
     RefreshCw,
     ExternalLink,
-    HelpCircle,
 } from "lucide-react";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
-import { AdminHeader, Card, Loading, ErrorBox, Table, Td, Select, inputClass } from "./ui";
+import { AdminHeader, Card, Loading, ErrorBox, Table, Td, Select } from "./ui";
 
 const PERIODS = [
     { value: "today", label: "Hoje" },
@@ -54,7 +50,7 @@ export function AdminHeatmapView() {
     });
 
     // 3. Carregar dados de mapa de calor e cliques da página selecionada
-    const { data: heatmapData, isLoading: loadingHeatmap, refetch: refetchHeatmap } = useApiQuery<any>(null, {
+    const { data: heatmapData, refetch: refetchHeatmap } = useApiQuery<any>(null, {
         deps: [token, selectedPath, period],
         enabled: !!token,
         fetcher: () => api.analytics.getHeatmap(token as string, selectedPath, period),

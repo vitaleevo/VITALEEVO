@@ -23,6 +23,7 @@ export default function ProductClient({ product }: ProductClientProps) {
                 name: product.name,
                 sku: product.sku,
                 image: product.image,
+                price: Number(product.price) || 0,
             },
             quantity
         );

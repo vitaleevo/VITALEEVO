@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { KeyRound, Save, Shield, User, Lock, AlertCircle, CheckCircle2 } from "lucide-react";
+import { KeyRound, Save, Shield, User, Lock, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { useApiQuery } from "@/shared/hooks/useApiQuery";

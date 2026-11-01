@@ -4,6 +4,7 @@ import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/shared/utils/apiClient";
 import FeatureLayout from "@/shared/components/FeatureLayout";
+import SafeImage from "@/shared/components/SafeImage";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { useCart } from "@/shared/providers/CartProvider";
 import {
@@ -368,7 +369,7 @@ export default function OrderDetailPage() {
                                     {order.items.map((item: any) => (
                                         <div key={item.productId} className="py-6 first:pt-0 last:pb-0 flex gap-6">
                                             <div className="w-20 h-20 bg-gray-50 dark:bg-black/20 rounded-2xl overflow-hidden shrink-0 border border-gray-100 dark:border-white/5">
-                                                <img
+                                                <SafeImage
                                                     src={item.image}
                                                     alt={item.name}
                                                     loading="lazy"

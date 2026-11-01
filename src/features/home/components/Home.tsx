@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
+import SafeImage from "@/shared/components/SafeImage";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -257,7 +258,7 @@ const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher:
                   className="card group overflow-hidden"
                 >
                   <div className="relative aspect-[16/9] overflow-hidden">
-                    <img
+                    <SafeImage
                       src={project.image}
                       alt={project.title}
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"

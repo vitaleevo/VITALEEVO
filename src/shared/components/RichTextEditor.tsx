@@ -48,6 +48,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, placeh
         editorProps: {
             attributes: {
                 class: 'prose prose-sm sm:prose-base dark:prose-invert max-w-none focus:outline-none min-h-[200px] px-4 py-4',
+                'data-placeholder': placeholder || '',
             },
         },
         onUpdate: ({ editor }) => {

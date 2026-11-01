@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                 type: 'website',
             },
         };
-    } catch (error) {
+    } catch {
         return { title: 'Loja | Vitaleevo' };
     }
 }

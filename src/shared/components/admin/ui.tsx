@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import Image from "next/image";
 import { Loader2, UploadCloud, X, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/shared/utils/apiClient";

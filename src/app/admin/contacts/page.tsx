@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
-import { AdminHeader, Card, Modal, Loading, ErrorBox, Empty, Table, Td } from "@/shared/components/admin/ui";
+import { AdminHeader, Modal, Loading, ErrorBox, Empty, Table, Td } from "@/shared/components/admin/ui";
 import DeleteDialog from "@/shared/components/DeleteDialog";
 import { PermissionGuard } from "@/shared/components/admin/PermissionGuard";
 import { formatDate } from "@/shared/utils/format";
@@ -39,7 +39,7 @@ export function AdminContactsContent() {
         try {
             await api.contacts.markAsRead(c.id, token);
             refetch();
-        } catch (err) {
+        } catch {
             toast.error("Erro ao marcar como lida");
         }
     };
