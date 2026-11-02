@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Plus, Search, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -218,14 +218,14 @@ function CrudModal({ isOpen, onClose, editing, fields, itemName, onSave, saving 
     onSave: (form: Record<string, any>) => void;
     saving: boolean;
 }) {
-    const getInitial = () => {
+    const getInitial = useCallback(() => {
         const initial: Record<string, any> = {};
         for (const f of fields) {
             const value = editing?.[f.name];
             initial[f.name] = value ?? (f.type === "checkbox" ? false : "");
         }
         return initial;
-    };
+    }, [editing, fields]);
 
     const [form, setForm] = useState<Record<string, any>>(getInitial);
 
@@ -233,7 +233,7 @@ function CrudModal({ isOpen, onClose, editing, fields, itemName, onSave, saving 
         if (isOpen) {
             setForm(getInitial());
         }
-    }, [isOpen, editing, fields]);
+    }, [isOpen, getInitial]);
 
     const handleFieldChange = (fieldName: string, value: any) => {
         setForm(f => {

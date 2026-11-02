@@ -2,7 +2,7 @@
 
 import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
-import { Hammer, Mail, Phone, Instagram, Facebook, Linkedin, Twitter } from "lucide-react";
+import { Hammer, Mail, Phone, Instagram, Facebook } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Logo from "@/shared/components/Logo";

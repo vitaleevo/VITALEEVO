@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight, Star, Minus, Plus, Check, ShoppingCart, Heart, FileText } from "lucide-react";
+import { ChevronRight, Star, Minus, Plus, Check, ShoppingCart, FileText } from "lucide-react";
 import WishlistButton from "@/shared/components/WishlistButton";
 import { useCart } from "@/shared/providers/CartProvider";
 
@@ -22,6 +23,7 @@ export default function ProductClient({ product }: ProductClientProps) {
                 name: product.name,
                 sku: product.sku,
                 image: product.image,
+                price: Number(product.price) || 0,
             },
             quantity
         );
@@ -47,10 +49,14 @@ export default function ProductClient({ product }: ProductClientProps) {
                     {/* Image Gallery Section */}
                     <div className="space-y-4">
                         <div className="bg-white dark:bg-[#151e32] rounded-3xl p-8 border border-gray-100 dark:border-white/5 shadow-lg relative overflow-hidden group">
-                            <img
-                                src={product.image}
+                            <Image
+                                src={product.image || "/hero-card.png"}
                                 alt={product.name}
-                                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                                width={900}
+                                height={700}
+                                priority
+                                className="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500"
+                                sizes="(max-width: 1024px) 100vw, 50vw"
                             />
                             {product.isNew && (
                                 <span className="absolute top-6 left-6 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">

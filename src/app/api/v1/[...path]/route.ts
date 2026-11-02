@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const DJANGO_API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8100').replace(/\/$/, '') + '/api/v1';
+const DJANGO_API_BASE = (process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8100').replace(/\/$/, '') + '/api/v1';
 const REQUEST_TIMEOUT_MS = 10_000;
 const MAX_REQUEST_BYTES = 16 * 1024 * 1024;
 const MAX_RESPONSE_BYTES = 10 * 1024 * 1024;
-const REQUEST_HEADERS = new Set(['accept', 'authorization', 'content-type', 'if-none-match', 'x-request-id']);
+const REQUEST_HEADERS = new Set(['accept', 'authorization', 'content-type', 'if-none-match', 'x-request-id', 'x-signature']);
 const RESPONSE_HEADERS = new Set([
     'cache-control', 'content-disposition', 'content-type', 'etag', 'last-modified', 'retry-after', 'x-request-id',
 ]);
@@ -55,8 +55,9 @@ async function proxyRequest(req: NextRequest, { params }: { params: Promise<{ pa
             }
         });
 
-        const data = await response.arrayBuffer();
-        if (data.byteLength > MAX_RESPONSE_BYTES) {
+        const hasNoResponseBody = req.method === "HEAD" || response.status === 204 || response.status === 304;
+        const data = hasNoResponseBody ? null : await response.arrayBuffer();
+        if (data && data.byteLength > MAX_RESPONSE_BYTES) {
             return NextResponse.json({ error: 'Resposta do backend demasiado grande.' }, { status: 502 });
         }
         return new NextResponse(data, {

@@ -4,6 +4,7 @@ import { api } from "@/shared/utils/apiClient";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { Heart } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface WishlistButtonProps {
     productId: string;
@@ -32,7 +33,7 @@ export default function WishlistButton({ productId, className }: WishlistButtonP
         e.stopPropagation();
 
         if (!isAuthenticated || !token) {
-            alert("Por favor, faça login para adicionar aos favoritos.");
+            toast.info("Inicie sessão para adicionar produtos aos favoritos.");
             return;
         }
 
@@ -41,9 +42,12 @@ export default function WishlistButton({ productId, className }: WishlistButtonP
         setLoading(true);
         try {
             const res = await api.wishlist.toggle(productId, token);
-            setIsFavorited(Boolean(res?.favorited));
+            const favorited = Boolean(res?.favorited);
+            setIsFavorited(favorited);
+            toast.success(favorited ? "Produto adicionado aos favoritos." : "Produto removido dos favoritos.");
         } catch (error) {
             console.error("Error toggling wishlist:", error);
+            toast.error("Não foi possível atualizar os favoritos.");
         } finally {
             setLoading(false);
         }
@@ -53,6 +57,8 @@ export default function WishlistButton({ productId, className }: WishlistButtonP
         <button
             onClick={handleToggle}
             disabled={loading}
+            aria-label={isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+            aria-pressed={isFavorited}
             className={`transition-all duration-300 ${className} ${isFavorited
                 ? "bg-red-500 text-white border-red-500"
                 : "bg-white/20 hover:bg-white backdrop-blur-md text-white hover:text-red-500 border-white/30"

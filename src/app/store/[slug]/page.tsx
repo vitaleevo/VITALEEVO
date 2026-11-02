@@ -28,11 +28,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             openGraph: {
                 title: `${product.name} | Vitaleevo Loja`,
                 description: product.description,
-                images: [{ url: product.image }],
+                images: product.image ? [{ url: product.image }] : undefined,
                 type: 'website',
             },
         };
-    } catch (error) {
+    } catch {
         return { title: 'Loja | Vitaleevo' };
     }
 }

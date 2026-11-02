@@ -11,7 +11,6 @@ import {
   Moon,
   ArrowRight,
   LogOut,
-  Settings,
   LayoutDashboard,
   Package,
 } from "lucide-react";

@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import SafeImage from "@/shared/components/SafeImage";
 import {
   Layers,
   Calendar,
@@ -179,7 +180,7 @@ const Services: React.FC = () => {
             <div className="relative order-2 lg:order-1">
               <div className="absolute -inset-4 rounded-[2rem] bg-primary-faint blur-2xl" />
               <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 shadow-card dark:border-white/10">
-                <img
+                <SafeImage
                   src="https://images.unsplash.com/photo-1553877606-3c6691aac949?auto=format&fit=crop&q=80&w=800"
                   alt="Equipa VitalEvo a trabalhar"
                   className="h-full w-full object-cover"
@@ -205,7 +206,7 @@ const Services: React.FC = () => {
                 <span className="text-primary">VitalEvo?</span>
               </h2>
               <p className="mt-4 text-lg leading-relaxed text-slate-500 dark:text-slate-400">
-                Não somos apenas "fazedores de sites". Somos engenheiros de crescimento.
+                Não somos apenas &ldquo;fazedores de sites&rdquo;. Somos engenheiros de crescimento.
                 Cada linha de código que escrevemos tem um propósito comercial claro.
               </p>
 

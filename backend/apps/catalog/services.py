@@ -19,9 +19,14 @@ def adjust_stock(*, product: Product, quantity: int, actor, movement_type: str, 
 
     locked_product = Product.objects.select_for_update().get(pk=product.pk)
     new_stock = locked_product.stock + quantity
-    if new_stock < 0:
+    if new_stock < locked_product.reserved_stock:
         raise ValidationError(
-            {"quantity": f"Stock insuficiente (disponível {locked_product.stock})."}
+            {
+                "quantity": (
+                    f"O stock físico não pode ficar abaixo das {locked_product.reserved_stock} "
+                    "unidades já reservadas."
+                )
+            }
         )
 
     locked_product.stock = new_stock

@@ -104,7 +104,8 @@ class Product(BaseModel):
     )
     brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name="products")
     specs = models.JSONField(default=list, blank=True)
-    stock = models.PositiveIntegerField(default=0)
+    stock = models.PositiveIntegerField(default=0, help_text="Stock físico em armazém.")
+    reserved_stock = models.PositiveIntegerField(default=0, help_text="Unidades reservadas por encomendas ainda não concluídas.")
     is_new = models.BooleanField(default=False)
     is_featured = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=ProductStatus.choices, default=ProductStatus.PUBLISHED, db_index=True)
@@ -122,6 +123,10 @@ class Product(BaseModel):
                 condition=~models.Q(sku=""),
                 name="catalog_product_sku_ci_unique",
             ),
+            models.CheckConstraint(
+                condition=models.Q(reserved_stock__lte=models.F("stock")),
+                name="catalog_reserved_stock_lte_stock",
+            ),
         ]
 
     def clean(self):
@@ -132,6 +137,10 @@ class Product(BaseModel):
     def save(self, *args, **kwargs):
         self.sku = self.sku.strip().upper()
         super().save(*args, **kwargs)
+
+    @property
+    def available_stock(self) -> int:
+        return max(self.stock - self.reserved_stock, 0)
 
     def __str__(self):
         return self.name

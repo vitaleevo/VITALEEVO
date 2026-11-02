@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
 import FeatureLayout from "@/shared/components/FeatureLayout";
+import SafeImage from "@/shared/components/SafeImage";
 import Link from "next/link";
 import {
     User,
@@ -214,7 +215,7 @@ export default function ContaPage() {
             await api.addresses.remove(id, token!);
             setMessage({ type: "success", text: "Endereço removido" });
             refetchAddresses();
-        } catch (err) {
+        } catch {
             setMessage({ type: "error", text: "Erro ao remover endereço" });
         }
     };
@@ -224,7 +225,7 @@ export default function ContaPage() {
             await api.addresses.setDefault(id, token!);
             setMessage({ type: "success", text: "Endereço padrão atualizado" });
             refetchAddresses();
-        } catch (err) {
+        } catch {
             setMessage({ type: "error", text: "Erro ao atualizar padrão" });
         }
     };
@@ -384,7 +385,7 @@ export default function ContaPage() {
                                                 </label>
                                                 <p className="text-gray-900 dark:text-white font-medium flex items-center gap-2">
                                                     <Calendar className="w-4 h-4 text-gray-400" />
-                                                    {formatDate(Date.now())}
+                                                    {formatDate(user?.createdAt)}
                                                 </p>
                                             </div>
                                         </div>
@@ -712,7 +713,7 @@ export default function ContaPage() {
                                                     className="group relative bg-white dark:bg-[#151e32] rounded-2xl border border-gray-100 dark:border-white/5 overflow-hidden hover:shadow-xl transition-all"
                                                 >
                                                     <Link href={`/store/${item.product.slug}`} className="block aspect-video overflow-hidden">
-                                                        <img
+                                                        <SafeImage
                                                             src={item.product.image}
                                                             alt={item.product.name}
                                                             loading="lazy"
@@ -744,7 +745,7 @@ export default function ContaPage() {
                                                                         await api.wishlist.toggle(item.product.slug, token!);
                                                                         setMessage({ type: "success", text: "Removido dos favoritos" });
                                                                         refetchWishlist();
-                                                                    } catch (err) {
+                                                                    } catch {
                                                                         setMessage({ type: "error", text: "Erro ao remover" });
                                                                     }
                                                                 }}

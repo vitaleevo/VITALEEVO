@@ -113,7 +113,9 @@ def test_operations_can_manage_catalog_and_only_read_quotes(client):
 @pytest.mark.django_db
 def test_unrelated_staff_cannot_see_drafts_or_private_settings(client):
     Service.objects.create(title="Rascunho", slug="rascunho", description="privado", status="draft")
-    Setting.objects.create(key="site_config", value={"public": True})
+    Setting.objects.update_or_create(
+        key="site_config", defaults={"value": {"public": True}}
+    )
     Setting.objects.create(key="resend_api_key", value={"secret": True})
     client.force_authenticate(make_user(StaffRole.COMMERCIAL))
 

@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import SafeImage from "@/shared/components/SafeImage";
 import {
   CheckCircle,
   Flag,
@@ -49,7 +50,7 @@ const About: React.FC = () => {
             <div className="relative order-2 mx-auto w-full max-w-lg lg:order-1">
               <div className="relative animate-float">
                 <div className="absolute -inset-4 rounded-[2rem] bg-primary-faint blur-2xl" />
-                <img
+                <SafeImage
                   alt="Equipa VitalEvo"
                   className="relative z-10 h-[420px] w-full rounded-3xl border border-slate-200/80 object-cover shadow-card dark:border-white/10"
                   src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800"
@@ -83,8 +84,8 @@ const About: React.FC = () => {
               </p>
               <blockquote className="mt-8 border-l-2 border-primary/40 pl-5">
                 <p className="text-lg italic text-slate-600 dark:text-slate-300">
-                  "Acreditamos que o potencial de Angola é ilimitado. Nossa missão é
-                  desbloquear esse potencial através da transformação digital."
+                  &ldquo;Acreditamos que o potencial de Angola é ilimitado. Nossa missão é
+                  desbloquear esse potencial através da transformação digital.&rdquo;
                 </p>
               </blockquote>
             </div>

@@ -22,7 +22,7 @@ export default function TermsPage() {
                         <p>É concedida permissão para baixar temporariamente uma cópia dos materiais (informações ou software) no site da VitalEvo, apenas para visualização transitória pessoal e não comercial.</p>
 
                         <h3>3. Isenção de Responsabilidade</h3>
-                        <p>Os materiais no site da VitalEvo são fornecidos "como estão". A VitalEvo não oferece garantias, expressas ou implícitas, e, por este meio, isenta e nega todas as outras garantias, incluindo, sem limitação, garantias implícitas ou condições de comercialização.</p>
+                        <p>Os materiais no site da VitalEvo são fornecidos &ldquo;como estão&rdquo;. A VitalEvo não oferece garantias, expressas ou implícitas, e, por este meio, isenta e nega todas as outras garantias, incluindo, sem limitação, garantias implícitas ou condições de comercialização.</p>
 
                         <h3>4. Limitações</h3>
                         <p>Em nenhum caso a VitalEvo ou seus fornecedores serão responsáveis por quaisquer danos (incluindo, sem limitação, danos por perda de dados ou lucro ou devido a interrupção dos negócios) decorrentes do uso ou da incapacidade de usar os materiais da VitalEvo.</p>

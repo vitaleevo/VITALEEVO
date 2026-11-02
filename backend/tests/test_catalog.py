@@ -44,6 +44,33 @@ class TestCatalogPublic:
         assert "portatil-hp" in slugs
         assert "rascunho" not in slugs
 
+    def test_list_exposes_store_card_fields(self, client, product):
+        response = client.get("/api/v1/catalog/products/?search=Portátil")
+        assert response.status_code == 200
+        item = next(p for p in response.json()["results"] if p["slug"] == product.slug)
+        assert item["description"] == "Descrição"
+        assert item["created_at"]
+
+    def test_page_size_query_param_supports_full_store_catalog(self, client, category, brand):
+        Product.objects.bulk_create([
+            Product(
+                name=f"Pagination Test {i}",
+                slug=f"pagination-test-{i}",
+                sku=f"PAGE-{i:03d}",
+                description="Produto de teste de paginação",
+                price="1000.00",
+                image="/hero-card.png",
+                category=category,
+                brand=brand,
+                stock=1,
+                status="published",
+            )
+            for i in range(35)
+        ])
+        response = client.get("/api/v1/catalog/products/?search=Pagination%20Test&page_size=100")
+        assert response.status_code == 200
+        assert len(response.json()["results"]) == 35
+
     def test_retrieve_by_slug(self, client, product):
         response = client.get("/api/v1/catalog/products/portatil-hp/")
         assert response.status_code == 200

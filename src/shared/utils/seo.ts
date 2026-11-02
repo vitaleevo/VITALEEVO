@@ -16,7 +16,7 @@ export function generateSEOMetadata({
     const fullUrl = `${baseUrl}${path}`;
 
     return {
-        title: `${title} | Vitaleevo`,
+        title: { absolute: `${title} | Vitaleevo` },
         description,
         metadataBase: new URL(baseUrl),
         alternates: {

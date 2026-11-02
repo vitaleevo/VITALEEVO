@@ -5,6 +5,8 @@ import { request } from "../utils/apiClient";
 
 interface ApiQueryOptions {
     enabled?: boolean;
+    /** Dados já renderizados no servidor; a consulta no cliente revalida em segundo plano. */
+    initialData?: unknown;
     params?: Record<string, string | number | boolean | undefined | null>;
     token?: string | null;
     /** Fetch custom (adaptadores apiClient) — substitui o path. */
@@ -28,13 +30,16 @@ interface ApiQueryState<T> {
  * { data, isLoading, error, refetch } com o mesmo contrato de uso.
  */
 export function useApiQuery<T = unknown>(path: string | null, options: ApiQueryOptions = {}): ApiQueryState<T> {
-    const { enabled = true, params, token, fetcher, deps = [], cacheKey, cacheTTL = 10000 } = options;
-    const [data, setData] = useState<T | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(!!path && enabled);
+    const { enabled = true, initialData, params, token, fetcher, deps = [], cacheKey, cacheTTL = 10000 } = options;
+    const [data, setData] = useState<T | null>((initialData as T | null | undefined) ?? null);
+    const [isLoading, setIsLoading] = useState<boolean>(initialData == null && !!path && enabled);
     const [error, setError] = useState<string | null>(null);
     const [tick, setTick] = useState(0);
     const fetcherRef = useRef(fetcher);
-    fetcherRef.current = fetcher;
+
+    useEffect(() => {
+        fetcherRef.current = fetcher;
+    }, [fetcher]);
 
     useEffect(() => {
         if ((!path && !fetcherRef.current) || !enabled) {

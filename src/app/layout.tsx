@@ -36,8 +36,8 @@ export async function generateMetadata(
     const settings = await getSiteConfig();
 
     const previousImages = (await parent).openGraph?.images || [];
-    const siteName = settings?.siteName || "VitalEvo";
-    const title = settings?.siteName || "VitalEvo - Marketing Digital, Automação e Tecnologia em Angola";
+    const siteName = "Vitaleevo";
+    const title = "Vitaleevo — Marketing Digital, Automação e Tecnologia em Angola";
     const description = settings?.siteDescription || "Líder em Marketing Digital, Automações e Desenvolvimento de Software em Angola. Impulsionamos empresas em Luanda com tecnologia de ponta e design inovador.";
 
     return {
@@ -55,7 +55,7 @@ export async function generateMetadata(
             "criação de sites angola",
             "gestão de redes sociais angola",
             "tecnologia e inovação angola",
-            "vital evo angola",
+            "vitaleevo angola",
             "segurança eletrônica luanda",
             "e-commerce angola"
         ],
@@ -76,7 +76,7 @@ export async function generateMetadata(
                     url: "/og-image.png",
                     width: 1200,
                     height: 630,
-                    alt: "VitalEvo - Tecnologia e Marketing em Angola"
+                    alt: "Vitaleevo — Tecnologia e Marketing em Angola"
                 },
                 ...previousImages
             ],
@@ -111,7 +111,7 @@ export default function RootLayout({
                         __html: JSON.stringify({
                             "@context": "https://schema.org",
                             "@type": "Organization",
-                            "name": "VitalEvo",
+                            "name": "Vitaleevo",
                             "url": "https://vitaleevo.ao",
                             "logo": "https://vitaleevo.ao/logo.png",
                             "contactPoint": {
@@ -142,7 +142,7 @@ export default function RootLayout({
                         __html: JSON.stringify({
                             "@context": "https://schema.org",
                             "@type": "WebSite",
-                            "name": "VitalEvo",
+                            "name": "Vitaleevo",
                             "url": "https://vitaleevo.ao",
                             "inLanguage": "pt-AO"
                         })

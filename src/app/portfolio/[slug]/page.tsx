@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { api } from '@/shared/utils/apiClient';
 import FeatureLayout from '@/shared/components/FeatureLayout';
+import SafeImage from '@/shared/components/SafeImage';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, ArrowRight } from "lucide-react";
 import { sanitizeRichText } from "@/shared/utils/sanitize";
@@ -33,7 +34,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
             title: `${project.title} | VitalEvo Portfolio`,
             description: project.fullDescription || project.title,
         };
-    } catch (e) {
+    } catch {
         return { title: 'Projeto Não Encontrado' };
     }
 }
@@ -54,7 +55,7 @@ export default async function ProjectPage(props: Props) {
                 {/* Hero Header */}
                 <div className="relative h-[55vh] min-h-[420px] w-full overflow-hidden bg-background-light dark:bg-background-dark">
                     <div className="absolute inset-0 opacity-40">
-                        <img src={project.image} alt={project.title} className="h-full w-full object-cover" />
+                        <SafeImage src={project.image} alt={project.title} className="h-full w-full object-cover" />
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-background-light via-background-light/60 to-transparent dark:from-background-dark dark:via-background-dark/70"></div>
 
@@ -114,7 +115,7 @@ export default async function ProjectPage(props: Props) {
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                         {project.images.map((img: string, i: number) => (
                                             <div key={i} className={`group relative overflow-hidden rounded-2xl ${i % 3 === 0 ? 'aspect-video md:col-span-2' : 'aspect-square'}`}>
-                                                <img
+                                                <SafeImage
                                                     src={img}
                                                     alt={`Gallery ${i}`}
                                                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"

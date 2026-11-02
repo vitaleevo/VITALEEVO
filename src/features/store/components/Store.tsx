@@ -16,21 +16,62 @@ import {
     CheckCircle,
     Star,
     ChevronDown,
-    Heart,
     Plus,
     SearchX,
     Loader2,
-    X
+    X,
+    SlidersHorizontal,
+    Tags,
 } from "lucide-react";
 import WishlistButton from '@/shared/components/WishlistButton';
-import ConceptBackdrop, { CONCEPT_IMAGES } from '@/shared/components/ConceptBackdrop';
+import { CONCEPT_IMAGES } from '@/shared/components/ConceptBackdrop';
+import { toast } from 'sonner';
 
 const PAGE_SIZE = 9;
 
-const Store: React.FC = () => {
-    const { data: products } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.products.list({ page_size: 100 }).then(d => d.results), cacheKey: "store:products", cacheTTL: 10000 });
-    const { data: dbCategories } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.categories.getByType("store"), cacheKey: "store:categories", cacheTTL: 10000 });
-    const { data: dbBrands } = useApiQuery<any[]>(null, { deps: [], fetcher: () => api.brands.list(), cacheKey: "store:brands", cacheTTL: 10000 });
+interface StoreProps {
+    initialProducts?: any[] | null;
+    initialCategories?: any[] | null;
+    initialBrands?: any[] | null;
+}
+
+const Store: React.FC<StoreProps> = ({ initialProducts = null, initialCategories = null, initialBrands = null }) => {
+    const {
+        data: products,
+        isLoading: productsLoading,
+        error: productsError,
+        refetch: refetchProducts,
+    } = useApiQuery<any[]>(null, {
+        initialData: initialProducts,
+        deps: [],
+        fetcher: () => api.products.list({ page_size: 100 }).then(d => d.results),
+        cacheKey: "store:products",
+        cacheTTL: 10000,
+    });
+    const {
+        data: dbCategories,
+        isLoading: categoriesLoading,
+        error: categoriesError,
+        refetch: refetchCategories,
+    } = useApiQuery<any[]>(null, {
+        initialData: initialCategories,
+        deps: [],
+        fetcher: () => api.categories.getByType("store"),
+        cacheKey: "store:categories",
+        cacheTTL: 10000,
+    });
+    const {
+        data: dbBrands,
+        isLoading: brandsLoading,
+        error: brandsError,
+        refetch: refetchBrands,
+    } = useApiQuery<any[]>(null, {
+        initialData: initialBrands,
+        deps: [],
+        fetcher: () => api.brands.list(),
+        cacheKey: "store:brands",
+        cacheTTL: 10000,
+    });
     const { addItem, totalItems } = useCart();
 
     // Filters State
@@ -40,6 +81,7 @@ const Store: React.FC = () => {
     const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
     const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+    const [showAllBrands, setShowAllBrands] = useState(false);
     const [sortBy, setSortBy] = useState('Relevantes');
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
@@ -51,13 +93,16 @@ const Store: React.FC = () => {
             name: product.name,
             sku: product.sku,
             image: product.image,
+            price: Number(product.price) || 0,
         });
+        toast.success(`${product.name} foi adicionado à cotação.`);
     };
 
     const toggleBrand = (brand: string) => {
         setSelectedBrands(prev =>
             prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
         );
+        setVisibleCount(PAGE_SIZE);
     };
 
     const handleSelectCategory = (cat: string) => {
@@ -102,21 +147,40 @@ const Store: React.FC = () => {
         return dbBrands.map(b => b.name);
     }, [dbBrands]);
 
+    const visibleBrands = showAllBrands ? brands : brands.slice(0, 8);
+    const activeFilterCount =
+        (activeCategory !== 'Todos' ? 1 : 0) +
+        (activeSubcategory ? 1 : 0) +
+        selectedBrands.length +
+        (searchQuery.trim() ? 1 : 0);
+
     // Filtering Logic
     const filteredProducts = useMemo(() => {
         if (!products) return [];
+
+        const activeParent = parentCategories.find(category => category.name === activeCategory);
+        const childCategoryNames = activeParent
+            ? (subcategoriesByParent[activeParent.slug] || []).map((category: any) => category.name)
+            : [];
+        const acceptedCategoryNames = new Set([activeCategory, ...childCategoryNames]);
 
         let result = products.filter(product => {
             const searchNormalized = normalizeText(searchQuery);
             const nameNormalized = normalizeText(product.name);
             const descNormalized = normalizeText(product.description || "");
+            const skuNormalized = normalizeText(product.sku || "");
+            const brandNormalized = normalizeText(product.brand || "");
 
             const matchesSearch = searchNormalized === "" ||
                 nameNormalized.includes(searchNormalized) ||
-                descNormalized.includes(searchNormalized);
+                descNormalized.includes(searchNormalized) ||
+                skuNormalized.includes(searchNormalized) ||
+                brandNormalized.includes(searchNormalized);
 
-            const matchesCategory = activeCategory === 'Todos' || product.category === activeCategory;
-            const matchesSubcategory = !activeSubcategory || product.subcategory === activeSubcategory;
+            const matchesCategory = activeCategory === 'Todos' || acceptedCategoryNames.has(product.category);
+            const matchesSubcategory = !activeSubcategory ||
+                product.subcategory === activeSubcategory ||
+                product.category === activeSubcategory;
             const matchesBrand = selectedBrands.length === 0 || (product.brand && selectedBrands.includes(product.brand));
 
             return matchesSearch && matchesCategory && matchesSubcategory && matchesBrand;
@@ -125,13 +189,42 @@ const Store: React.FC = () => {
         if (sortBy === 'A-Z') {
             result = [...result].sort((a, b) => a.name.localeCompare(b.name, 'pt'));
         } else if (sortBy === 'Mais Recentes') {
-            result = [...result].sort((a, b) => b._creationTime - a._creationTime);
+            result = [...result].sort((a, b) => {
+                const bTime = new Date(b.createdAt || 0).getTime();
+                const aTime = new Date(a.createdAt || 0).getTime();
+                return bTime - aTime;
+            });
         }
 
         return result;
-    }, [products, searchQuery, activeCategory, activeSubcategory, selectedBrands, sortBy]);
+    }, [products, searchQuery, activeCategory, activeSubcategory, selectedBrands, sortBy, parentCategories, subcategoriesByParent]);
 
-    if (!products || !dbCategories || !dbBrands) {
+    const loadError = productsError || categoriesError || brandsError;
+    const isInitialLoading = productsLoading || categoriesLoading || brandsLoading || !products || !dbCategories || !dbBrands;
+
+    if (loadError && (!products || !dbCategories || !dbBrands)) {
+        return (
+            <div className="pt-24 pb-20 bg-gray-50 dark:bg-background-dark min-h-screen flex items-center justify-center px-4">
+                <div className="max-w-md text-center bg-white dark:bg-surface-dark rounded-3xl border border-gray-100 dark:border-white/5 p-8 shadow-xl">
+                    <SearchX className="w-12 h-12 text-primary mx-auto mb-4" />
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Não foi possível carregar a loja</h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{loadError}</p>
+                    <button
+                        onClick={() => {
+                            refetchProducts();
+                            refetchCategories();
+                            refetchBrands();
+                        }}
+                        className="px-6 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary-dark transition-colors"
+                    >
+                        Tentar novamente
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (isInitialLoading) {
         return (
             <div className="pt-24 pb-20 bg-gray-50 dark:bg-background-dark min-h-screen flex items-center justify-center">
                 <Loader2 className="w-12 h-12 text-primary animate-spin" />
@@ -172,13 +265,18 @@ const Store: React.FC = () => {
                         <input
                             type="text"
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="O que você está procurando hoje?"
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setVisibleCount(PAGE_SIZE);
+                            }}
+                            aria-label="Pesquisar produtos"
+                            placeholder="Que produto procura?"
                             className="w-full pl-12 pr-12 py-3 rounded-xl bg-gray-100 dark:bg-background-dark/50 border-2 border-transparent focus:border-primary/50 focus:bg-white dark:focus:bg-surface-dark transition-all text-gray-900 dark:text-white outline-none"
                         />
                         {searchQuery && (
                             <button
                                 onClick={() => setSearchQuery('')}
+                                aria-label="Limpar pesquisa"
                                 className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-200 dark:hover:bg-white/10 rounded-full transition-colors"
                             >
                                 <X className="w-4 h-4 text-gray-400" />
@@ -186,7 +284,7 @@ const Store: React.FC = () => {
                         )}
                     </div>
                     <div className="flex gap-3">
-                        <Link href="/cotacao" className="relative flex items-center justify-center h-12 w-12 rounded-xl bg-white dark:bg-background-dark text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-white/10 hover:border-primary/50 hover:text-primary transition-all shadow-sm">
+                        <Link href="/cotacao" aria-label={`Abrir cotação${totalItems > 0 ? ` com ${totalItems} produto${totalItems === 1 ? '' : 's'}` : ''}`} className="relative flex items-center justify-center h-12 w-12 rounded-xl bg-white dark:bg-background-dark text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-white/10 hover:border-primary/50 hover:text-primary transition-all shadow-sm">
                             <ShoppingCart className="w-5 h-5" />
                             {totalItems > 0 && (
                                 <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white text-[11px] font-bold shadow-lg shadow-primary/40 animate-pulse">
@@ -194,7 +292,7 @@ const Store: React.FC = () => {
                                 </span>
                             )}
                         </Link>
-                        <Link href="/conta" className="flex items-center justify-center h-12 w-12 rounded-xl bg-white dark:bg-background-dark text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-white/10 hover:border-primary/50 hover:text-primary transition-all shadow-sm">
+                        <Link href="/conta" aria-label="Abrir a minha conta" className="flex items-center justify-center h-12 w-12 rounded-xl bg-white dark:bg-background-dark text-gray-700 dark:text-gray-200 border border-gray-100 dark:border-white/10 hover:border-primary/50 hover:text-primary transition-all shadow-sm">
                             <User className="w-5 h-5" />
                         </Link>
                     </div>
@@ -203,15 +301,24 @@ const Store: React.FC = () => {
                 <div className="flex flex-col lg:flex-row gap-8">
 
                     {/* Sidebar / Filters */}
-                    <aside className={`w-full lg:w-72 shrink-0 ${showMobileFilters ? 'block' : 'hidden lg:block'}`}>
-                        <div className="bg-white dark:bg-surface-dark rounded-3xl p-6 border border-gray-100 dark:border-white/5 shadow-xl shadow-gray-200/50 dark:shadow-none space-y-8 sticky top-48">
+                    <aside id="store-filters" className={`w-full lg:w-72 shrink-0 ${showMobileFilters ? 'block' : 'hidden lg:block'}`}>
+                        <div className="sticky top-48 space-y-8 rounded-3xl border border-gray-100 bg-white p-6 shadow-xl shadow-gray-200/50 lg:max-h-[calc(100vh-13rem)] lg:overflow-y-auto dark:border-white/5 dark:bg-surface-dark dark:shadow-none">
 
                             {/* Header Sidebar */}
                             <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-white/5">
-                                <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">Filtros</h3>
+                                <h3 className="flex items-center gap-2 text-xl font-bold text-slate-900 dark:text-white">
+                                    <SlidersHorizontal className="h-5 w-5 text-primary" />
+                                    Filtros
+                                    {activeFilterCount > 0 && (
+                                        <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-black text-white">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
+                                </h3>
                                 <button
                                     onClick={clearFilters}
-                                    className="text-xs font-bold text-primary hover:text-primary-dark transition-colors uppercase tracking-widest"
+                                    disabled={activeFilterCount === 0}
+                                    className="text-xs font-bold text-primary hover:text-primary-dark transition-colors uppercase tracking-widest disabled:cursor-not-allowed disabled:opacity-40"
                                 >
                                     Limpar
                                 </button>
@@ -284,7 +391,7 @@ const Store: React.FC = () => {
                             <div className="space-y-4">
                                 <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Marcas</h4>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {brands.map((brand) => (
+                                    {visibleBrands.map((brand) => (
                                         <label key={brand} className="flex items-center gap-3 p-2 rounded-xl border border-transparent hover:border-gray-100 dark:hover:border-white/5 transition-all cursor-pointer group">
                                             <div className="relative flex items-center">
                                                 <input
@@ -306,6 +413,17 @@ const Store: React.FC = () => {
                                         </label>
                                     ))}
                                 </div>
+                                {brands.length > 8 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAllBrands(current => !current)}
+                                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold text-slate-600 transition-colors hover:border-primary/40 hover:text-primary dark:border-white/10 dark:text-slate-300"
+                                        aria-expanded={showAllBrands}
+                                    >
+                                        <Tags className="h-4 w-4" />
+                                        {showAllBrands ? 'Mostrar menos marcas' : `Ver todas as marcas (${brands.length})`}
+                                    </button>
+                                )}
                             </div>
 
                             {/* Faixa de Preço removida — catálogo sem preço público; cotação por proposta */}
@@ -320,14 +438,20 @@ const Store: React.FC = () => {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-2">
                             <div>
                                 <h2 className="text-2xl font-bold font-display text-gray-900 dark:text-white flex items-center gap-2">
-                                    {filteredProducts.length} <span className="text-gray-400 font-normal text-base md:text-2xl">resultados</span>
+                                    {filteredProducts.length}{' '}
+                                    <span className="text-gray-400 font-normal text-base md:text-2xl">
+                                        {filteredProducts.length === 1 ? 'resultado' : 'resultados'}
+                                    </span>
                                 </h2>
                                 <button
                                     onClick={() => setShowMobileFilters(!showMobileFilters)}
-                                    className="lg:hidden mt-2 text-primary font-bold text-sm flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-lg"
+                                    aria-expanded={showMobileFilters}
+                                    aria-controls="store-filters"
+                                    className="lg:hidden mt-3 text-primary font-bold text-sm flex items-center gap-2 bg-primary/10 px-3 py-2 rounded-lg"
                                 >
-                                    <Plus className={`w-4 h-4 transition-transform ${showMobileFilters ? 'rotate-45' : ''}`} />
-                                    {showMobileFilters ? 'Fechar Filtros' : 'Filtrar Busca'}
+                                    {showMobileFilters ? <X className="h-4 w-4" /> : <SlidersHorizontal className="h-4 w-4" />}
+                                    {showMobileFilters ? 'Fechar filtros' : 'Filtrar produtos'}
+                                    {activeFilterCount > 0 && <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] text-white">{activeFilterCount}</span>}
                                 </button>
                             </div>
 
@@ -337,6 +461,7 @@ const Store: React.FC = () => {
                                     <select
                                         value={sortBy}
                                         onChange={(e) => setSortBy(e.target.value)}
+                                        aria-label="Ordenar produtos"
                                         className="appearance-none bg-white dark:bg-surface-dark border-none shadow-sm text-gray-900 dark:text-white text-sm rounded-xl pl-4 pr-10 py-2.5 focus:ring-2 focus:ring-primary/20 cursor-pointer min-w-[160px]"
                                     >
                                         <option>Relevantes</option>
@@ -361,8 +486,9 @@ const Store: React.FC = () => {
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.9 }}
                                         transition={{ duration: 0.3 }}
+                                        className="h-full"
                                     >
-                                        <Link href={`/store/${product.slug}`} className="group flex flex-col h-full bg-white dark:bg-surface-dark rounded-3xl overflow-hidden border border-gray-100 dark:border-white/5 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500">
+                                        <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white transition-all duration-500 hover:-translate-y-1 hover:border-primary/20 hover:shadow-2xl hover:shadow-primary/5 dark:border-white/5 dark:bg-surface-dark">
                                             {/* Image Container */}
                                             <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
                                                 {product.isNew && (
@@ -372,30 +498,40 @@ const Store: React.FC = () => {
                                                     productId={product._id}
                                                     className="absolute top-4 right-4 z-10"
                                                 />
-                                                <Image
-                                                    src={product.image || '/hero-card.png'}
-                                                    alt={product.name}
-                                                    fill
-                                                    className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                                    loading="lazy"
-                                                />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                <Link
+                                                    href={`/store/${product.slug}`}
+                                                    aria-label={`Ver detalhes de ${product.name}`}
+                                                    className="absolute inset-0 block focus-visible:outline-offset-[-3px]"
+                                                >
+                                                    <Image
+                                                        src={product.image || '/hero-card.png'}
+                                                        alt={product.name}
+                                                        fill
+                                                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                                        loading="lazy"
+                                                    />
+                                                    <span className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                                                </Link>
                                             </div>
 
                                             {/* Details */}
                                             <div className="flex flex-col flex-1 p-6">
                                                 <div className="flex items-center justify-between mb-3">
                                                     <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{product.category}</span>
-                                                    <div className="flex items-center gap-1">
-                                                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                                                        <span className="text-xs font-bold text-gray-500">{product.rating}</span>
-                                                    </div>
+                                                    {Number(product.rating) > 0 && (
+                                                        <div className="flex items-center gap-1" aria-label={`Avaliação ${product.rating} de 5`}>
+                                                            <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" aria-hidden />
+                                                            <span className="text-xs font-bold text-gray-500">{product.rating}</span>
+                                                        </div>
+                                                    )}
                                                 </div>
 
-                                                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-1 group-hover:text-primary transition-colors">
-                                                    {product.name}
-                                                </h3>
+                                                <Link href={`/store/${product.slug}`} className="rounded-sm focus-visible:outline-offset-4">
+                                                    <h3 className="mb-2 line-clamp-2 text-lg font-bold text-gray-900 transition-colors group-hover:text-primary dark:text-white">
+                                                        {product.name}
+                                                    </h3>
+                                                </Link>
                                                 <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-6 font-medium">
                                                     {product.description}
                                                 </p>
@@ -407,14 +543,15 @@ const Store: React.FC = () => {
                                                     </div>
                                                     <button
                                                         onClick={(e) => handleAddToCart(e, product)}
-                                                        className="flex items-center justify-center gap-2 h-12 px-5 rounded-2xl bg-primary hover:bg-primary-dark text-white text-sm font-bold transition-all shadow-lg shadow-primary/20 hover:scale-105 active:scale-95"
+                                                        aria-label={`Adicionar ${product.name} à cotação`}
+                                                        className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-5 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-dark active:scale-95"
                                                     >
                                                         <ShoppingCart className="w-5 h-5" />
-                                                        Cotação
+                                                        Adicionar
                                                     </button>
                                                 </div>
                                             </div>
-                                        </Link>
+                                        </article>
                                     </motion.div>
                                 ))}
                             </AnimatePresence>
@@ -444,7 +581,7 @@ const Store: React.FC = () => {
                                     <SearchX className="w-10 h-10 text-gray-400" />
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Nenhum produto encontrado</h3>
-                                <p className="text-gray-500 max-w-xs mb-8">Tente ajustar seus filtros ou buscar por algo mais genérico.</p>
+                                <p className="text-gray-500 max-w-xs mb-8">Tente ajustar os filtros ou pesquisar por um termo mais genérico.</p>
                                 <button
                                     onClick={clearFilters}
                                     className="px-8 py-3 bg-primary text-white rounded-xl font-bold shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all"

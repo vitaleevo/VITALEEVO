@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useApiQuery } from "@/shared/hooks/useApiQuery";
 import { api } from "@/shared/utils/apiClient";
+import SafeImage from "@/shared/components/SafeImage";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -21,6 +22,7 @@ import {
 import Hero from "@/shared/components/Hero";
 import AnimatedCounter from "@/shared/components/AnimatedCounter";
 import ConceptBackdrop, { CONCEPT_IMAGES } from "@/shared/components/ConceptBackdrop";
+import ScrollReveal from "@/shared/components/ScrollReveal";
 
 const socialProof = [
   { value: 150, suffix: "+", label: "Projetos Entregues" },
@@ -123,7 +125,7 @@ const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher:
         <ConceptBackdrop image={CONCEPT_IMAGES.analytics} overlay={false} />
         <div className="absolute -left-20 -top-20 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
         <div className="absolute -bottom-24 -right-16 h-64 w-64 rounded-full bg-secondary/25 blur-3xl" />
-        <div className="wrap relative">
+        <ScrollReveal variant="curtain" className="wrap relative">
           <div className="grid grid-cols-2 gap-10 lg:grid-cols-4">
             {socialProof.map((stat, idx) => (
               <motion.div
@@ -144,12 +146,12 @@ const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher:
               </motion.div>
             ))}
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* ===== 3. Empresas que confiam ===== */}
       <section className="section-pad bg-background-light py-16 dark:bg-background-dark">
-        <div className="wrap">
+        <ScrollReveal variant="slide-right" className="wrap">
           <p className="text-center text-xs font-black uppercase tracking-[0.2em] text-slate-400">
             Empresas que confiam na VitalEvo
           </p>
@@ -168,12 +170,12 @@ const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher:
               </motion.span>
             ))}
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* ===== 4. Serviços (concretos, por prioridade comercial) ===== */}
       <section className="section-pad bg-white dark:bg-[#0b1120]">
-        <div className="wrap">
+        <ScrollReveal variant="doors" className="wrap rounded-[2rem]" amount={0.08}>
           <div className="section-head mx-auto max-w-2xl text-center">
             <span className="eyebrow justify-center">O que fazemos</span>
             <h2 className="mt-4 font-display text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl dark:text-white">
@@ -219,13 +221,13 @@ const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher:
               </motion.div>
             ))}
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* ===== 5. Casos de Sucesso (destaque) ===== */}
       {featuredProjects && featuredProjects.length > 0 && (
         <section className="section-pad bg-background-light dark:bg-background-dark">
-          <div className="wrap">
+          <ScrollReveal variant="zoom" className="wrap">
             <div className="section-head flex flex-col items-end justify-between gap-4 md:flex-row">
               <div>
                 <span className="eyebrow">
@@ -257,7 +259,7 @@ const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher:
                   className="card group overflow-hidden"
                 >
                   <div className="relative aspect-[16/9] overflow-hidden">
-                    <img
+                    <SafeImage
                       src={project.image}
                       alt={project.title}
                       className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -306,7 +308,7 @@ const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher:
                 </motion.div>
               ))}
             </div>
-          </div>
+          </ScrollReveal>
         </section>
       )}
 
@@ -314,7 +316,7 @@ const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher:
       <section className="section-pad bg-white dark:bg-[#0b1120]">
         <div className="wrap">
           <div className="grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
-            <div>
+            <ScrollReveal variant="slide-left">
               <span className="eyebrow">A nossa diferença</span>
               <h2 className="mt-4 font-display text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl dark:text-white">
                 Porque escolher a VitalEvo?
@@ -330,32 +332,34 @@ const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher:
                 Falar com a Equipa
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Link>
-            </div>
-            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {whyUs.map((item, idx) => (
-                <motion.li
-                  key={item}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true }}
-                  custom={idx}
-                  variants={fadeUp}
-                  className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 px-5 py-4 font-semibold text-slate-800 dark:border-white/5 dark:bg-white/5 dark:text-slate-200"
-                >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-500/15 text-green-500">
-                    <Check className="h-4 w-4" strokeWidth={3} />
-                  </span>
-                  {item}
-                </motion.li>
-              ))}
-            </ul>
+            </ScrollReveal>
+            <ScrollReveal variant="slide-right" delay={0.12}>
+              <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {whyUs.map((item, idx) => (
+                  <motion.li
+                    key={item}
+                    initial="hidden"
+                    whileInView="show"
+                    viewport={{ once: true }}
+                    custom={idx}
+                    variants={fadeUp}
+                    className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/60 px-5 py-4 font-semibold text-slate-800 dark:border-white/5 dark:bg-white/5 dark:text-slate-200"
+                  >
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-500/15 text-green-500">
+                      <Check className="h-4 w-4" strokeWidth={3} />
+                    </span>
+                    {item}
+                  </motion.li>
+                ))}
+              </ul>
+            </ScrollReveal>
           </div>
         </div>
       </section>
 
       {/* ===== 7. CTA Final — proposta gratuita ===== */}
       <section className="section-pad relative overflow-hidden">
-        <div className="wrap">
+        <ScrollReveal variant="zoom" className="wrap" amount={0.25}>
           <div className="relative overflow-hidden rounded-4xl bg-gradient-to-br from-primary via-primary-dark to-primary-darker px-6 py-16 text-center shadow-lift md:px-16 md:py-20">
             <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
             <div className="absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-secondary/30 blur-3xl" />
@@ -383,7 +387,7 @@ const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher:
               </div>
             </div>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
     </div>
   );

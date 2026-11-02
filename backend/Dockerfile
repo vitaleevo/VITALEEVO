@@ -25,6 +25,9 @@ RUN groupadd --system vitaleevo \
 COPY --from=builder /opt/venv /opt/venv
 COPY --chown=vitaleevo:vitaleevo . .
 
+RUN mkdir -p /app/media \
+    && chown -R vitaleevo:vitaleevo /app/media
+
 RUN SECRET_KEY=build-only-secret-key-change-me-1234567890 \
     DJANGO_SETTINGS_MODULE=config.settings.development \
     python manage.py collectstatic --noinput
@@ -33,4 +36,4 @@ USER vitaleevo
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT} --workers ${WEB_CONCURRENCY:-2} --timeout 60 --access-logfile - --error-logfile -"]
+CMD ["sh", "-c", "exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT} --workers ${WEB_CONCURRENCY:-2} --timeout 60 --no-control-socket --access-logfile - --error-logfile -"]

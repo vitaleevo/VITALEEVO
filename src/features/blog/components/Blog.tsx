@@ -53,7 +53,7 @@ const Blog: React.FC = () => {
       } else {
         toast.error("Erro ao inscrever. Tente novamente.");
       }
-    } catch (error) {
+    } catch {
       toast.error("Erro ao inscrever na newsletter.");
     } finally {
       setLoading(false);

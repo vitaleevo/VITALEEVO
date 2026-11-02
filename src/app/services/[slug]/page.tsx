@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { servicesData } from '@/features/services/data';
 import FeatureLayout from '@/shared/components/FeatureLayout';
+import SafeImage from '@/shared/components/SafeImage';
 import Link from 'next/link';
 import {
     ArrowLeft,
@@ -9,10 +10,7 @@ import {
     CheckCircle,
     Layers,
     Monitor,
-    Smartphone,
     Rocket,
-    Brain,
-    BarChart3,
     Router,
     Shield,
     Zap,
@@ -23,7 +21,6 @@ import {
     Type,
     Coins,
     MousePointer2,
-    Lock,
     WifiOff,
     PiggyBank,
     Gavel,
@@ -97,7 +94,7 @@ export default async function ServicePage({ params }: Props) {
                 {/* ===== Hero ===== */}
                 <section className="relative flex items-center justify-center overflow-hidden bg-background-light pt-28 pb-16 md:pb-24 dark:bg-background-dark">
                     <div className="absolute inset-0 -z-10">
-                        <img src={service.image} alt={service.title} className="h-full w-full object-cover opacity-25" />
+                        <SafeImage src={service.image} alt={service.title} className="h-full w-full object-cover opacity-25" />
                         <div className="absolute inset-0 bg-gradient-to-b from-background-light/90 via-background-light/70 to-background-light dark:from-background-dark/95 dark:via-background-dark/70 dark:to-background-dark"></div>
                         <div className="absolute -left-40 top-0 h-[460px] w-[460px] rounded-full bg-primary-glow/50 blur-[120px]" />
                     </div>

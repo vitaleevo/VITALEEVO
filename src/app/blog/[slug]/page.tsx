@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Clock, Calendar, User, Share2 } from "lucide-react";
 import { formatDate } from "@/shared/utils/format";
 import ShareButtons from '@/features/blog/components/ShareButtons';
+import SafeImage from '@/shared/components/SafeImage';
 import { sanitizeRichText } from "@/shared/utils/sanitize";
 
 interface Props {
@@ -79,7 +80,7 @@ export default async function ArticlePage({ params }: Props) {
                         <div className="flex items-center justify-center gap-4 py-6 border-y border-gray-100 dark:border-white/5">
                             <div className="flex items-center gap-3">
                                 {article.authorImage ? (
-                                    <img src={article.authorImage} alt={article.author} className="w-12 h-12 rounded-full border-2 border-white dark:border-[#0b1120] shadow-sm" />
+                                    <SafeImage src={article.authorImage} alt={article.author} className="w-12 h-12 rounded-full border-2 border-white dark:border-[#0b1120] shadow-sm" />
                                 ) : (
                                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                                         <User className="w-6 h-6" />
@@ -95,7 +96,7 @@ export default async function ArticlePage({ params }: Props) {
 
                     {/* Featured Image */}
                     <div className="relative mb-16 aspect-video overflow-hidden rounded-3xl shadow-card">
-                        <img
+                        <SafeImage
                             src={article.image}
                             alt={article.title}
                             className="w-full h-full object-cover"
