@@ -3,8 +3,9 @@
 import React, { useMemo } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, TrendingUp, Bot, BarChart3, Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import ConceptBackdrop, { CONCEPT_IMAGES } from "./ConceptBackdrop";
+import HeroVideoEffect from "./HeroVideoEffect";
 
 const container = {
     hidden: {},
@@ -19,8 +20,6 @@ const item = {
         transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const },
     },
 };
-
-const bars = [34, 48, 40, 62, 54, 78, 66, 92, 74, 100, 86, 96];
 
 export default function Hero() {
     const reduceMotion = useReducedMotion();
@@ -148,122 +147,8 @@ export default function Hero() {
                         </motion.div>
                     </motion.div>
 
-                    {/* Direita — mockups flutuantes */}
-                    <motion.div
-                        initial={reduceMotion ? false : { opacity: 0, scale: 0.94, y: 30 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={{ duration: 0.9, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                        className="relative mx-auto hidden h-[440px] w-full max-w-md lg:block"
-                    >
-                        {/* Card principal: mockup de dashboard */}
-                        <motion.div
-                            animate={reduceMotion ? undefined : { y: [0, -10, 0] }}
-                            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-                            className="absolute left-0 top-6 w-[86%] rounded-3xl border border-slate-200/70 bg-white p-5 shadow-card dark:border-white/10 dark:bg-[#151e32]"
-                        >
-                            <div className="mb-4 flex items-center gap-1.5">
-                                <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
-                                <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-                                <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-                                <span className="ml-3 flex items-center gap-2 rounded-md bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-400 dark:bg-white/5">
-                                    <BarChart3 className="h-3 w-3" />
-                                    painel.vitaleevo.ao
-                                </span>
-                            </div>
-                            <div className="flex items-end justify-between gap-2 rounded-2xl bg-slate-50 p-4 dark:bg-black/20">
-                                <div className="flex items-end gap-1.5">
-                                    {bars.map((h, i) => (
-                                        <motion.span
-                                            key={i}
-                                            className="w-2.5 rounded-t-md bg-gradient-to-t from-primary to-primary-light"
-                                            animate={
-                                                reduceMotion
-                                                    ? undefined
-                                                    : { height: [`${h * 0.5}px`, `${h * 0.9}px`, `${h * 0.5}px`] }
-                                            }
-                                            transition={{
-                                                duration: 3.2,
-                                                repeat: Infinity,
-                                                ease: "easeInOut",
-                                                delay: i * 0.18,
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                                <motion.span
-                                    className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-600 dark:bg-green-500/15 dark:text-green-400"
-                                    animate={reduceMotion ? undefined : { scale: [1, 1.06, 1] }}
-                                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                                >
-                                    ▲ 127%
-                                </motion.span>
-                            </div>
-                            <div className="mt-4 grid grid-cols-3 gap-3">
-                                <div className="rounded-xl bg-slate-50 p-3 dark:bg-black/20">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                        Cliques
-                                    </p>
-                                    <p className="mt-1 font-display text-lg font-extrabold text-slate-900 dark:text-white">
-                                        48.2k
-                                    </p>
-                                </div>
-                                <div className="rounded-xl bg-slate-50 p-3 dark:bg-black/20">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                        Leads
-                                    </p>
-                                    <p className="mt-1 font-display text-lg font-extrabold text-slate-900 dark:text-white">
-                                        3.4k
-                                    </p>
-                                </div>
-                                <div className="rounded-xl bg-slate-50 p-3 dark:bg-black/20">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                        ROI
-                                    </p>
-                                    <p className="mt-1 font-display text-lg font-extrabold text-primary dark:text-primary-light">
-                                        6.8x
-                                    </p>
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        {/* Card flutuante: crescimento */}
-                        <motion.div
-                            animate={reduceMotion ? undefined : { y: [0, -14, 0] }}
-                            transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }}
-                            className="absolute -right-2 top-0 flex items-center gap-3 rounded-2xl border border-slate-200/70 bg-white/95 p-4 shadow-card backdrop-blur dark:border-white/10 dark:bg-[#151e32]/95"
-                        >
-                            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-500/15 text-green-500">
-                                <TrendingUp className="h-5 w-5" />
-                            </span>
-                            <div>
-                                <p className="font-display text-xl font-extrabold text-slate-900 dark:text-white">
-                                    +127%
-                                </p>
-                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                    Crescimento médio
-                                </p>
-                            </div>
-                        </motion.div>
-
-                        {/* Card flutuante: automação IA */}
-                        <motion.div
-                            animate={reduceMotion ? undefined : { y: [0, 12, 0] }}
-                            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1.4 }}
-                            className="absolute bottom-6 left-2 flex items-center gap-3 rounded-2xl border border-slate-200/70 bg-white/95 p-4 shadow-card backdrop-blur dark:border-white/10 dark:bg-[#151e32]/95"
-                        >
-                            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                                <Bot className="h-5 w-5" />
-                            </span>
-                            <div>
-                                <p className="font-display text-base font-extrabold text-slate-900 dark:text-white">
-                                    Automação IA
-                                </p>
-                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                    Processos 10x mais rápidos
-                                </p>
-                            </div>
-                        </motion.div>
-                    </motion.div>
+                    {/* Direita — efeito cinematográfico exclusivo do hero da home */}
+                    <HeroVideoEffect reduceMotion={Boolean(reduceMotion)} />
                 </div>
             </div>
         </section>

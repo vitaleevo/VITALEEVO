@@ -56,7 +56,9 @@ class TestCmsPublic:
         assert response.status_code == 201
 
     def test_private_setting_is_not_public(self, client):
-        Setting.objects.create(key="site_config", value={"siteName": "VitalEvo"})
+        Setting.objects.update_or_create(
+            key="site_config", defaults={"value": {"siteName": "VitalEvo"}}
+        )
         Setting.objects.create(key="internal_secret", value={"token": "never-public"})
         response = client.get("/api/v1/cms/settings/")
         assert response.status_code == 200

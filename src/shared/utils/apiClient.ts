@@ -278,7 +278,7 @@ export const api = {
     // ── Categorias ───────────────────────────────────────────────────────
     categories: {
         getByType: (type: string) =>
-            request<Paginated<Record<string, unknown>>>("/catalog/categories/", { params: { type } }).then(d =>
+            request<Paginated<Record<string, unknown>>>("/catalog/categories/", { params: { type, page_size: 100 } }).then(d =>
                 asPaginated<Record<string, unknown>>(d).results.map(c => withCategoryAliases(c))
             ),
         create: (body: Record<string, unknown>, token: string) =>

@@ -271,6 +271,12 @@ ANALYTICS_RETENTION_DAYS = env.int("ANALYTICS_RETENTION_DAYS", default=180)
 
 # --- URLs públicas do site (usadas em e-mails/notificações) ---
 SITE_URL = env.str("SITE_URL", default="https://vitaleevo.ao")
+PAYMENT_WEBHOOK_BASE_URL = env.str("PAYMENT_WEBHOOK_BASE_URL", default=SITE_URL)
+PROXYPAY_BASE_URL = env.str("PROXYPAY_BASE_URL", default="https://api.proxypay.co.ao")
+PROXYPAY_RPS_API_KEY = env.str("PROXYPAY_RPS_API_KEY", default="")
+PROXYPAY_ENTITY_ID = env.str("PROXYPAY_ENTITY_ID", default="")
+PROXYPAY_OPG_TOKEN = env.str("PROXYPAY_OPG_TOKEN", default="")
+PROXYPAY_OPG_POS_ID = env.int("PROXYPAY_OPG_POS_ID", default=0)
 APPEND_SLASH = False
 
 # Railway captura stdout/stderr; JSON facilita pesquisa, alertas e correlação.

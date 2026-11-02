@@ -101,6 +101,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Persistência da sessão (tab atual)
     useEffect(() => {
+        // Durante a restauração inicial ainda não sabemos se existe um utilizador.
+        // Apagar aqui o sessionStorage cria uma corrida em Strict Mode: a segunda
+        // montagem deixa de encontrar o token e envia o staff para /login.
+        if (isLoading) return;
         if (user?.token) {
             sessionStorage.setItem(
                 AUTH_STORAGE_KEY,
@@ -109,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
             sessionStorage.removeItem(AUTH_STORAGE_KEY);
         }
-    }, [user?.token, user?.refreshToken]);
+    }, [isLoading, user?.token, user?.refreshToken]);
 
     const login = async (email: string, password: string) => {
         setError(null);

@@ -232,7 +232,7 @@ class DashboardStatsView(views.APIView):
             })
             payload["recent"]["contacts"] = list(
                 ContactMessage.objects.order_by("-created_at")[:5].values(
-                    "name", "email", "subject", "is_read", "created_at"
+                    "id", "name", "email", "subject", "is_read", "created_at"
                 )
             )
 

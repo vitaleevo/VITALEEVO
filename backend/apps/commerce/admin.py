@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Address, CartItem, Notification, Order, OrderItem, WishlistItem
+from .models import Address, CartItem, Notification, Order, OrderItem, Payment, PaymentEvent, WishlistItem
 
 
 class OrderItemInline(admin.TabularInline):
@@ -41,3 +41,18 @@ class NotificationAdmin(admin.ModelAdmin):
 class CartItemAdmin(admin.ModelAdmin):
     list_display = ("user", "product", "quantity")
     search_fields = ("user__email", "product__name")
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ("order", "provider", "status", "amount", "reference_number", "created_at")
+    list_filter = ("provider", "status")
+    search_fields = ("order__order_number", "provider_payment_id", "reference_number")
+    readonly_fields = ("idempotency_key", "provider_payload", "paid_at", "created_at", "updated_at")
+
+
+@admin.register(PaymentEvent)
+class PaymentEventAdmin(admin.ModelAdmin):
+    list_display = ("provider", "event_id", "reconciliation_status", "amount", "signature_valid", "created_at")
+    list_filter = ("provider", "reconciliation_status", "signature_valid")
+    search_fields = ("event_id", "payment__order__order_number")
+    readonly_fields = ("payload", "processed_at", "created_at", "updated_at")

@@ -46,7 +46,7 @@ class BrandSerializer(serializers.ModelSerializer):
 
 
 class ProductListSerializer(serializers.ModelSerializer):
-    """Lista pública — dados essenciais para cards da loja."""
+    """Lista pública — stock exposto significa unidades realmente disponíveis."""
 
     category = serializers.SlugRelatedField(slug_field="slug", read_only=True)
     subcategory = serializers.SlugRelatedField(slug_field="slug", read_only=True, allow_null=True)
@@ -54,6 +54,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
     subcategory_name = serializers.CharField(source="subcategory.name", read_only=True, allow_null=True)
     brand_name = serializers.CharField(source="brand.name", read_only=True, allow_null=True)
+    stock = serializers.IntegerField(source="available_stock", read_only=True)
 
     class Meta:
         model = Product
@@ -108,6 +109,7 @@ class ProductAdminSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
     subcategory_name = serializers.CharField(source="subcategory.name", read_only=True, allow_null=True)
     brand_name = serializers.CharField(source="brand.name", read_only=True, allow_null=True)
+    available_stock = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Product
@@ -130,6 +132,8 @@ class ProductAdminSerializer(serializers.ModelSerializer):
             "brand_name",
             "specs",
             "stock",
+            "reserved_stock",
+            "available_stock",
             "is_new",
             "is_featured",
             "status",
@@ -138,7 +142,7 @@ class ProductAdminSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = ["id", "reserved_stock", "available_stock", "created_at", "updated_at"]
 
     def validate_sku(self, value: str) -> str:
         sku = value.strip().upper()

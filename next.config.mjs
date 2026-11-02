@@ -18,6 +18,7 @@ const connectSources = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    agentRules: false,
     output: "standalone",
     turbopack: {
         root: process.cwd(),
