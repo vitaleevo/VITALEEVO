@@ -1,0 +1,72 @@
+name: Validate Django backend staging
+
+on:
+  push:
+    branches:
+      - deploy/staging-backend-20261112
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  staging-backend-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:18
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: vitaleevo_test
+          POSTGRES_PASSWORD: local_ci_only
+          POSTGRES_DB: vitaleevo_staging_test
+        options: >-
+          --health-cmd "pg_isready -U vitaleevo_test -d vitaleevo_staging_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+      redis:
+        image: redis:8.2
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.staging
+      RAILWAY_ENVIRONMENT_NAME: staging
+      SITE_URL: https://staging.example.test
+      DATABASE_URL: postgresql://vitaleevo_test:local_ci_only@127.0.0.1:5432/vitaleevo_staging_test
+      REDIS_URL: redis://127.0.0.1:6379/0
+      SECRET_KEY: ci-only-test-secret-never-use-in-production-123456789012345
+      DEBUG: "False"
+
+    steps:
+      - name: Checkout isolated staging branch
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install pinned backend dependencies
+        run: python -m pip install --no-cache-dir -r requirements.txt
+      - name: Validate staging security configuration
+        run: python manage.py check --deploy --settings=config.settings.staging
+      - name: Apply schema migrations to synthetic CI database
+        run: python manage.py migrate --noinput --settings=config.settings.staging
+      - name: Run Django tests with CI-only Postgres and Redis
+        env:
+          DJANGO_SETTINGS_MODULE: config.settings.development
+        run: python -m pytest -q
