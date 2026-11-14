@@ -23,6 +23,15 @@ const nextConfig = {
     turbopack: {
         root: process.cwd(),
     },
+    // A landing page e a API de propostas usam um serviço independente.
+    // O cliente permanece em vitaleevo.ao/solicitar-proposta.
+    async rewrites() {
+        return [
+            { source: "/solicitar-proposta", destination: "https://propostas.vitaleevo.ao/" },
+            { source: "/solicitar-proposta/", destination: "https://propostas.vitaleevo.ao/" },
+            { source: "/api/proposta", destination: "https://propostas.vitaleevo.ao/api/proposta" },
+        ];
+    },
     async headers() {
         return [
             {
