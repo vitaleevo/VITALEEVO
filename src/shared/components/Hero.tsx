@@ -135,7 +135,7 @@ export default function Hero() {
                             className="mt-9 flex flex-col gap-4 sm:flex-row"
                         >
                             <Link
-                                href="/contact"
+                                href="/solicitar-proposta"
                                 className="btn-primary group !py-4 !text-base"
                             >
                                 Solicitar Proposta
