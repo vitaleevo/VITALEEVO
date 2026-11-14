@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Store, Briefcase, Package, MessageCircle, ShoppingCart } from "lucide-react";
+import { Home, Store, Briefcase, Package, FileText, ShoppingCart } from "lucide-react";
 import { useCart } from "@/shared/providers/CartProvider";
 
 const MobileNavigation = () => {
@@ -15,7 +15,7 @@ const MobileNavigation = () => {
     { label: "Loja", icon: Store, href: "/store" },
     { label: "Serviços", icon: Briefcase, href: "/services" },
     { label: "Conta", icon: Package, href: "/conta" },
-    { label: "Falar", icon: MessageCircle, href: "/contact" },
+    { label: "Proposta", icon: FileText, href: "/solicitar-proposta" },
   ];
 
   const isActive = (href: string) => {

@@ -183,8 +183,8 @@ const Navbar: React.FC = () => {
             </button>
 
             {/* CTA */}
-            <Link href="/contact" className="btn-primary ml-1 !py-3">
-              <span>Fale Conosco</span>
+            <Link href="/solicitar-proposta" className="btn-primary ml-1 !py-3">
+              <span>Solicitar Proposta</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
