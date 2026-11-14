@@ -378,7 +378,7 @@ const { data: featuredProjects } = useApiQuery<any[]>(null, { deps: [], fetcher:
               </p>
               <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
                 <Link
-                  href="/contact"
+                  href="/solicitar-proposta"
                   className="group inline-flex items-center justify-center gap-2 rounded-xl bg-white px-10 py-4 font-display text-lg font-extrabold text-primary shadow-lg transition-all hover:-translate-y-1"
                 >
                   Solicitar Proposta
