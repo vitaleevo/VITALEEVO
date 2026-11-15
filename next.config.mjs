@@ -30,6 +30,7 @@ const nextConfig = {
             { source: "/solicitar-proposta", destination: "https://propostas.vitaleevo.ao/" },
             { source: "/solicitar-proposta/", destination: "https://propostas.vitaleevo.ao/" },
             { source: "/api/proposta", destination: "https://propostas.vitaleevo.ao/api/proposta" },
+            { source: "/api/catalogo", destination: "https://propostas.vitaleevo.ao/api/catalogo" },
         ];
     },
     async headers() {
