@@ -111,7 +111,6 @@ def mailbox_list(which):
                 "subject": str(item.get("Subject", "(sem assunto)"))[:300],
                 "date": str(item.get("Date", ""))[:150],
             })
-        imap.logout()
         return messages
 
 def mailbox_read(which, uid):
@@ -135,7 +134,6 @@ def mailbox_read(which, uid):
         msg = message_from_bytes(raw, policy=policy.default)
         body = msg.get_body(preferencelist=("plain",))
         text = body.get_content() if body else "(Mensagem sem versão de texto simples)"
-        imap.logout()
         return {
             "uid": uid, "from": str(msg.get("From", ""))[:300],
             "to": str(msg.get("To", ""))[:300],
