@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
     LayoutDashboard, Package, Newspaper, FolderKanban,
     ShoppingCart, FileText, Inbox, Users,
-    UserCircle, Menu, X, LogOut, Sparkles, Flame,
+    UserCircle, Menu, X, LogOut, Sparkles, Flame, Mail,
 } from "lucide-react";
 import { useAuth } from "@/shared/providers/AuthProvider";
 import { Loading } from "@/shared/components/admin/ui";
@@ -30,6 +30,7 @@ const NAV_SECTIONS: NavSection[] = [
         title: "Visão Geral",
         items: [
             { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+            { href: "/admin/correio", label: "Correio Empresarial", icon: Mail },
             { href: "/admin/cms", label: "Hub CMS", icon: Sparkles },
             { href: "/admin/cms#heatmap", label: "Mapa de Calor", icon: Flame, permission: "audit:read" },
         ],
@@ -69,10 +70,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [open, setOpen] = useState(false);
 
     useEffect(() => {
+        if (pathname === "/admin/correio") return;
         if (!isLoading && (!isAuthenticated || !user?.isStaff)) {
             router.replace("/login");
         }
-    }, [isLoading, isAuthenticated, user, router]);
+    }, [isLoading, isAuthenticated, user, router, pathname]);
+
+    // Correio tem autenticação isolada por cookie HttpOnly na função Python da Vercel.
+    // Evita dependência do Django/Railway sem abrir as restantes rotas administrativas.
+    if (pathname === "/admin/correio") return <>{children}</>;
 
     if (isLoading || !isAuthenticated || !user?.isStaff) {
         return (
